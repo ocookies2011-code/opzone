@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OpZone — Admin</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg0:#0a0e1a; --bg1:#111827; --bg2:#1a2235; --bg3:#232f45;
+  --alpha:#185FA5; --alpha-light:#378ADD; --alpha-muted:rgba(24,95,165,0.15);
+  --bravo:#8B2500; --bravo-light:#D85A30; --bravo-muted:rgba(139,37,0,0.15);
+  --green:#1D9E75; --amber:#BA7517; --red:#E24B4A;
+  --teal:#5DCAA5; --text:#e8eaf0; --text2:#9aa3b8; --text3:#5a6480;
+  --border:rgba(255,255,255,0.08); --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--bg0);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+h1,h2,h3,.label{font-family:'Rajdhani',sans-serif;}
+
+/* TOP BAR */
+.topbar{background:var(--bg1);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:52px;flex-shrink:0;}
+.logo{font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700;color:var(--teal);letter-spacing:2px;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;font-family:'Rajdhani',sans-serif;letter-spacing:1px;}
+.badge-wait{background:var(--bg3);color:var(--text2);}
+.badge-live{background:var(--red);color:#fff;animation:pulse 1.5s infinite;}
+.badge-paused{background:var(--amber);color:#fff;}
+.timer-top{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:600;color:var(--teal);letter-spacing:2px;}
+.code-display{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:#fff;background:var(--bg3);padding:4px 12px;border-radius:6px;letter-spacing:3px;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+/* TABS */
+.tabs{display:flex;background:var(--bg1);border-bottom:1px solid var(--border);flex-shrink:0;}
+.tab{flex:1;padding:10px 4px;text-align:center;font-size:12px;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:0.5px;}
+.tab.active{color:var(--teal);border-bottom-color:var(--teal);}
+
+/* CONTENT */
+.content{flex:1;overflow:hidden;position:relative;}
+.panel{display:none;height:100%;flex-direction:column;}
+.panel.active{display:flex;}
+
+/* MAP PANEL */
+.map-toolbar{background:var(--bg1);padding:8px 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border);flex-shrink:0;}
+.tb-btn{padding:6px 12px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text);transition:all 0.2s;font-family:'Rajdhani',sans-serif;letter-spacing:0.5px;white-space:nowrap;}
+.tb-btn:hover{background:rgba(93,202,165,0.15);border-color:var(--teal);}
+.tb-btn.active-tool{background:rgba(93,202,165,0.2);border-color:var(--teal);color:var(--teal);}
+.tb-btn.danger{border-color:rgba(226,75,74,0.4);color:var(--red);}
+.tb-btn.danger:hover{background:rgba(226,75,74,0.15);}
+.tb-sep{width:1px;height:22px;background:var(--border);margin:0 2px;}
+#map{flex:1;min-height:300px;}
+.map-sidebar{width:180px;background:var(--bg1);overflow-y:auto;flex-shrink:0;padding:8px;border-right:1px solid var(--border);}
+.map-panel-inner{display:flex;flex:1;overflow:hidden;}
+.draw-hint{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#fff;padding:7px 16px;border-radius:20px;font-size:12px;display:none;z-index:999;pointer-events:none;font-family:'Rajdhani',sans-serif;letter-spacing:0.5px;}
+
+/* SIDEBAR ITEMS */
+.sb-title{font-size:10px;color:var(--teal);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:10px 0 5px;}
+.sb-player{background:var(--bg2);border-radius:8px;padding:7px 8px;margin-bottom:5px;border:1px solid transparent;cursor:pointer;transition:border-color 0.2s;}
+.sb-player:hover{border-color:var(--border);}
+.sb-row{display:flex;align-items:center;gap:6px;}
+.sb-av{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;font-family:'Rajdhani',sans-serif;}
+.sb-name{font-size:12px;color:var(--text);font-weight:500;}
+.sb-status{font-size:10px;margin-top:3px;padding-left:28px;}
+.st-active{color:var(--teal);} .st-out{color:var(--red);} .st-respawn{color:var(--amber);animation:pulse 1s infinite;}
+.st-oob{color:var(--red);font-weight:600;}
+
+/* SCROLLABLE PANELS */
+.scroll{flex:1;overflow-y:auto;padding:14px;}
+.section-title{font-family:'Rajdhani',sans-serif;font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin:16px 0 8px;font-weight:700;}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center;}
+.stat-num{font-family:'Rajdhani',sans-serif;font-size:26px;font-weight:700;color:var(--text);}
+.stat-label{font-size:10px;color:var(--text2);margin-top:2px;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
+.timer-display{font-family:'Rajdhani',sans-serif;font-size:44px;font-weight:700;text-align:center;color:var(--teal);letter-spacing:4px;margin:8px 0;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+.btn{padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:opacity 0.2s;font-family:'Rajdhani',sans-serif;letter-spacing:0.5px;}
+.btn:hover{opacity:0.85;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-red{background:#8B2500;color:#fff;}
+.btn-gray{background:var(--bg3);color:var(--text);border:1px solid var(--border);}
+.btn-blue{background:var(--alpha);color:#fff;}
+.btn-amber{background:var(--amber);color:#fff;}
+.btn-teal{background:var(--teal);color:#000;}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.mode-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;text-align:center;transition:all 0.2s;}
+.mode-card.selected{border-color:var(--teal);background:rgba(93,202,165,0.08);}
+.mode-card-icon{font-size:20px;margin-bottom:4px;}
+.mode-card-name{font-size:12px;font-weight:600;color:var(--text);font-family:'Rajdhani',sans-serif;letter-spacing:0.5px;}
+textarea,input[type=text]{width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-size:13px;color:var(--text);outline:none;font-family:'Inter',sans-serif;margin-bottom:8px;}
+textarea:focus,input[type=text]:focus{border-color:var(--teal);}
+
+/* PLAYERS LIST */
+.player-row{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.pr-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;font-family:'Rajdhani',sans-serif;}
+.pr-info{flex:1;}
+.pr-name{font-size:14px;font-weight:600;color:var(--text);font-family:'Rajdhani',sans-serif;}
+.pr-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.pr-status{font-size:11px;margin-top:2px;}
+.pr-btn{padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:'Rajdhani',sans-serif;}
+.pr-btn-out{color:var(--red);border-color:var(--red);}
+.pr-btn-out.active{background:var(--red);color:#fff;}
+.join-bar{padding:10px 12px;background:var(--bg1);border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;}
+.join-input{flex:1;min-width:120px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-size:13px;color:var(--text);outline:none;margin:0;}
+.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;font-family:'Rajdhani',sans-serif;}
+.pill-alpha{background:var(--alpha-muted);color:var(--alpha-light);}
+.pill-bravo{background:var(--bravo-muted);color:var(--bravo-light);}
+
+/* HIT LOG */
+.log-entry{background:var(--bg2);border-radius:8px;padding:9px 12px;margin-bottom:6px;border-left:3px solid var(--border);}
+.log-entry.respawn{border-left-color:var(--green);}
+.log-entry.hit{border-left-color:var(--red);}
+.log-entry.boundary{border-left-color:var(--amber);}
+.log-time{font-size:10px;color:var(--text3);font-family:'Rajdhani',sans-serif;}
+.log-note{font-size:12px;color:var(--text);margin-top:2px;}
+
+/* ZONE LIST */
+.zone-item{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;}
+.zone-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-right:8px;}
+.zone-name{font-size:12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-weight:600;}
+.zone-sub{font-size:10px;color:var(--text2);}
+
+/* SCORES */
+.team-score-card{border-radius:var(--radius);padding:16px;text-align:center;margin-bottom:8px;}
+.team-score-num{font-family:'Rajdhani',sans-serif;font-size:52px;font-weight:700;}
+.team-score-label{font-size:12px;font-weight:600;font-family:'Rajdhani',sans-serif;letter-spacing:1px;}
+.leaderboard-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);}
+.leaderboard-row:last-child{border-bottom:none;}
+
+/* QR */
+.qr-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;margin-bottom:12px;}
+.qr-wrap canvas{border-radius:8px;}
+.qr-url{font-size:12px;color:var(--text2);word-break:break-all;margin-top:8px;}
+.hint-box{background:rgba(93,202,165,0.07);border:1px solid rgba(93,202,165,0.25);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--teal);line-height:1.7;margin-bottom:10px;}
+
+/* SETUP SCREEN */
+#setup-screen{position:fixed;inset:0;background:var(--bg0);z-index:9999;display:flex;align-items:center;justify-content:center;}
+.setup-card{background:var(--bg1);border:1px solid var(--border);border-radius:16px;padding:36px;max-width:400px;width:90%;text-align:center;}
+.setup-title{font-family:'Rajdhani',sans-serif;font-size:32px;font-weight:700;color:var(--teal);letter-spacing:3px;margin-bottom:4px;}
+.setup-sub{font-size:13px;color:var(--text2);margin-bottom:28px;}
+.setup-btn{width:100%;padding:14px;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;border:none;background:var(--teal);color:#000;font-family:'Rajdhani',sans-serif;letter-spacing:1px;margin-bottom:10px;}
+
+/* TOASTS */
+.toast-wrap{position:fixed;top:0;left:0;right:0;z-index:9000;display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:8px;pointer-events:none;}
+.toast{padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;font-family:'Rajdhani',sans-serif;letter-spacing:0.5px;opacity:0;transform:translateY(-20px);transition:all 0.35s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast-alert{background:var(--amber);color:#fff;}
+.toast-respawn{background:var(--green);color:#fff;}
+.toast-hit{background:var(--red);color:#fff;}
+.toast-oob{background:#7a5800;color:#fff;}
+</style>
+</head>
+<body>
+
+<div id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-title">OPZONE</div>
+    <div class="setup-sub">Airsoft Game Day Manager — Admin</div>
+    <button class="setup-btn" onclick="createGame()">Create New Game</button>
+    <div style="font-size:12px;color:var(--text3);margin-top:4px;">A unique game code will be generated for players to join</div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<div class="topbar">
+  <div class="logo">OPZONE</div>
+  <div class="topbar-right">
+    <span class="code-display" id="code-display">------</span>
+    <span class="badge badge-wait" id="game-badge">WAITING</span>
+    <span class="timer-top" id="timer-top">00:00</span>
+  </div>
+</div>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('map')">Live Map</div>
+  <div class="tab" onclick="switchTab('admin')">Admin</div>
+  <div class="tab" onclick="switchTab('players')">Players</div>
+  <div class="tab" onclick="switchTab('scores')">Scores</div>
+  <div class="tab" onclick="switchTab('log')">Hit Log</div>
+  <div class="tab" onclick="switchTab('join')">Join QR</div>
+</div>
+<div class="content">
+
+  <!-- MAP -->
+  <div class="panel active" id="panel-map" style="position:relative;">
+    <div class="map-toolbar">
+      <span style="font-size:11px;color:var(--text2);font-family:'Rajdhani',sans-serif;font-weight:600;">DRAW:</span>
+      <button class="tb-btn" id="btn-alpha-zone" onclick="setDrawMode('alpha')">+ Alpha Respawn</button>
+      <button class="tb-btn" id="btn-bravo-zone" onclick="setDrawMode('bravo')">+ Bravo Respawn</button>
+      <button class="tb-btn" id="btn-boundary" onclick="setDrawMode('boundary')">+ Boundary</button>
+      <div class="tb-sep"></div>
+      <button class="tb-btn danger" onclick="clearZones()">Clear zones</button>
+      <div class="tb-sep"></div>
+      <button class="tb-btn" onclick="toggleSat()">Satellite</button>
+      <button class="tb-btn" onclick="centerAll()">Centre</button>
+      <button class="tb-btn" onclick="toggleSidebar()">Roster</button>
+    </div>
+    <div class="map-panel-inner">
+      <div class="map-sidebar" id="map-sidebar"></div>
+      <div style="flex:1;position:relative;display:flex;flex-direction:column;">
+        <div id="map"></div>
+        <div class="draw-hint" id="draw-hint"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN -->
+  <div class="panel" id="panel-admin">
+    <div class="scroll">
+      <div class="section-title">Live stats</div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-num" id="s-alpha" style="color:var(--alpha-light);">0</div><div class="stat-label">Alpha alive</div></div>
+        <div class="stat-card"><div class="stat-num" id="s-bravo" style="color:var(--bravo-light);">0</div><div class="stat-label">Bravo alive</div></div>
+        <div class="stat-card"><div class="stat-num" id="s-out">0</div><div class="stat-label">Eliminated</div></div>
+      </div>
+      <div class="card">
+        <div class="timer-display" id="admin-timer">00:00</div>
+        <div class="btn-row">
+          <button class="btn btn-green" onclick="control('start')">▶ Start</button>
+          <button class="btn btn-amber" onclick="control('stop')">⏸ Pause</button>
+          <button class="btn btn-gray" onclick="control('reset')">↺ Reset</button>
+        </div>
+      </div>
+      <div class="section-title">Active zones</div>
+      <div class="hint-box">Players marked <b>out</b> must walk to their team's respawn zone. Kills are only counted on respawn.</div>
+      <div id="zone-list"><div style="font-size:12px;color:var(--text2);">No zones yet — use Live Map tab to draw them.</div></div>
+      <div class="section-title">Game mode</div>
+      <div class="mode-grid">
+        <div class="mode-card selected" onclick="setMode(this,'Team Deathmatch')"><div class="mode-card-icon">⚔️</div><div class="mode-card-name">Team Deathmatch</div></div>
+        <div class="mode-card" onclick="setMode(this,'Capture the Flag')"><div class="mode-card-icon">🚩</div><div class="mode-card-name">Capture the Flag</div></div>
+        <div class="mode-card" onclick="setMode(this,'Domination')"><div class="mode-card-icon">📡</div><div class="mode-card-name">Domination</div></div>
+        <div class="mode-card" onclick="setMode(this,'VIP Escort')"><div class="mode-card-icon">🛡️</div><div class="mode-card-name">VIP Escort</div></div>
+      </div>
+      <div class="section-title">Broadcast alert</div>
+      <textarea id="alert-msg" rows="2" placeholder="e.g. Game starts in 2 mins — head to base!"></textarea>
+      <div class="btn-row"><button class="btn btn-amber" onclick="sendAlert()">📢 Send to all players</button></div>
+      <div style="height:20px;"></div>
+    </div>
+  </div>
+
+  <!-- PLAYERS -->
+  <div class="panel" id="panel-players">
+    <div class="scroll" id="players-list"></div>
+    <div class="join-bar">
+      <input class="join-input" id="new-name" placeholder="Player callsign..." />
+      <button class="btn btn-blue" onclick="addPlayer('alpha')">+ Alpha</button>
+      <button class="btn btn-red" onclick="addPlayer('bravo')">+ Bravo</button>
+    </div>
+  </div>
+
+  <!-- SCORES -->
+  <div class="panel" id="panel-scores">
+    <div class="scroll">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div class="team-score-card" style="background:var(--alpha-muted);border:1px solid rgba(24,95,165,0.3);">
+          <div class="team-score-num" style="color:var(--alpha-light);" id="sc-alpha">0</div>
+          <div class="team-score-label" style="color:var(--alpha-light);">ALPHA KILLS</div>
+        </div>
+        <div class="team-score-card" style="background:var(--bravo-muted);border:1px solid rgba(139,37,0,0.3);">
+          <div class="team-score-num" style="color:var(--bravo-light);" id="sc-bravo">0</div>
+          <div class="team-score-label" style="color:var(--bravo-light);">BRAVO KILLS</div>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-num" id="sc-round">1</div><div class="stat-label">Round</div></div>
+        <div class="stat-card"><div class="stat-num" id="sc-total">0</div><div class="stat-label">Total kills</div></div>
+        <div class="stat-card"><div class="stat-num" id="sc-players">0</div><div class="stat-label">Players</div></div>
+      </div>
+      <div class="section-title">Player leaderboard</div>
+      <div class="card" id="leaderboard"></div>
+      <div class="section-title">Round controls</div>
+      <div class="btn-row">
+        <button class="btn btn-teal" onclick="control('nextround')">Next round — respawn all</button>
+      </div>
+      <div style="height:8px;"></div>
+      <div style="font-size:11px;color:var(--text3);line-height:1.6;">Kills only count when eliminated players reach their respawn zone on the map.</div>
+      <div style="height:20px;"></div>
+    </div>
+  </div>
+
+  <!-- HIT LOG -->
+  <div class="panel" id="panel-log">
+    <div class="scroll" id="hit-log-list">
+      <div style="font-size:12px;color:var(--text2);">No events yet.</div>
+    </div>
+  </div>
+
+  <!-- JOIN QR -->
+  <div class="panel" id="panel-join">
+    <div class="scroll">
+      <div class="section-title">Player join QR code</div>
+      <div class="hint-box">Show this QR to players — they scan it with their phone camera to open the player app and join automatically. GPS tracking starts immediately.</div>
+      <div class="qr-wrap">
+        <canvas id="qr-canvas"></canvas>
+        <div class="qr-url" id="qr-url"></div>
+      </div>
+      <div class="section-title">Manual join URL</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--teal);word-break:break-all;font-family:monospace;" id="join-url-text"></div>
+      <div style="height:8px;"></div>
+      <button class="btn btn-gray" onclick="copyJoinUrl()" style="margin-top:4px;">Copy link</button>
+      <div class="section-title">Session game code</div>
+      <div style="font-family:'Rajdhani',sans-serif;font-size:48px;font-weight:700;color:var(--teal);letter-spacing:8px;text-align:center;padding:16px 0;" id="big-code">---</div>
+      <div style="font-size:12px;color:var(--text2);text-align:center;">Players can also type this code manually on the player page</div>
+      <div style="height:20px;"></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+let gameCode = null, es = null;
+let map, streetLayer, satLayer, isSat = false;
+let markers = {}, zoneCircles = {}, zoneLabels = {};
+let drawMode = null, sidebarOpen = true;
+let state = { players:[], zones:[], hitLog:[], scores:{alpha:0,bravo:0}, running:false, gameSeconds:0, roundNum:1 };
+
+// ── SETUP ──────────────────────────────────────────────────────────────────
+
+async function createGame() {
+  const res = await fetch('/api/create', { method:'POST' });
+  const data = await res.json();
+  gameCode = data.code;
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('code-display').textContent = gameCode;
+  document.getElementById('big-code').textContent = gameCode;
+  initMap();
+  connectSSE();
+  generateQR();
+}
+
+function connectSSE() {
+  es = new EventSource(`/events?code=${gameCode}`);
+  es.addEventListener('state', e => { applyState(JSON.parse(e.data)); });
+  es.addEventListener('timer', e => { const d=JSON.parse(e.data); state.gameSeconds=d.seconds; updateTimerDisplay(); });
+  es.addEventListener('location', e => { const d=JSON.parse(e.data); updatePlayerLocation(d); });
+  es.addEventListener('respawn', e => { const d=JSON.parse(e.data); showToast(`✅ ${d.player} respawned — kill counted!`,'toast-respawn'); });
+  es.addEventListener('hit', e => { const d=JSON.parse(e.data); showToast(`💥 ${d.player} eliminated`,'toast-hit'); });
+  es.addEventListener('alert', e => { const d=JSON.parse(e.data); showToast(`📢 Alert sent: ${d.message}`,'toast-alert'); });
+  es.addEventListener('boundary', e => { const d=JSON.parse(e.data); showToast(`⚠️ ${d.player} is OUT OF BOUNDS!`,'toast-oob'); });
+}
+
+// ── MAP ──────────────────────────────────────────────────────────────────────
+
+function initMap() {
+  map = L.map('map', { zoomControl:true }).setView([51.504,-0.089], 16);
+  streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'});
+  satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'© Esri'});
+  streetLayer.addTo(map);
+  map.on('click', onMapClick);
+}
+
+function setDrawMode(mode) {
+  drawMode = mode;
+  const hints = { alpha:'Click map to place Alpha Respawn zone', bravo:'Click map to place Bravo Respawn zone', boundary:'Click map to place game Boundary zone' };
+  const hint = document.getElementById('draw-hint');
+  hint.textContent = hints[mode]; hint.style.display='block';
+  map.getContainer().style.cursor='crosshair';
+  ['btn-alpha-zone','btn-bravo-zone','btn-boundary'].forEach(id=>document.getElementById(id).classList.remove('active-tool'));
+  const m={alpha:'btn-alpha-zone',bravo:'btn-bravo-zone',boundary:'btn-boundary'};
+  document.getElementById(m[mode]).classList.add('active-tool');
+}
+
+function cancelDraw() {
+  drawMode=null;
+  document.getElementById('draw-hint').style.display='none';
+  map.getContainer().style.cursor='';
+  ['btn-alpha-zone','btn-bravo-zone','btn-boundary'].forEach(id=>document.getElementById(id).classList.remove('active-tool'));
+}
+
+async function onMapClick(e) {
+  if (!drawMode || !gameCode) return;
+  const { lat, lng } = e.latlng;
+  const radius = drawMode==='boundary' ? 150 : 40;
+  await fetch('/api/zone',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:gameCode,type:drawMode,lat,lng,radius})});
+  cancelDraw();
+}
+
+async function clearZones() {
+  if (!confirm('Remove all zones?')) return;
+  for (const z of state.zones) await fetch('/api/removezone',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:gameCode,zoneId:z.id})});
+}
+
+function syncZonesOnMap(zones) {
+  const currentIds = new Set(zones.map(z=>z.id));
+  Object.keys(zoneCircles).forEach(id=>{
+    if (!currentIds.has(parseInt(id))) {
+      zoneCircles[id].remove(); zoneLabels[id].remove();
+      delete zoneCircles[id]; delete zoneLabels[id];
+    }
+  });
+  const colors={alpha:'#185FA5',bravo:'#8B2500',boundary:'#7a7a00'};
+  const fills={alpha:'rgba(24,95,165,0.12)',bravo:'rgba(139,37,0,0.12)',boundary:'rgba(122,122,0,0.08)'};
+  zones.forEach(z=>{
+    if (!zoneCircles[z.id]) {
+      zoneCircles[z.id] = L.circle([z.lat,z.lng],{radius:z.radius,color:colors[z.type],fillColor:fills[z.type],fillOpacity:1,weight:2,dashArray:z.type==='boundary'?'8 5':null}).addTo(map);
+      zoneLabels[z.id] = L.marker([z.lat,z.lng],{icon:L.divIcon({className:'',html:`<div style="background:${colors[z.type]};color:#fff;padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;white-space:nowrap;font-family:'Rajdhani',sans-serif;letter-spacing:0.5px;">${z.label}</div>`,iconAnchor:[40,10]})}).addTo(map);
+    }
+  });
+}
+
+function makeIcon(p) {
+  const color = p.out?'#444':(p.team==='alpha'?'#185FA5':'#8B2500');
+  const border = p.out?'#666':(p.team==='alpha'?'#5DCAA5':'#D85A30');
+  const inner = p.out?'✕':p.name[0];
+  return L.divIcon({
+    className:'',
+    html:`<div style="position:relative;width:30px;height:30px;">
+      <div style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:10px;font-weight:700;color:#fff;text-shadow:0 1px 3px #000;font-family:'Rajdhani',sans-serif;">${p.name}</div>
+      <div style="width:30px;height:30px;border-radius:50%;background:${color};border:2.5px solid ${border};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.5);opacity:${p.out?0.5:1};font-family:'Rajdhani',sans-serif;">${inner}</div>
+    </div>`,
+    iconSize:[30,30],iconAnchor:[15,15],
+  });
+}
+
+function syncPlayersOnMap(players) {
+  const ids = new Set(players.map(p=>p.id));
+  Object.keys(markers).forEach(id=>{ if(!ids.has(id)){markers[id].remove();delete markers[id];} });
+  players.forEach(p=>{
+    if (!p.lat) return;
+    if (!markers[p.id]) {
+      markers[p.id]=L.marker([p.lat,p.lng],{icon:makeIcon(p)}).addTo(map).bindPopup('');
+    } else {
+      markers[p.id].setLatLng([p.lat,p.lng]);
+      markers[p.id].setIcon(makeIcon(p));
+    }
+    markers[p.id].setPopupContent(`<b style="font-family:'Rajdhani',sans-serif">${p.name}</b><br>Team: ${p.team}<br>Status: ${p.out?'Out — to respawn':'Active'}<br>Kills: ${p.kills}`);
+  });
+}
+
+function updatePlayerLocation(d) {
+  const p = state.players.find(p=>p.id===d.id);
+  if (p) { p.lat=d.lat; p.lng=d.lng; p.out=d.out; p.outOfBounds=d.outOfBounds; }
+  if (markers[d.id]) { markers[d.id].setLatLng([d.lat,d.lng]); if(p) markers[d.id].setIcon(makeIcon(p)); }
+  renderSidebar();
+}
+
+function centerAll() {
+  const alive=state.players.filter(p=>p.lat);
+  if(!alive.length) return;
+  const lat=alive.reduce((a,p)=>a+p.lat,0)/alive.length;
+  const lng=alive.reduce((a,p)=>a+p.lng,0)/alive.length;
+  map.flyTo([lat,lng],16,{duration:1.2});
+}
+
+function toggleSat() {
+  if(isSat){map.removeLayer(satLayer);streetLayer.addTo(map);}
+  else{map.removeLayer(streetLayer);satLayer.addTo(map);}
+  isSat=!isSat;
+}
+
+function toggleSidebar() {
+  sidebarOpen=!sidebarOpen;
+  document.getElementById('map-sidebar').style.display=sidebarOpen?'':'none';
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+
+function applyState(s) {
+  state = s;
+  updateTimerDisplay();
+  syncZonesOnMap(s.zones);
+  syncPlayersOnMap(s.players);
+  renderSidebar();
+  renderPlayers();
+  renderZoneList();
+  renderScores();
+  renderHitLog();
+  updateStats();
+  const badge=document.getElementById('game-badge');
+  badge.textContent=s.running?'LIVE':'WAITING';
+  badge.className='badge '+(s.running?'badge-live':'badge-wait');
+}
+
+function updateTimerDisplay() {
+  const t=fmt(state.gameSeconds);
+  document.getElementById('admin-timer').textContent=t;
+  document.getElementById('timer-top').textContent=t;
+}
+
+function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+
+function updateStats() {
+  document.getElementById('s-alpha').textContent=state.players.filter(p=>p.team==='alpha'&&!p.out).length;
+  document.getElementById('s-bravo').textContent=state.players.filter(p=>p.team==='bravo'&&!p.out).length;
+  document.getElementById('s-out').textContent=state.players.filter(p=>p.out).length;
+}
+
+function renderSidebar() {
+  let h='<div class="sb-title">Alpha</div>';
+  state.players.filter(p=>p.team==='alpha').forEach(p=>{
+    const sc=p.out?'st-respawn':'st-active'; const sl=p.outOfBounds?'OUT OF BOUNDS':p.out?'Walking to respawn...':'Active';
+    h+=`<div class="sb-player" onclick="if(markers['${p.id}'])markers['${p.id}'].openPopup()"><div class="sb-row"><div class="sb-av" style="background:${p.out?'#444':'#185FA5'}">${p.name[0]}</div><div class="sb-name">${p.name}</div></div><div class="sb-status ${p.outOfBounds?'st-oob':sc}">${sl}</div></div>`;
+  });
+  h+='<div class="sb-title">Bravo</div>';
+  state.players.filter(p=>p.team==='bravo').forEach(p=>{
+    const sc=p.out?'st-respawn':'st-active'; const sl=p.outOfBounds?'OUT OF BOUNDS':p.out?'Walking to respawn...':'Active';
+    h+=`<div class="sb-player" onclick="if(markers['${p.id}'])markers['${p.id}'].openPopup()"><div class="sb-row"><div class="sb-av" style="background:${p.out?'#444':'#8B2500'}">${p.name[0]}</div><div class="sb-name">${p.name}</div></div><div class="sb-status ${p.outOfBounds?'st-oob':sc}">${sl}</div></div>`;
+  });
+  document.getElementById('map-sidebar').innerHTML=h;
+}
+
+function renderPlayers() {
+  const list=document.getElementById('players-list');
+  if(!state.players.length){list.innerHTML='<div style="font-size:13px;color:var(--text2);">No players yet. Add manually below or share the QR code.</div>';return;}
+  list.innerHTML=state.players.map(p=>{
+    const color=p.team==='alpha'?'#185FA5':'#8B2500';
+    const pill=p.team==='alpha'?'pill-alpha':'pill-bravo';
+    const tl=p.team==='alpha'?'Team Alpha':'Team Bravo';
+    const sc=p.out?'color:var(--red)':'color:var(--teal)';
+    const sl=p.outOfBounds?'⚠️ Out of bounds':p.out?'Walking to respawn...':'Active';
+    const gps=p.lat?`${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`:'No GPS yet';
+    return `<div class="player-row">
+      <div class="pr-av" style="background:${p.out?'#444':color}">${p.name[0]}</div>
+      <div class="pr-info">
+        <div class="pr-name">${p.name}</div>
+        <div class="pr-sub"><span class="pill ${pill}">${tl}</span> · Kills: ${p.kills}</div>
+        <div class="pr-status" style="${sc}">${sl}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;">GPS: ${gps}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;">
+        <button class="pr-btn pr-btn-out ${p.out?'active':''}" onclick="markOut('${p.id}',${!p.out})">${p.out?'Force respawn':'Mark out'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderZoneList() {
+  const el=document.getElementById('zone-list');
+  if(!state.zones.length){el.innerHTML='<div style="font-size:12px;color:var(--text2);">No zones placed yet.</div>';return;}
+  const colors={alpha:'#185FA5',bravo:'#8B2500',boundary:'#7a7a00'};
+  el.innerHTML=state.zones.map(z=>`
+    <div class="zone-item">
+      <div style="display:flex;align-items:center;">
+        <div class="zone-dot" style="background:${colors[z.type]};"></div>
+        <div><div class="zone-name">${z.label}</div><div class="zone-sub">Radius: ${z.radius}m</div></div>
+      </div>
+      <button onclick="removeZone(${z.id})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;">✕</button>
+    </div>`).join('');
+}
+
+function renderScores() {
+  document.getElementById('sc-alpha').textContent=state.scores.alpha;
+  document.getElementById('sc-bravo').textContent=state.scores.bravo;
+  document.getElementById('sc-round').textContent=state.roundNum;
+  document.getElementById('sc-total').textContent=state.scores.alpha+state.scores.bravo;
+  document.getElementById('sc-players').textContent=state.players.length;
+  const sorted=[...state.players].sort((a,b)=>b.kills-a.kills);
+  document.getElementById('leaderboard').innerHTML=sorted.length?sorted.map((p,i)=>{
+    const c=p.team==='alpha'?'var(--alpha-light)':'var(--bravo-light)';
+    return `<div class="leaderboard-row"><span style="color:${c};font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;">${i+1}. ${p.name}</span><span style="font-size:13px;font-weight:500;color:var(--text2);">${p.kills} kills</span></div>`;
+  }).join(''):'<div style="font-size:12px;color:var(--text2);">No kills yet</div>';
+}
+
+function renderHitLog() {
+  const el=document.getElementById('hit-log-list');
+  const log=[...state.hitLog].reverse();
+  if(!log.length){el.innerHTML='<div style="font-size:12px;color:var(--text2);">No events yet.</div>';return;}
+  el.innerHTML=log.map(e=>{
+    const t=new Date(e.time).toLocaleTimeString();
+    return `<div class="log-entry ${e.type}"><div class="log-time">${t}</div><div class="log-note">${e.note}</div></div>`;
+  }).join('');
+}
+
+// ── API CALLS ─────────────────────────────────────────────────────────────────
+
+async function control(action) {
+  await fetch('/api/control',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:gameCode,action})});
+}
+
+async function setMode(el, mode) {
+  document.querySelectorAll('.mode-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  await fetch('/api/control',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:gameCode,action:'mode',mode})});
+}
+
+async function sendAlert() {
+  const msg=document.getElementById('alert-msg').value.trim();
+  if(!msg) return;
+  await fetch('/api/alert',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:gameCode,message:msg})});
+  document.getElementById('alert-msg').value='';
+}
+
+async function markOut(playerId, out) {
+  if(out) await fetch('/api/markout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:gameCode,playerId})});
+  else await fetch('/api/forcerespawn',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:gameCode,playerId})});
+}
+
+async function removeZone(zoneId) {
+  await fetch('/api/removezone',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:gameCode,zoneId})});
+}
+
+async function addPlayer(team) {
+  const name=document.getElementById('new-name').value.trim();
+  if(!name) return;
+  await fetch('/api/join',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:gameCode,name,team})});
+  document.getElementById('new-name').value='';
+}
+
+// ── QR CODE ───────────────────────────────────────────────────────────────────
+
+function generateQR() {
+  const host=window.location.host;
+  const url=`http://${host}/player?code=${gameCode}`;
+  document.getElementById('qr-url').textContent=url;
+  document.getElementById('join-url-text').textContent=url;
+  const canvas=document.getElementById('qr-canvas');
+  new QRCode(canvas,{text:url,width:200,height:200,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
+}
+
+function copyJoinUrl() {
+  navigator.clipboard.writeText(document.getElementById('join-url-text').textContent);
+  showToast('Link copied!','toast-alert');
+}
+
+// ── UI HELPERS ────────────────────────────────────────────────────────────────
+
+function switchTab(name) {
+  const names=['map','admin','players','scores','log','join'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',names[i]===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if(name==='map') setTimeout(()=>map&&map.invalidateSize(),100);
+}
+
+function showToast(msg, cls) {
+  const wrap=document.getElementById('toast-wrap');
+  const t=document.createElement('div');
+  t.className=`toast ${cls}`; t.textContent=msg;
+  wrap.appendChild(t);
+  setTimeout(()=>t.classList.add('show'),10);
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),400); },4000);
+}
+</script>
+</body>
+</html>
