@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Swindon Airsoft Tactical</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+:root{
+  --bg:#06080c;--bg2:#0c1018;--panel:#101520;--panel2:#18222e;--border:#1c2a3a;
+  --gold:#e8c84a;--gold2:#c8a820;--red:#ff2a2a;--blue:#2a7fff;
+  --green:#00cc66;--warn:#ffaa00;--text:#c8d8e8;--dim:#4a6070;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(232,200,74,.006) 2px,rgba(232,200,74,.006) 4px);pointer-events:none;z-index:9000}
+
+/* ── LOGIN SCREEN ── */
+#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:5000;flex-direction:column;gap:20px;padding:24px}
+#login-screen.hidden{display:none}
+.lg-logo{font-family:'Orbitron',monospace;font-size:20px;font-weight:900;color:var(--gold);letter-spacing:4px;text-shadow:0 0 25px rgba(232,200,74,.4);text-align:center}
+.lg-sub{font-size:10px;letter-spacing:3px;color:var(--dim);font-family:'Share Tech Mono',monospace;text-align:center}
+.lg-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:24px;width:100%;max-width:340px;display:flex;flex-direction:column;gap:14px}
+.lg-title{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;text-align:center;border-bottom:1px solid var(--border);padding-bottom:12px}
+.lg-field label{font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace;display:block;margin-bottom:4px}
+.lg-field input{background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:13px;padding:10px 12px;outline:none;width:100%;transition:border-color .2s}
+.lg-field input:focus{border-color:var(--gold)}
+.lg-btn{background:var(--gold);color:#000;border:none;border-radius:4px;padding:13px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;width:100%;transition:all .2s;text-transform:uppercase}
+.lg-btn:hover{background:#f0d060;box-shadow:0 0 15px rgba(232,200,74,.4)}
+.lg-err{font-size:11px;color:var(--red);text-align:center;font-family:'Share Tech Mono',monospace;display:none}
+.lg-err.show{display:block}
+
+/* ── ADMIN APP ── */
+#admin-app{display:none;min-height:100vh;flex-direction:column}
+#admin-app.visible{display:flex}
+
+/* HEADER */
+.adm-header{background:var(--panel);border-bottom:2px solid var(--gold2);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.adm-logo{font-family:'Orbitron',monospace;font-size:15px;font-weight:900;color:var(--gold);letter-spacing:3px;text-shadow:0 0 12px rgba(232,200,74,.4)}
+.adm-sub{font-size:8px;letter-spacing:2px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-top:2px}
+.adm-hright{display:flex;align-items:center;gap:12px}
+.adm-pill{font-family:'Share Tech Mono',monospace;font-size:9px;padding:3px 8px;border-radius:2px;border:1px solid var(--green);color:var(--green)}
+.adm-clock{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--gold)}
+.logout-btn{background:transparent;border:1px solid var(--red);color:var(--red);border-radius:3px;padding:5px 12px;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer;text-transform:uppercase;transition:all .2s}
+.logout-btn:hover{background:rgba(255,42,42,.15)}
+
+/* BODY LAYOUT */
+.adm-body{flex:1;display:flex;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:200px;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.sb-section{padding:14px 12px 6px;font-size:8px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace}
+.sb-item{padding:10px 16px;cursor:pointer;font-size:13px;font-weight:600;letter-spacing:1px;color:var(--dim);display:flex;align-items:center;gap:8px;transition:all .2s;border-left:2px solid transparent}
+.sb-item:hover{color:var(--text);background:rgba(255,255,255,.03)}
+.sb-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(232,200,74,.06)}
+.sb-item .si{font-size:16px}
+
+/* CONTENT */
+.adm-content{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
+
+/* PANELS */
+.ap{background:var(--panel);border:1px solid var(--border);border-radius:6px}
+.ap-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ap-title{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase}
+.ap-body{padding:16px}
+
+/* STATS ROW */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat-c{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:14px;text-align:center}
+.stat-c .sn{font-family:'Orbitron',monospace;font-size:28px;font-weight:700;line-height:1}
+.stat-c .sl{font-size:9px;letter-spacing:1px;color:var(--dim);text-transform:uppercase;margin-top:4px}
+.g{color:var(--green)}.r{color:var(--red)}.b{color:var(--blue)}.y{color:var(--warn)}.gd{color:var(--gold)}
+
+/* ROOM CARDS */
+.room-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.room-card{background:var(--panel2);border:1px solid var(--border);border-radius:6px;overflow:hidden;transition:border-color .2s}
+.room-card:hover{border-color:var(--gold2)}
+.rc-head{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(232,200,74,.04)}
+.rc-code{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--gold);letter-spacing:2px}
+.rc-meta{font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace}
+.rc-teams{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border)}
+.team-pill{padding:3px 10px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:1px;font-family:'Share Tech Mono',monospace}
+.team-pill.red{background:rgba(255,42,42,.15);color:var(--red);border:1px solid rgba(255,42,42,.3)}
+.team-pill.blue{background:rgba(42,127,255,.15);color:var(--blue);border:1px solid rgba(42,127,255,.3)}
+.rc-players{padding:8px 14px;max-height:160px;overflow-y:auto}
+.rp-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}
+.rp-row:last-child{border-bottom:none}
+.rp-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.rp-cs{font-weight:700;flex:1;letter-spacing:.5px}
+.rp-team{font-size:8px;font-family:'Share Tech Mono',monospace;letter-spacing:1px}
+.rp-team.red{color:var(--red)}.rp-team.blue{color:var(--blue)}
+.rp-status{font-size:8px;padding:1px 5px;border-radius:2px;font-family:'Share Tech Mono',monospace}
+.rp-status.alive{background:rgba(0,204,102,.12);color:var(--green)}
+.rp-status.dead{background:rgba(255,42,42,.12);color:var(--red)}
+.rp-status.medic{background:rgba(255,170,0,.12);color:var(--warn)}
+.rp-btn{background:transparent;border:1px solid var(--red);color:var(--red);border-radius:2px;padding:1px 6px;font-size:8px;cursor:pointer;font-family:'Share Tech Mono',monospace;letter-spacing:1px;transition:all .2s}
+.rp-btn:hover{background:rgba(255,42,42,.15)}
+.rc-actions{padding:10px 14px;display:flex;flex-wrap:wrap;gap:6px;background:rgba(0,0,0,.15)}
+.rac{padding:6px 10px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer;border:1px solid;text-transform:uppercase;transition:all .2s;font-family:'Rajdhani',sans-serif}
+.rac:hover{opacity:.8}
+.rac.pause{border-color:var(--warn);color:var(--warn)}
+.rac.pause:hover{background:rgba(255,170,0,.1)}
+.rac.resume{border-color:var(--green);color:var(--green)}
+.rac.resume:hover{background:rgba(0,204,102,.1)}
+.rac.reset{border-color:var(--blue);color:var(--blue)}
+.rac.reset:hover{background:rgba(42,127,255,.1)}
+.rac.del{border-color:var(--red);color:var(--red)}
+.rac.del:hover{background:rgba(255,42,42,.1)}
+.rac.bcast{border-color:var(--gold);color:var(--gold)}
+.rac.bcast:hover{background:rgba(232,200,74,.1)}
+.paused-badge{background:rgba(255,170,0,.15);color:var(--warn);border:1px solid var(--warn);font-size:8px;padding:2px 7px;border-radius:2px;font-family:'Share Tech Mono',monospace;letter-spacing:1px}
+
+/* BROADCAST */
+.bcast-row{display:flex;gap:8px;margin-bottom:10px}
+.adm-inp{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:9px 12px;outline:none;transition:border-color .2s}
+.adm-inp:focus{border-color:var(--gold)}
+.adm-sel{background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--dim);font-size:11px;padding:0 8px;outline:none;cursor:pointer;font-family:'Share Tech Mono',monospace}
+.adm-btn{background:var(--gold);color:#000;border:none;border-radius:4px;padding:9px 16px;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer;text-transform:uppercase;white-space:nowrap;transition:all .2s}
+.adm-btn:hover{background:#f0d060}
+.adm-btn.danger{background:var(--red);color:#fff}
+.adm-btn.danger:hover{background:#ff5555}
+.adm-btn.blue{background:var(--blue);color:#fff}
+
+/* CREATE ROOM */
+.cr-row{display:flex;gap:8px;align-items:flex-end}
+
+/* OBJ MANAGER */
+.obj-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)}
+.obj-row:last-child{border-bottom:none}
+.obj-txt{flex:1;font-size:13px;font-weight:600}
+.obj-done{font-size:9px;padding:2px 6px;border-radius:2px;font-family:'Share Tech Mono',monospace}
+.obj-done.yes{background:rgba(0,204,102,.12);color:var(--green)}
+.obj-done.no{background:rgba(255,170,0,.12);color:var(--warn)}
+.obj-del{background:transparent;border:1px solid rgba(255,42,42,.4);color:var(--red);border-radius:2px;padding:2px 7px;font-size:9px;cursor:pointer;font-family:'Share Tech Mono',monospace;transition:all .2s}
+.obj-del:hover{background:rgba(255,42,42,.15)}
+.room-select-row{display:flex;gap:8px;margin-bottom:12px;align-items:center}
+.room-select-row label{font-size:9px;letter-spacing:2px;color:var(--dim);font-family:'Share Tech Mono',monospace;white-space:nowrap}
+
+/* EVENT LOG */
+.log-list{display:flex;flex-direction:column;gap:4px;max-height:400px;overflow-y:auto}
+.log-entry{background:var(--panel2);border:1px solid var(--border);border-radius:3px;padding:7px 10px;display:flex;gap:10px;font-size:11px;font-family:'Share Tech Mono',monospace}
+.log-ts{color:var(--dim);white-space:nowrap;flex-shrink:0}
+.log-type{color:var(--gold);flex-shrink:0;min-width:140px}
+.log-data{color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Refresh indicator */
+.refresh-row{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace}
+.rl-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* STATUS BADGE */
+.status-badge-sm{font-size:8px;padding:2px 6px;border-radius:2px;font-family:'Share Tech Mono',monospace;letter-spacing:1px}
+.sb-alive{background:rgba(0,204,102,.12);color:var(--green);border:1px solid rgba(0,204,102,.3)}
+.sb-dead{background:rgba(255,42,42,.12);color:var(--red);border:1px solid rgba(255,42,42,.3)}
+.sb-paused{background:rgba(255,170,0,.15);color:var(--warn);border:1px solid rgba(255,170,0,.3)}
+
+.empty-state{text-align:center;padding:30px;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:11px}
+.section-hidden{display:none}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* toast */
+.adm-toast{position:fixed;bottom:20px;right:20px;background:var(--panel2);border:1px solid var(--gold);border-radius:4px;padding:10px 18px;font-size:11px;font-family:'Share Tech Mono',monospace;color:var(--gold);z-index:9999;opacity:0;transition:all .3s;transform:translateY(10px)}
+.adm-toast.show{opacity:1;transform:translateY(0)}
+.adm-toast.err{border-color:var(--red);color:var(--red)}
+.adm-toast.ok{border-color:var(--green);color:var(--green)}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-screen">
+  <div class="lg-logo">SWINDON AIRSOFT</div>
+  <div class="lg-sub">Admin Command Centre</div>
+  <div class="lg-card">
+    <div class="lg-title">🔐 Restricted Access</div>
+    <div class="lg-field"><label>Username</label><input type="text" id="lg-user" placeholder="Enter username" autocomplete="username"></div>
+    <div class="lg-field"><label>Password</label><input type="password" id="lg-pass" placeholder="Enter password" autocomplete="current-password"></div>
+    <button class="lg-btn" onclick="doLogin()">ACCESS COMMAND</button>
+    <div class="lg-err" id="lg-err">⚠ Invalid credentials</div>
+  </div>
+</div>
+
+<!-- ══ ADMIN APP ══ -->
+<div id="admin-app">
+
+  <div class="adm-header">
+    <div>
+      <div class="adm-logo">SWINDON AIRSOFT — ADMIN</div>
+      <div class="adm-sub">Command Centre · by Chris Zulu</div>
+    </div>
+    <div class="adm-hright">
+      <div class="refresh-row"><div class="rl-dot"></div>Live · Auto-refresh 5s</div>
+      <div class="adm-pill">● AUTHENTICATED</div>
+      <div class="adm-clock" id="adm-clock">00:00:00</div>
+      <button class="logout-btn" onclick="doLogout()">LOGOUT</button>
+    </div>
+  </div>
+
+  <div class="adm-body">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sb-section">Navigation</div>
+      <div class="sb-item active" data-view="overview" onclick="showView(this)"><span class="si">📊</span>Overview</div>
+      <div class="sb-item" data-view="rooms" onclick="showView(this)"><span class="si">🏟️</span>Rooms</div>
+      <div class="sb-item" data-view="broadcast" onclick="showView(this)"><span class="si">📢</span>Broadcast</div>
+      <div class="sb-item" data-view="objectives" onclick="showView(this)"><span class="si">🎯</span>Objectives</div>
+      <div class="sb-item" data-view="log" onclick="showView(this)"><span class="si">📋</span>Event Log</div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="adm-content" id="adm-content">
+
+      <!-- ── OVERVIEW ── -->
+      <div id="view-overview">
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-c"><div class="sn gd" id="ov-rooms">0</div><div class="sl">Active Rooms</div></div>
+          <div class="stat-c"><div class="sn g" id="ov-players">0</div><div class="sl">Total Players</div></div>
+          <div class="stat-c"><div class="sn r" id="ov-red">0</div><div class="sl">Red Team</div></div>
+          <div class="stat-c"><div class="sn b" id="ov-blue">0</div><div class="sl">Blue Team</div></div>
+        </div>
+
+        <div class="ap">
+          <div class="ap-head">
+            <div class="ap-title">◈ Live Rooms</div>
+            <div style="font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace" id="ov-updated">—</div>
+          </div>
+          <div class="ap-body">
+            <div id="ov-rooms-list"><div class="empty-state">No active rooms</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ROOMS ── -->
+      <div id="view-rooms" class="section-hidden">
+        <div class="ap">
+          <div class="ap-head">
+            <div class="ap-title">◈ Create New Room</div>
+          </div>
+          <div class="ap-body">
+            <div class="cr-row">
+              <div style="flex:1"><label style="font-size:9px;letter-spacing:2px;color:var(--dim);font-family:'Share Tech Mono',monospace;display:block;margin-bottom:4px">ROOM CODE</label>
+              <input class="adm-inp" id="new-room-code" placeholder="e.g. FIELD02" maxlength="8" style="text-transform:uppercase"></div>
+              <button class="adm-btn" onclick="createRoom()" style="align-self:flex-end">CREATE ROOM</button>
+            </div>
+          </div>
+        </div>
+        <div class="ap">
+          <div class="ap-head"><div class="ap-title">◈ All Rooms</div></div>
+          <div class="ap-body">
+            <div class="room-grid" id="rooms-grid"><div class="empty-state">No active rooms</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── BROADCAST ── -->
+      <div id="view-broadcast" class="section-hidden">
+        <div class="ap">
+          <div class="ap-head"><div class="ap-title">◈ Broadcast to All Rooms</div></div>
+          <div class="ap-body">
+            <div class="bcast-row">
+              <input class="adm-inp" id="bcast-all-txt" placeholder="Message to broadcast to ALL rooms…" maxlength="200">
+              <select class="adm-sel" id="bcast-all-prio"><option value="high">HIGH</option><option value="normal">NORMAL</option><option value="low">LOW</option></select>
+              <button class="adm-btn danger" onclick="broadcastAll()">📢 ALL ROOMS</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="ap">
+          <div class="ap-head"><div class="ap-title">◈ Broadcast to Specific Room</div></div>
+          <div class="ap-body">
+            <div class="room-select-row">
+              <label>TARGET ROOM:</label>
+              <select class="adm-sel" id="bcast-room-sel" style="flex:1;padding:8px"></select>
+            </div>
+            <div class="bcast-row">
+              <input class="adm-inp" id="bcast-room-txt" placeholder="Message for selected room…" maxlength="200">
+              <select class="adm-sel" id="bcast-room-prio"><option value="high">HIGH</option><option value="normal">NORMAL</option><option value="low">LOW</option></select>
+              <button class="adm-btn" onclick="broadcastRoom()">📡 SEND</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="ap">
+          <div class="ap-head"><div class="ap-title">◈ Quick Commands</div></div>
+          <div class="ap-body" style="display:flex;flex-wrap:wrap;gap:8px">
+            <button class="rac pause" onclick="pauseAll()">⏸ PAUSE ALL GAMES</button>
+            <button class="rac resume" onclick="resumeAll()">▶ RESUME ALL GAMES</button>
+            <button class="rac reset" onclick="resetAll()">🔄 RESPAWN ALL PLAYERS</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── OBJECTIVES ── -->
+      <div id="view-objectives" class="section-hidden">
+        <div class="ap">
+          <div class="ap-head"><div class="ap-title">◈ Manage Objectives</div></div>
+          <div class="ap-body">
+            <div class="room-select-row">
+              <label>ROOM:</label>
+              <select class="adm-sel" id="obj-room-sel" style="flex:1;padding:8px" onchange="loadObjForRoom()"></select>
+            </div>
+            <div class="bcast-row" style="margin-bottom:16px">
+              <input class="adm-inp" id="new-obj-txt" placeholder="New objective text…" maxlength="100">
+              <button class="adm-btn" onclick="addObj()">+ ADD</button>
+            </div>
+            <div id="obj-list-admin"><div class="empty-state">Select a room to manage objectives</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── EVENT LOG ── -->
+      <div id="view-log" class="section-hidden">
+        <div class="ap">
+          <div class="ap-head">
+            <div class="ap-title">◈ Event Log</div>
+            <button class="adm-btn" onclick="loadLog()" style="padding:5px 12px;font-size:9px">REFRESH</button>
+          </div>
+          <div class="ap-body">
+            <div class="log-list" id="log-list"><div class="empty-state">Loading…</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /body -->
+</div><!-- /admin-app -->
+
+<div class="adm-toast" id="adm-toast"></div>
+
+<script>
+let token = sessionStorage.getItem('sa_admin_token') || '';
+let roomsData = [];
+let refreshTimer = null;
+
+// ── Clock ──────────────────────────────────────────────────────
+setInterval(()=>{const n=new Date();document.getElementById('adm-clock').textContent=[n.getHours(),n.getMinutes(),n.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');},1000);
+
+// ── Toast ──────────────────────────────────────────────────────
+let toastT;
+function toast(msg,type=''){const t=document.getElementById('adm-toast');t.textContent=msg;t.className='adm-toast '+(type?type+' ':'')+' show';clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3500);}
+
+// ── Init ───────────────────────────────────────────────────────
+window.addEventListener('load',()=>{
+  if(token) tryAutoLogin();
+});
+
+async function tryAutoLogin(){
+  // Validate existing token
+  try{
+    const r=await apiFetch('/api/admin/rooms');
+    if(r.ok){showAdmin();return;}
+  }catch{}
+  token='';sessionStorage.removeItem('sa_admin_token');
+}
+
+async function doLogin(){
+  const user=document.getElementById('lg-user').value.trim();
+  const pass=document.getElementById('lg-pass').value;
+  document.getElementById('lg-err').classList.remove('show');
+  try{
+    const r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pass})});
+    const d=await r.json();
+    if(r.ok&&d.token){token=d.token;sessionStorage.setItem('sa_admin_token',token);showAdmin();}
+    else{document.getElementById('lg-err').classList.add('show');}
+  }catch{document.getElementById('lg-err').classList.add('show');}
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('login-screen')&&!document.getElementById('login-screen').classList.contains('hidden'))doLogin();});
+
+async function doLogout(){
+  await apiFetch('/api/admin/logout',{method:'POST'}).catch(()=>{});
+  token='';sessionStorage.removeItem('sa_admin_token');
+  clearInterval(refreshTimer);
+  document.getElementById('admin-app').classList.remove('visible');
+  document.getElementById('admin-app').style.display='none';
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('lg-pass').value='';
+}
+
+function showAdmin(){
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('admin-app').style.display='flex';
+  document.getElementById('admin-app').classList.add('visible');
+  loadData();
+  refreshTimer=setInterval(loadData,5000);
+}
+
+// ── API helper ─────────────────────────────────────────────────
+async function apiFetch(url,opts={}){
+  opts.headers=Object.assign({'Content-Type':'application/json','x-admin-token':token},opts.headers||{});
+  return fetch(url,opts);
+}
+
+// ── View switching ─────────────────────────────────────────────
+function showView(el){
+  document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  const v=el.dataset.view;
+  document.querySelectorAll('[id^="view-"]').forEach(x=>x.classList.add('section-hidden'));
+  document.getElementById('view-'+v).classList.remove('section-hidden');
+  if(v==='log')loadLog();
+  if(v==='objectives')populateRoomSelects();
+  if(v==='broadcast')populateRoomSelects();
+}
+
+// ── Load all data ──────────────────────────────────────────────
+async function loadData(){
+  try{
+    const r=await apiFetch('/api/admin/rooms');
+    if(!r.ok){if(r.status===401){doLogout();return;}throw new Error();}
+    roomsData=await r.json();
+    renderOverview();
+    renderRoomsGrid();
+    populateRoomSelects();
+    document.getElementById('ov-updated').textContent='Updated '+new Date().toLocaleTimeString();
+  }catch(e){console.error('Load error',e);}
+}
+
+// ── Overview ───────────────────────────────────────────────────
+function renderOverview(){
+  const totalP=roomsData.reduce((a,r)=>a+r.playerCount,0);
+  const totalR=roomsData.reduce((a,r)=>a+r.redCount,0);
+  const totalB=roomsData.reduce((a,r)=>a+r.blueCount,0);
+  document.getElementById('ov-rooms').textContent=roomsData.length;
+  document.getElementById('ov-players').textContent=totalP;
+  document.getElementById('ov-red').textContent=totalR;
+  document.getElementById('ov-blue').textContent=totalB;
+
+  const el=document.getElementById('ov-rooms-list');
+  if(!roomsData.length){el.innerHTML='<div class="empty-state">No active rooms</div>';return;}
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">`+
+    roomsData.map(r=>`
+      <div style="background:var(--panel2);border:1px solid ${r.gamePaused?'var(--warn)':'var(--border)'};border-radius:6px;padding:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--gold);letter-spacing:2px">${r.code}</span>
+          ${r.gamePaused?'<span class="status-badge-sm sb-paused">PAUSED</span>':'<span class="status-badge-sm sb-alive">ACTIVE</span>'}
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:6px">
+          <span class="team-pill red">🔴 ${r.redCount} RED</span>
+          <span class="team-pill blue">🔵 ${r.blueCount} BLUE</span>
+        </div>
+        <div style="font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace">${r.playerCount} players · ${r.orderCount} messages</div>
+      </div>`).join('')+`</div>`;
+}
+
+// ── Rooms Grid ─────────────────────────────────────────────────
+function renderRoomsGrid(){
+  const el=document.getElementById('rooms-grid');
+  if(!roomsData.length){el.innerHTML='<div class="empty-state">No active rooms</div>';return;}
+  el.innerHTML=roomsData.map(r=>`
+    <div class="room-card">
+      <div class="rc-head">
+        <div><div class="rc-code">${r.code}</div><div class="rc-meta">${r.playerCount} players · Created ${new Date(r.createdAt).toLocaleTimeString()}</div></div>
+        ${r.gamePaused?'<span class="paused-badge">⏸ PAUSED</span>':''}
+      </div>
+      <div class="rc-teams">
+        <span class="team-pill red">🔴 RED: ${r.redCount}</span>
+        <span class="team-pill blue">🔵 BLUE: ${r.blueCount}</span>
+      </div>
+      <div class="rc-players">
+        ${r.players.length===0?'<div style="font-size:10px;color:var(--dim);padding:6px 0;font-family:\'Share Tech Mono\',monospace">No players</div>':
+          r.players.map(p=>`<div class="rp-row">
+            <div class="rp-dot" style="background:${p.team==='red'?'var(--red)':'var(--blue)'}"></div>
+            <div class="rp-cs">${esc(p.callsign)}</div>
+            <div class="rp-team ${p.team}">${p.team.toUpperCase()}</div>
+            <span class="rp-status ${p.status}">${p.status.toUpperCase()}</span>
+            <button class="rp-btn" onclick="kickPlayer('${r.code}','${p.id}','${esc(p.callsign)}')">KICK</button>
+          </div>`).join('')}
+      </div>
+      <div class="rc-actions">
+        <button class="rac ${r.gamePaused?'resume':'pause'}" onclick="${r.gamePaused?`resumeRoom('${r.code}')`:`pauseRoom('${r.code}')`}">${r.gamePaused?'▶ RESUME':'⏸ PAUSE'}</button>
+        <button class="rac reset" onclick="resetRoom('${r.code}')">🔄 RESPAWN</button>
+        <button class="rac bcast" onclick="quickBcast('${r.code}')">📢 BROADCAST</button>
+        <button class="rac del" onclick="deleteRoom('${r.code}')">🗑 CLOSE</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── Room Selects ───────────────────────────────────────────────
+function populateRoomSelects(){
+  ['bcast-room-sel','obj-room-sel'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    const prev=el.value;
+    el.innerHTML=roomsData.length?roomsData.map(r=>`<option value="${r.code}">${r.code} (${r.playerCount} players)</option>`).join(''):'<option value="">No rooms</option>';
+    if(prev&&[...el.options].some(o=>o.value===prev))el.value=prev;
+  });
+}
+
+// ── Room Actions ───────────────────────────────────────────────
+async function createRoom(){
+  const code=document.getElementById('new-room-code').value.trim().toUpperCase();
+  if(!code){toast('Enter a room code','err');return;}
+  const r=await apiFetch('/api/admin/rooms',{method:'POST',body:JSON.stringify({code})});
+  if(r.ok){toast('✓ Room '+code+' created','ok');document.getElementById('new-room-code').value='';loadData();}
+  else toast('Failed to create room','err');
+}
+
+async function pauseRoom(code){const r=await apiFetch(`/api/admin/rooms/${code}/pause`,{method:'POST'});if(r.ok){toast('⏸ '+code+' paused','ok');loadData();}else toast('Error','err');}
+async function resumeRoom(code){const r=await apiFetch(`/api/admin/rooms/${code}/resume`,{method:'POST'});if(r.ok){toast('▶ '+code+' resumed','ok');loadData();}else toast('Error','err');}
+async function resetRoom(code){if(!confirm(`Respawn all players in ${code}?`))return;const r=await apiFetch(`/api/admin/rooms/${code}/reset`,{method:'POST'});if(r.ok){toast('🔄 '+code+' reset','ok');loadData();}else toast('Error','err');}
+async function deleteRoom(code){if(!confirm(`Close room ${code}? All players will be disconnected.`))return;const r=await apiFetch(`/api/admin/rooms/${code}`,{method:'DELETE'});if(r.ok){toast('🗑 Room '+code+' closed','ok');loadData();}else toast('Error','err');}
+
+function quickBcast(code){const msg=prompt(`Broadcast to ${code}:`);if(!msg)return;apiFetch(`/api/admin/rooms/${code}/broadcast`,{method:'POST',body:JSON.stringify({text:msg,priority:'high'})}).then(r=>{if(r.ok)toast('📢 Sent to '+code,'ok');else toast('Error','err');});}
+
+async function kickPlayer(roomCode,pid,name){
+  if(!confirm(`Kick ${name} from ${roomCode}?`))return;
+  const r=await apiFetch(`/api/admin/rooms/${roomCode}/kick/${pid}`,{method:'POST',body:JSON.stringify({reason:'Removed by admin'})});
+  if(r.ok){toast('Kicked '+name,'ok');loadData();}else toast('Error kicking player','err');
+}
+
+// ── Broadcast ─────────────────────────────────────────────────
+async function broadcastAll(){
+  const txt=document.getElementById('bcast-all-txt').value.trim();if(!txt){toast('Enter a message','err');return;}
+  const prio=document.getElementById('bcast-all-prio').value;
+  const r=await apiFetch('/api/admin/broadcast-all',{method:'POST',body:JSON.stringify({text:txt,priority:prio})});
+  if(r.ok){toast('📢 Broadcast sent to all rooms','ok');document.getElementById('bcast-all-txt').value='';}
+  else toast('Error sending broadcast','err');
+}
+
+async function broadcastRoom(){
+  const code=document.getElementById('bcast-room-sel').value;
+  const txt=document.getElementById('bcast-room-txt').value.trim();if(!txt){toast('Enter a message','err');return;}
+  const prio=document.getElementById('bcast-room-prio').value;
+  const r=await apiFetch(`/api/admin/rooms/${code}/broadcast`,{method:'POST',body:JSON.stringify({text:txt,priority:prio})});
+  if(r.ok){toast('📡 Sent to '+code,'ok');document.getElementById('bcast-room-txt').value='';}
+  else toast('Error','err');
+}
+
+// ── Quick Commands ─────────────────────────────────────────────
+async function pauseAll(){if(!confirm('Pause ALL active games?'))return;for(const r of roomsData)await apiFetch(`/api/admin/rooms/${r.code}/pause`,{method:'POST'});toast('⏸ All games paused','ok');loadData();}
+async function resumeAll(){for(const r of roomsData)await apiFetch(`/api/admin/rooms/${r.code}/resume`,{method:'POST'});toast('▶ All games resumed','ok');loadData();}
+async function resetAll(){if(!confirm('Respawn ALL players in all rooms?'))return;for(const r of roomsData)await apiFetch(`/api/admin/rooms/${r.code}/reset`,{method:'POST'});toast('🔄 All players respawned','ok');loadData();}
+
+// ── Objectives ─────────────────────────────────────────────────
+async function loadObjForRoom(){
+  const code=document.getElementById('obj-room-sel').value;if(!code)return;
+  const r=await apiFetch(`/api/admin/rooms/${code}`);
+  if(!r.ok){toast('Error loading room','err');return;}
+  const d=await r.json();
+  const el=document.getElementById('obj-list-admin');
+  if(!d.objectives.length){el.innerHTML='<div class="empty-state">No objectives</div>';return;}
+  el.innerHTML=d.objectives.map(o=>`
+    <div class="obj-row">
+      <div class="obj-txt">${esc(o.text)}</div>
+      <span class="obj-done ${o.done?'yes':'no'}">${o.done?'✓ DONE':'PENDING'}</span>
+      <button class="obj-del" onclick="delObj('${code}','${o.id}')">DELETE</button>
+    </div>`).join('');
+}
+
+async function addObj(){
+  const code=document.getElementById('obj-room-sel').value;if(!code){toast('Select a room','err');return;}
+  const txt=document.getElementById('new-obj-txt').value.trim();if(!txt){toast('Enter objective text','err');return;}
+  const r=await apiFetch(`/api/admin/rooms/${code}/objectives`,{method:'POST',body:JSON.stringify({text:txt})});
+  if(r.ok){toast('✓ Objective added','ok');document.getElementById('new-obj-txt').value='';loadObjForRoom();}
+  else toast('Error','err');
+}
+
+async function delObj(code,id){
+  const r=await apiFetch(`/api/admin/rooms/${code}/objectives/${id}`,{method:'DELETE'});
+  if(r.ok){toast('Objective removed','ok');loadObjForRoom();}else toast('Error','err');
+}
+
+// ── Event Log ──────────────────────────────────────────────────
+async function loadLog(){
+  const r=await apiFetch('/api/admin/events');if(!r.ok)return;
+  const events=await r.json();
+  const el=document.getElementById('log-list');
+  if(!events.length){el.innerHTML='<div class="empty-state">No events yet</div>';return;}
+  const typeColor={'admin_login':'var(--gold)','player_joined':'var(--green)','player_left':'var(--dim)','room_created':'var(--blue)','room_deleted':'var(--red)','game_paused':'var(--warn)','game_resumed':'var(--green)','player_kicked':'var(--red)','admin_broadcast':'var(--gold)','admin_broadcast_all':'var(--gold)','admin_login_fail':'var(--red)','status_change':'var(--blue)'};
+  el.innerHTML=events.map(e=>{
+    const ts=new Date(e.ts).toLocaleTimeString();
+    const col=typeColor[e.type]||'var(--text)';
+    const data=JSON.stringify(e.data).replace(/[{}"]/g,'').replace(/,/g,' · ');
+    return `<div class="log-entry"><span class="log-ts">${ts}</span><span class="log-type" style="color:${col}">${e.type}</span><span class="log-data">${data}</span></div>`;
+  }).join('');
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// Enter to login
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    const inp=document.getElementById('new-obj-txt');
+    const bcast=document.getElementById('bcast-room-txt');
+    const ball=document.getElementById('bcast-all-txt');
+    if(document.activeElement===inp)addObj();
+    else if(document.activeElement===bcast)broadcastRoom();
+    else if(document.activeElement===ball)broadcastAll();
+  }
+});
+</script>
+</body>
+</html>
