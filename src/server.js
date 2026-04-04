@@ -13,12 +13,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
-// ── Admin credentials (override via Railway env vars) ─────────────
 const ADMIN_USER = process.env.ADMIN_USER || 'chriszulu';
 const ADMIN_PASS = process.env.ADMIN_PASS || 'SwindonA1rsoft!';
 const adminSessions = new Set();
 
-// ── In-memory state ───────────────────────────────────────────────
 const rooms = {};
 const eventLog = [];
 
@@ -26,6 +24,16 @@ function logEvent(type, data) {
   eventLog.push({ type, data, ts: Date.now() });
   if (eventLog.length > 500) eventLog.shift();
 }
+
+// Zone type configs
+const ZONE_TYPES = {
+  respawn:   { label: 'Respawn Zone',    color: '#00cc66', fillOpacity: 0.15 },
+  objective: { label: 'Objective',       color: '#ffaa00', fillOpacity: 0.2  },
+  hazard:    { label: 'Hazard Zone',     color: '#ff2a2a', fillOpacity: 0.15 },
+  safe:      { label: 'Safe Zone',       color: '#2a7fff', fillOpacity: 0.12 },
+  boundary:  { label: 'Game Boundary',   color: '#e8c84a', fillOpacity: 0.05 },
+  custom:    { label: 'Custom Zone',     color: '#cc44ff', fillOpacity: 0.15 },
+};
 
 function getOrCreateRoom(code) {
   if (!rooms[code]) {
@@ -40,6 +48,8 @@ function getOrCreateRoom(code) {
         { id: uuidv4(), text: 'Secure primary objective', done: false },
         { id: uuidv4(), text: 'Eliminate enemy HQ', done: false },
       ],
+      zones: [],       // drawn map zones
+      mapTiles: 'osm', // tile provider key
       createdAt: Date.now(),
       gamePaused: false,
     };
@@ -60,7 +70,6 @@ setInterval(() => {
   }
 }, 600_000);
 
-// ── Helpers ───────────────────────────────────────────────────────
 function broadcast(room, msg, excludeWs = null) {
   const data = JSON.stringify(msg);
   for (const p of Object.values(room.players)) {
@@ -71,9 +80,11 @@ function broadcastAll(room, msg) { broadcast(room, msg, null); }
 function sendTo(ws, msg) { if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg)); }
 
 function playerPublic(p) {
-  return { id: p.id, callsign: p.callsign, team: p.team, role: p.role, rank: p.rank,
-           status: p.status, lat: p.lat, lng: p.lng, heading: p.heading,
-           lastSeen: p.lastSeen, joinedAt: p.joinedAt };
+  return {
+    id: p.id, callsign: p.callsign, team: p.team, role: p.role, rank: p.rank,
+    status: p.status, lat: p.lat, lng: p.lng, heading: p.heading,
+    lastSeen: p.lastSeen, joinedAt: p.joinedAt,
+  };
 }
 
 function roomSnapshot(room) {
@@ -81,11 +92,12 @@ function roomSnapshot(room) {
     players: Object.values(room.players).map(playerPublic),
     orders: room.orders.slice(-50),
     objectives: room.objectives,
+    zones: room.zones,
+    mapTiles: room.mapTiles,
     gamePaused: room.gamePaused,
   };
 }
 
-// ── Admin auth middleware ─────────────────────────────────────────
 function adminAuth(req, res, next) {
   const token = req.headers['x-admin-token'] || req.query.token;
   if (!token || !adminSessions.has(token)) return res.status(401).json({ error: 'Unauthorized' });
@@ -112,7 +124,7 @@ wss.on('connection', (ws) => {
         const player = {
           id: playerId,
           callsign: (msg.callsign || 'SOLDIER').toUpperCase().slice(0, 12),
-          team, role: msg.role || 'Assault', rank: msg.rank || 'Private',
+          team, role: msg.role || 'Assault', rank: 'Private',
           status: 'alive', lat: null, lng: null, heading: 0,
           lastSeen: Date.now(), joinedAt: Date.now(), ws,
         };
@@ -123,7 +135,6 @@ wss.on('connection', (ws) => {
         room.orders.push(joinMsg);
         broadcastAll(room, { type: 'new_order', order: joinMsg });
         logEvent('player_joined', { roomCode, callsign: player.callsign, team });
-        console.log(`[${roomCode}] ${player.callsign} (${team}) joined — ${Object.keys(room.players).length} players`);
         break;
       }
 
@@ -148,6 +159,11 @@ wss.on('connection', (ws) => {
           room.orders.push(alert);
           broadcastAll(room, { type: 'new_order', order: alert });
         }
+        if (msg.status === 'support') {
+          const alert = { id: uuidv4(), from: player.callsign, text: `⚡ SUPPORT REQUESTED — ${player.callsign} (${player.team.toUpperCase()} TEAM) needs backup!`, priority: 'high', ts: Date.now() };
+          room.orders.push(alert);
+          broadcastAll(room, { type: 'new_order', order: alert });
+        }
         logEvent('status_change', { roomCode, callsign: player.callsign, status: msg.status });
         break;
       }
@@ -162,11 +178,63 @@ wss.on('connection', (ws) => {
         break;
       }
 
+      // ── PERK USED — broadcast map animation to all ────────────────
+      case 'perk': {
+        if (!playerId || !roomCode) break;
+        const room = rooms[roomCode]; if (!room) break;
+        const player = room.players[playerId]; if (!player) break;
+        const perkMsg = { id: uuidv4(), from: player.callsign, text: `[PERK] ${msg.label} used by ${player.callsign}`, priority: 'normal', ts: Date.now() };
+        room.orders.push(perkMsg);
+        broadcastAll(room, {
+          type: 'perk_event',
+          perk: msg.perk,
+          label: msg.label,
+          lat: player.lat,
+          lng: player.lng,
+          playerId,
+          callsign: player.callsign,
+          team: player.team,
+          ts: Date.now(),
+        });
+        broadcastAll(room, { type: 'new_order', order: perkMsg });
+        logEvent('perk_used', { roomCode, callsign: player.callsign, perk: msg.perk });
+        break;
+      }
+
       case 'objective': {
         if (!playerId || !roomCode) break;
         const room = rooms[roomCode]; if (!room) break;
         const obj = room.objectives.find(o => o.id === msg.id);
         if (obj) { obj.done = msg.done; broadcastAll(room, { type: 'objective_update', id: msg.id, done: msg.done }); }
+        break;
+      }
+
+      // ── ZONE DRAW (from player, relayed to all) ───────────────────
+      case 'zone_add': {
+        if (!playerId || !roomCode) break;
+        const room = rooms[roomCode]; if (!room) break;
+        const zone = {
+          id: uuidv4(),
+          zoneType: msg.zoneType || 'custom',
+          label: msg.label || 'Zone',
+          shape: msg.shape,   // 'polygon' | 'circle'
+          latlngs: msg.latlngs || [],
+          center: msg.center || null,
+          radius: msg.radius || null,
+          color: ZONE_TYPES[msg.zoneType]?.color || '#cc44ff',
+          createdBy: playerPublic({ ...room.players[playerId] }),
+          ts: Date.now(),
+        };
+        room.zones.push(zone);
+        broadcastAll(room, { type: 'zone_added', zone });
+        break;
+      }
+
+      case 'zone_remove': {
+        if (!playerId || !roomCode) break;
+        const room = rooms[roomCode]; if (!room) break;
+        room.zones = room.zones.filter(z => z.id !== msg.id);
+        broadcastAll(room, { type: 'zone_removed', id: msg.id });
         break;
       }
 
@@ -195,6 +263,7 @@ wss.on('connection', (ws) => {
 // REST — Public
 // ══════════════════════════════════════════════════════════════════
 app.get('/health', (_, res) => res.json({ status: 'ok', rooms: Object.keys(rooms).length, uptime: Math.floor(process.uptime()) }));
+app.get('/api/zone-types', (_, res) => res.json(ZONE_TYPES));
 
 // ══════════════════════════════════════════════════════════════════
 // REST — Admin Auth
@@ -228,16 +297,18 @@ app.get('/api/admin/rooms', adminAuth, (_, res) => {
     blueCount: Object.values(r.players).filter(p => p.team === 'blue').length,
     players: Object.values(r.players).map(playerPublic),
     objectives: r.objectives,
+    zones: r.zones,
     orderCount: r.orders.length,
     createdAt: r.createdAt,
     gamePaused: r.gamePaused,
+    mapTiles: r.mapTiles,
   })));
 });
 
 app.get('/api/admin/rooms/:code', adminAuth, (req, res) => {
   const room = rooms[req.params.code.toUpperCase()];
   if (!room) return res.status(404).json({ error: 'Room not found' });
-  res.json({ code: room.code, players: Object.values(room.players).map(playerPublic), orders: room.orders, objectives: room.objectives, gamePaused: room.gamePaused, createdAt: room.createdAt });
+  res.json({ code: room.code, players: Object.values(room.players).map(playerPublic), orders: room.orders, objectives: room.objectives, zones: room.zones, gamePaused: room.gamePaused, createdAt: room.createdAt, mapTiles: room.mapTiles });
 });
 
 app.delete('/api/admin/rooms/:code', adminAuth, (req, res) => {
@@ -277,6 +348,48 @@ app.post('/api/admin/rooms/:code/reset', adminAuth, (req, res) => {
   const msg = { id: uuidv4(), from: '⭐ ADMIN', text: '🔄 All players RESPAWNED. Game reset!', priority: 'high', ts: Date.now() };
   room.orders.push(msg); broadcastAll(room, { type: 'game_reset' }); broadcastAll(room, { type: 'new_order', order: msg });
   logEvent('game_reset', { code: room.code }); res.json({ ok: true });
+});
+
+// ── Map tile override ─────────────────────────────────────────────
+app.post('/api/admin/rooms/:code/map', adminAuth, (req, res) => {
+  const room = rooms[req.params.code.toUpperCase()]; if (!room) return res.status(404).json({ error: 'Not found' });
+  room.mapTiles = req.body.tiles || 'osm';
+  broadcastAll(room, { type: 'map_tiles_changed', tiles: room.mapTiles });
+  res.json({ ok: true });
+});
+
+// ── Admin zone management ─────────────────────────────────────────
+app.post('/api/admin/rooms/:code/zones', adminAuth, (req, res) => {
+  const room = rooms[req.params.code.toUpperCase()]; if (!room) return res.status(404).json({ error: 'Not found' });
+  const zone = {
+    id: uuidv4(),
+    zoneType: req.body.zoneType || 'custom',
+    label: req.body.label || 'Zone',
+    shape: req.body.shape,
+    latlngs: req.body.latlngs || [],
+    center: req.body.center || null,
+    radius: req.body.radius || null,
+    color: ZONE_TYPES[req.body.zoneType]?.color || '#cc44ff',
+    createdBy: { callsign: 'ADMIN' },
+    ts: Date.now(),
+  };
+  room.zones.push(zone);
+  broadcastAll(room, { type: 'zone_added', zone });
+  res.json(zone);
+});
+
+app.delete('/api/admin/rooms/:code/zones/:zoneId', adminAuth, (req, res) => {
+  const room = rooms[req.params.code.toUpperCase()]; if (!room) return res.status(404).json({ error: 'Not found' });
+  room.zones = room.zones.filter(z => z.id !== req.params.zoneId);
+  broadcastAll(room, { type: 'zone_removed', id: req.params.zoneId });
+  res.json({ ok: true });
+});
+
+app.delete('/api/admin/rooms/:code/zones', adminAuth, (req, res) => {
+  const room = rooms[req.params.code.toUpperCase()]; if (!room) return res.status(404).json({ error: 'Not found' });
+  room.zones = [];
+  broadcastAll(room, { type: 'zones_cleared' });
+  res.json({ ok: true });
 });
 
 // ══════════════════════════════════════════════════════════════════
