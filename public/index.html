@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>TACTICAL — Airsoft Tracker</title>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+:root {
+  --bg:       #080b0f;
+  --bg2:      #0d1117;
+  --panel:    #111720;
+  --panel2:   #192030;
+  --border:   #1e2d3d;
+  --accent:   #00ff88;
+  --accent2:  #00c4ff;
+  --danger:   #ff3a3a;
+  --warn:     #ffaa00;
+  --text:     #c8d8e8;
+  --dim:      #4a6070;
+  --header-h: 52px;
+  --nav-h:    58px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif}
+
+/* ── SCANLINES ── */
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,136,.012) 2px,rgba(0,255,136,.012) 4px);pointer-events:none;z-index:9000}
+
+/* ══════════════════════════════════════════════════════
+   LOBBY SCREEN
+══════════════════════════════════════════════════════ */
+#lobby{position:fixed;inset:0;background:var(--bg);z-index:8000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:16px}
+#lobby.hidden{display:none}
+.lobby-logo{font-family:'Orbitron',monospace;font-size:28px;font-weight:900;color:var(--accent);letter-spacing:6px;text-shadow:0 0 30px rgba(0,255,136,.5);text-align:center}
+.lobby-logo span{color:var(--accent2)}
+.lobby-subtitle{font-size:11px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace;text-align:center}
+.lobby-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:20px;width:100%;max-width:360px;display:flex;flex-direction:column;gap:12px}
+.field-label{font-size:10px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace;margin-bottom:3px}
+.field-input{background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;padding:10px 12px;outline:none;width:100%;transition:border-color .2s;text-transform:uppercase}
+.field-input:focus{border-color:var(--accent2)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.join-btn{background:var(--accent);color:#000;border:none;border-radius:4px;padding:14px;font-family:'Orbitron',monospace;font-size:13px;font-weight:700;letter-spacing:2px;cursor:pointer;width:100%;transition:all .2s;text-transform:uppercase}
+.join-btn:hover{background:#00ffaa;box-shadow:0 0 20px rgba(0,255,136,.4)}
+.join-btn:active{transform:scale(.98)}
+.lobby-divider{border:none;border-top:1px solid var(--border);margin:4px 0}
+.gps-notice{font-size:11px;color:var(--dim);text-align:center;font-family:'Share Tech Mono',monospace;line-height:1.5}
+select.field-input{cursor:pointer}
+
+/* ══════════════════════════════════════════════════════
+   HEADER
+══════════════════════════════════════════════════════ */
+#app{display:flex;flex-direction:column;height:100%;opacity:0;transition:opacity .4s}
+#app.visible{opacity:1}
+.header{height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;z-index:100}
+.logo{font-family:'Orbitron',monospace;font-size:15px;font-weight:900;color:var(--accent);letter-spacing:3px;text-shadow:0 0 15px rgba(0,255,136,.4)}
+.logo span{color:var(--accent2)}
+.header-info{display:flex;align-items:center;gap:8px}
+.status-pill{font-family:'Share Tech Mono',monospace;font-size:9px;padding:3px 8px;border-radius:2px;border:1px solid var(--accent);color:var(--accent);text-shadow:0 0 8px var(--accent);animation:blink 2s infinite}
+.status-pill.disconnected{border-color:var(--danger);color:var(--danger);text-shadow:0 0 8px var(--danger)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+.clock{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--accent2)}
+.room-badge{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:1px;border:1px solid var(--border);padding:2px 6px;border-radius:2px;cursor:pointer}
+.room-badge:hover{color:var(--text)}
+
+/* ══════════════════════════════════════════════════════
+   NAV
+══════════════════════════════════════════════════════ */
+.nav{height:var(--nav-h);display:flex;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:var(--dim);border-bottom:2px solid transparent;transition:all .2s;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;position:relative}
+.nav-tab .icon{font-size:18px}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(0,255,136,.05);text-shadow:0 0 10px rgba(0,255,136,.3)}
+.nav-tab:not(.active):hover{color:var(--text)}
+.badge{position:absolute;top:6px;right:calc(50% - 16px);background:var(--danger);color:#fff;border-radius:8px;font-size:8px;padding:1px 5px;font-family:'Share Tech Mono',monospace;display:none}
+.badge.show{display:block}
+
+/* ══════════════════════════════════════════════════════
+   SCREENS
+══════════════════════════════════════════════════════ */
+.main{flex:1;overflow:hidden;position:relative}
+.screen{display:none;height:100%;overflow-y:auto;overflow-x:hidden;flex-direction:column}
+.screen.active{display:flex}
+
+/* ── MAP ── */
+#screen-map{position:relative}
+#leaflet-map{flex:1;min-height:0}
+
+/* Override Leaflet for dark mode */
+.leaflet-tile{filter:brightness(.8) saturate(.7) hue-rotate(10deg)}
+.leaflet-container{background:#0a1a10!important}
+
+/* Custom marker styles */
+.player-marker-wrap{position:relative}
+.player-marker{width:34px;height:34px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:10px;font-weight:bold;cursor:pointer;box-shadow:0 0 10px;transition:all .3s}
+.player-marker.me{width:40px;height:40px;border-width:3px}
+.player-marker.alpha{border-color:var(--accent);background:rgba(0,255,136,.15);color:var(--accent);box-shadow:0 0 12px rgba(0,255,136,.4)}
+.player-marker.bravo{border-color:var(--accent2);background:rgba(0,196,255,.15);color:var(--accent2);box-shadow:0 0 12px rgba(0,196,255,.4)}
+.player-marker.dead{border-color:var(--danger);background:rgba(255,58,58,.15);color:var(--danger);box-shadow:none}
+.marker-label{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);white-space:nowrap;font-family:'Share Tech Mono',monospace;font-size:8px;color:inherit;background:rgba(0,0,0,.75);padding:1px 5px;border-radius:2px;pointer-events:none}
+.marker-pulse{position:absolute;inset:-6px;border-radius:50%;border:1px solid;opacity:0;animation:ping 2s ease-out infinite}
+.marker-pulse.alpha{border-color:var(--accent)}
+.marker-pulse.bravo{border-color:var(--accent2)}
+
+@keyframes ping{0%{transform:scale(1);opacity:.6}70%{transform:scale(1.8);opacity:0}100%{transform:scale(1);opacity:0}}
+
+.map-overlay{position:absolute;z-index:500;pointer-events:none}
+.compass-box{top:12px;right:12px;width:52px;height:52px;background:rgba(8,11,15,.9);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:10px;font-family:'Share Tech Mono',monospace;color:var(--accent);pointer-events:none}
+.gps-info-box{bottom:70px;left:10px;background:rgba(8,11,15,.88);border:1px solid var(--border);border-radius:4px;padding:8px 10px;font-family:'Share Tech Mono',monospace;font-size:9px;line-height:1.7;pointer-events:none}
+.gps-val{color:var(--accent2)}
+
+.obj-bar{background:var(--panel);border-top:1px solid var(--border);padding:8px 10px;flex-shrink:0}
+.obj-bar-label{font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace;margin-bottom:5px}
+.obj-list{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.obj-chip{flex-shrink:0;background:var(--panel2);border:1px solid;border-radius:3px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;border-color:var(--warn);color:var(--text)}
+.obj-chip.done{border-color:var(--accent);opacity:.6}
+.obj-chip .obj-dot{width:7px;height:7px;border-radius:50%;background:var(--warn);flex-shrink:0}
+.obj-chip.done .obj-dot{background:var(--accent)}
+
+/* ── SQUAD ── */
+#screen-squad{padding:10px;gap:8px}
+.sec-title{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--accent2);text-transform:uppercase;margin-bottom:2px}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.stat-box{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:8px 4px;text-align:center}
+.stat-num{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;line-height:1}
+.stat-num.g{color:var(--accent);text-shadow:0 0 10px rgba(0,255,136,.3)}
+.stat-num.r{color:var(--danger)}
+.stat-num.y{color:var(--warn)}
+.stat-num.b{color:var(--accent2)}
+.stat-lbl{font-size:8px;letter-spacing:1px;color:var(--dim);text-transform:uppercase;margin-top:2px}
+.player-card{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .2s}
+.player-card:hover{border-color:var(--accent2)}
+.player-card.dead{border-color:rgba(255,58,58,.3);background:rgba(58,10,10,.4)}
+.player-card.medic{animation:wpulse 1.5s infinite}
+@keyframes wpulse{0%,100%{border-color:var(--warn);box-shadow:none}50%{border-color:var(--warn);box-shadow:0 0 8px rgba(255,170,0,.3)}}
+.p-avatar{width:38px;height:38px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.p-info{flex:1;min-width:0}
+.p-callsign{font-size:15px;font-weight:700;letter-spacing:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.p-role{font-size:9px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;font-family:'Share Tech Mono',monospace}
+.p-coord{font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-top:2px}
+.p-badge{font-size:8px;padding:2px 7px;border-radius:2px;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:'Share Tech Mono',monospace;flex-shrink:0}
+.b-alive{background:rgba(0,255,136,.12);color:var(--accent);border:1px solid var(--accent)}
+.b-dead{background:rgba(255,58,58,.12);color:var(--danger);border:1px solid var(--danger)}
+.b-medic{background:rgba(255,170,0,.12);color:var(--warn);border:1px solid var(--warn)}
+.b-support{background:rgba(0,196,255,.12);color:var(--accent2);border:1px solid var(--accent2)}
+
+/* ── COMMS ── */
+#screen-comms{flex-direction:column}
+.orders-feed{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px}
+.order-card{background:var(--panel);border:1px solid var(--border);border-left:3px solid;border-radius:4px;padding:10px 12px}
+.order-card.high{border-left-color:var(--danger)}
+.order-card.normal{border-left-color:var(--accent2)}
+.order-card.low{border-left-color:var(--dim)}
+.order-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.order-from{font-size:9px;color:var(--accent2);font-family:'Share Tech Mono',monospace;letter-spacing:1px}
+.order-time{font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace}
+.order-text{font-size:13px;line-height:1.4;font-weight:500}
+.prio-badge{font-size:8px;padding:1px 6px;border-radius:2px;font-weight:700;letter-spacing:1px;margin-right:6px}
+.prio-high{background:rgba(255,58,58,.2);color:var(--danger)}
+.prio-normal{background:rgba(0,196,255,.15);color:var(--accent2)}
+.prio-low{background:rgba(74,96,112,.2);color:var(--dim)}
+.comms-bar{padding:10px;background:var(--panel);border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0}
+.comms-input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:9px 11px;outline:none;transition:border-color .2s}
+.comms-input:focus{border-color:var(--accent2)}
+.prio-sel{background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--dim);font-size:11px;padding:0 6px;outline:none;cursor:pointer;font-family:'Share Tech Mono',monospace}
+.send-btn{background:var(--accent2);color:#000;border:none;border-radius:4px;padding:9px 14px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;flex-shrink:0}
+
+/* ── STATUS ── */
+#screen-status{padding:10px;gap:10px}
+.my-profile{background:var(--panel);border:1px solid var(--accent);border-radius:6px;padding:16px;text-align:center;box-shadow:0 0 20px rgba(0,255,136,.08)}
+.my-avatar{width:64px;height:64px;border-radius:50%;border:3px solid var(--accent);background:rgba(0,255,136,.1);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 8px;box-shadow:0 0 20px rgba(0,255,136,.25)}
+.my-callsign{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;color:var(--accent);letter-spacing:2px}
+.my-rank{font-size:11px;color:var(--dim);letter-spacing:2px;margin:2px 0 10px;text-transform:uppercase}
+.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.status-btn{padding:11px;border-radius:4px;border:1px solid;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;background:transparent;transition:all .2s}
+.status-btn.alive{border-color:var(--accent);color:var(--accent)}
+.status-btn.alive.on,.status-btn.alive:hover{background:rgba(0,255,136,.15)}
+.status-btn.dead{border-color:var(--danger);color:var(--danger)}
+.status-btn.dead.on,.status-btn.dead:hover{background:rgba(255,58,58,.15)}
+.status-btn.medic{border-color:var(--warn);color:var(--warn)}
+.status-btn.medic.on,.status-btn.medic:hover{background:rgba(255,170,0,.15)}
+.status-btn.support{border-color:var(--accent2);color:var(--accent2)}
+.status-btn.support.on,.status-btn.support:hover{background:rgba(0,196,255,.15)}
+.gps-status-panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px;font-family:'Share Tech Mono',monospace;font-size:11px;line-height:2}
+.gps-row{display:flex;justify-content:space-between}
+.gps-key{color:var(--dim)}
+.gps-val2{color:var(--accent2)}
+.perks-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.perk-card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 6px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.perk-card:hover{border-color:var(--accent2);background:rgba(0,196,255,.05)}
+.perk-card.cd{opacity:.5;cursor:not-allowed}
+.perk-icon{font-size:24px;margin-bottom:3px}
+.perk-name{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:'Share Tech Mono',monospace}
+.perk-cd{font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-top:2px}
+.perk-prog{position:absolute;bottom:0;left:0;height:2px;background:var(--accent2);transition:width .1s}
+
+/* ── LOADOUT ── */
+#screen-loadout{padding:10px;gap:8px}
+.gun-card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px}
+.gun-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.gun-name{font-size:16px;font-weight:700;letter-spacing:1px}
+.gun-type{font-size:9px;color:var(--accent2);font-family:'Share Tech Mono',monospace;letter-spacing:1px;background:rgba(0,196,255,.1);padding:2px 8px;border-radius:2px;border:1px solid rgba(0,196,255,.3)}
+.gun-emoji{text-align:center;font-size:34px;margin:6px 0}
+.gun-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.gs{text-align:center}
+.gs-num{font-size:14px;font-weight:700}
+.gs-bar{height:3px;background:var(--border);border-radius:2px;margin:3px 0;overflow:hidden}
+.gs-fill{height:100%;border-radius:2px}
+.gs-lbl{font-size:7px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
+.add-btn{background:transparent;border:1px dashed var(--border);border-radius:6px;padding:16px;width:100%;color:var(--dim);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.add-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── TOAST ── */
+.toast{position:fixed;top:62px;left:50%;transform:translateX(-50%) translateY(-10px);background:var(--panel2);border:1px solid var(--accent);border-radius:4px;padding:8px 16px;font-size:11px;font-family:'Share Tech Mono',monospace;color:var(--accent);z-index:9500;opacity:0;transition:all .3s;white-space:nowrap;box-shadow:0 0 20px rgba(0,255,136,.2);pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.warn{border-color:var(--warn);color:var(--warn)}
+.toast.danger{border-color:var(--danger);color:var(--danger)}
+
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     LOBBY
+═══════════════════════════════════════ -->
+<div id="lobby">
+  <div class="lobby-logo">TACT<span>AI</span>CAL</div>
+  <div class="lobby-subtitle">Airsoft · Paintball · MilSim</div>
+
+  <div class="lobby-card">
+    <div>
+      <div class="field-label">Callsign</div>
+      <input class="field-input" id="inp-callsign" maxlength="12" placeholder="GHOST" value="GHOST">
+    </div>
+    <div class="field-row">
+      <div>
+        <div class="field-label">Team</div>
+        <select class="field-input" id="inp-team">
+          <option value="alpha">ALPHA</option>
+          <option value="bravo">BRAVO</option>
+        </select>
+      </div>
+      <div>
+        <div class="field-label">Role</div>
+        <select class="field-input" id="inp-role" style="text-transform:none">
+          <option>Assault</option>
+          <option>Sniper</option>
+          <option>Support</option>
+          <option>Medic</option>
+          <option>Scout</option>
+          <option>Commander</option>
+        </select>
+      </div>
+    </div>
+    <div>
+      <div class="field-label">Game Room Code</div>
+      <input class="field-input" id="inp-room" maxlength="8" placeholder="ALPHA01" value="ALPHA01">
+    </div>
+    <hr class="lobby-divider">
+    <button class="join-btn" onclick="joinGame()">⚡ DEPLOY TO BATTLEFIELD</button>
+    <div class="gps-notice">📡 GPS location will be requested on join<br>Requires HTTPS for GPS on mobile</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     APP
+═══════════════════════════════════════ -->
+<div id="app">
+  <div class="header">
+    <div class="logo">TACT<span>AI</span>CAL</div>
+    <div class="header-info">
+      <div class="room-badge" id="room-badge" title="Click to copy room code">ROOM: —</div>
+      <div class="status-pill disconnected" id="conn-pill">● OFFLINE</div>
+      <div class="clock" id="clock">00:00:00</div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <div class="nav-tab active" data-s="map" onclick="switchTab(this)">
+      <div class="icon">🗺️</div>MAP
+    </div>
+    <div class="nav-tab" data-s="squad" onclick="switchTab(this)">
+      <div class="icon">👥</div>SQUAD
+      <div class="badge" id="badge-squad"></div>
+    </div>
+    <div class="nav-tab" data-s="comms" onclick="switchTab(this)">
+      <div class="icon">📡</div>COMMS
+      <div class="badge" id="badge-comms"></div>
+    </div>
+    <div class="nav-tab" data-s="status" onclick="switchTab(this)">
+      <div class="icon">⚡</div>STATUS
+    </div>
+    <div class="nav-tab" data-s="loadout" onclick="switchTab(this)">
+      <div class="icon">🔫</div>KIT
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- MAP -->
+    <div class="screen active" id="screen-map">
+      <div id="leaflet-map"></div>
+      <div class="map-overlay compass-box" style="top:12px;right:12px">
+        <div style="font-size:16px">🧭</div>
+        <div style="font-size:9px;letter-spacing:1px">N</div>
+      </div>
+      <div class="map-overlay gps-info-box" style="bottom:78px;left:10px">
+        <div>LAT: <span class="gps-val" id="info-lat">—</span></div>
+        <div>LNG: <span class="gps-val" id="info-lng">—</span></div>
+        <div>ACC: <span class="gps-val" id="info-acc">—</span></div>
+        <div>HDG: <span class="gps-val" id="info-hdg">—</span></div>
+      </div>
+      <div class="obj-bar">
+        <div class="obj-bar-label">◈ OBJECTIVES</div>
+        <div class="obj-list" id="obj-list"></div>
+      </div>
+    </div>
+
+    <!-- SQUAD -->
+    <div class="screen" id="screen-squad">
+      <div class="sec-title">◈ SQUAD ROSTER</div>
+      <div class="stat-row" id="stat-row">
+        <div class="stat-box"><div class="stat-num g" id="s-alive">0</div><div class="stat-lbl">Alive</div></div>
+        <div class="stat-box"><div class="stat-num r" id="s-dead">0</div><div class="stat-lbl">Down</div></div>
+        <div class="stat-box"><div class="stat-num y" id="s-medic">0</div><div class="stat-lbl">Medic</div></div>
+        <div class="stat-box"><div class="stat-num b" id="s-total">0</div><div class="stat-lbl">Total</div></div>
+      </div>
+      <div id="squad-list" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+
+    <!-- COMMS -->
+    <div class="screen" id="screen-comms" style="flex-direction:column">
+      <div class="orders-feed" id="orders-feed"></div>
+      <div class="comms-bar">
+        <input class="comms-input" id="comms-text" type="text" placeholder="Send sitrep or order…" maxlength="200">
+        <select class="prio-sel" id="comms-prio">
+          <option value="normal">NRM</option>
+          <option value="high">HIGH</option>
+          <option value="low">LOW</option>
+        </select>
+        <button class="send-btn" onclick="sendOrder()">TX</button>
+      </div>
+    </div>
+
+    <!-- STATUS -->
+    <div class="screen" id="screen-status">
+      <div class="my-profile">
+        <div class="my-avatar">🪖</div>
+        <div class="my-callsign" id="my-callsign">GHOST</div>
+        <div class="my-rank" id="my-rank">Private · Alpha</div>
+        <div class="status-grid">
+          <button class="status-btn alive on" id="btn-alive" onclick="setStatus('alive')">✓ Alive</button>
+          <button class="status-btn dead" id="btn-dead" onclick="setStatus('dead')">✕ Down</button>
+          <button class="status-btn medic" id="btn-medic" onclick="setStatus('medic')">+ Medic Needed</button>
+          <button class="status-btn support" id="btn-support" onclick="setStatus('support')">◈ Need Support</button>
+        </div>
+      </div>
+
+      <div class="gps-status-panel">
+        <div class="sec-title" style="margin-bottom:6px">◈ GPS STATUS</div>
+        <div class="gps-row"><span class="gps-key">LATITUDE</span><span class="gps-val2" id="gs-lat">Acquiring…</span></div>
+        <div class="gps-row"><span class="gps-key">LONGITUDE</span><span class="gps-val2" id="gs-lng">Acquiring…</span></div>
+        <div class="gps-row"><span class="gps-key">ACCURACY</span><span class="gps-val2" id="gs-acc">—</span></div>
+        <div class="gps-row"><span class="gps-key">HEADING</span><span class="gps-val2" id="gs-hdg">—</span></div>
+        <div class="gps-row"><span class="gps-key">LAST UPDATE</span><span class="gps-val2" id="gs-ts">—</span></div>
+        <div class="gps-row"><span class="gps-key">WS STATUS</span><span class="gps-val2" id="gs-ws">Connecting…</span></div>
+      </div>
+
+      <div>
+        <div class="sec-title">◈ TACTICAL PERKS</div>
+        <div class="perks-grid">
+          <div class="perk-card" id="pk-uav" onclick="usePerk('uav',60)"><div class="perk-icon">📡</div><div class="perk-name">UAV</div><div class="perk-cd" id="pcd-uav">READY</div><div class="perk-prog" id="pp-uav" style="width:0"></div></div>
+          <div class="perk-card" id="pk-emp" onclick="usePerk('emp',90)"><div class="perk-icon">⚡</div><div class="perk-name">EMP</div><div class="perk-cd" id="pcd-emp">READY</div><div class="perk-prog" id="pp-emp" style="width:0"></div></div>
+          <div class="perk-card" id="pk-hack" onclick="usePerk('hack',120)"><div class="perk-icon">💻</div><div class="perk-name">HACK</div><div class="perk-cd" id="pcd-hack">READY</div><div class="perk-prog" id="pp-hack" style="width:0"></div></div>
+          <div class="perk-card" id="pk-smoke" onclick="usePerk('smoke',30)"><div class="perk-icon">💨</div><div class="perk-name">SMOKE</div><div class="perk-cd" id="pcd-smoke">READY</div><div class="perk-prog" id="pp-smoke" style="width:0"></div></div>
+          <div class="perk-card" id="pk-medkit" onclick="usePerk('medkit',45)"><div class="perk-icon">🩹</div><div class="perk-name">MEDKIT</div><div class="perk-cd" id="pcd-medkit">READY</div><div class="perk-prog" id="pp-medkit" style="width:0"></div></div>
+          <div class="perk-card" id="pk-air" onclick="usePerk('air',180)"><div class="perk-icon">🚁</div><div class="perk-name">AIR SUP</div><div class="perk-cd" id="pcd-air">READY</div><div class="perk-prog" id="pp-air" style="width:0"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOADOUT -->
+    <div class="screen" id="screen-loadout">
+      <div class="sec-title">◈ MY KIT</div>
+      <div class="gun-card">
+        <div class="gun-head"><div class="gun-name">M4A1 CQBR</div><div class="gun-type">ASSAULT RIFLE</div></div>
+        <div class="gun-emoji">🔫</div>
+        <div class="gun-stats">
+          <div class="gs"><div class="gs-num">350</div><div class="gs-bar"><div class="gs-fill" style="width:85%;background:var(--accent)"></div></div><div class="gs-lbl">FPS</div></div>
+          <div class="gs"><div class="gs-num">40m</div><div class="gs-bar"><div class="gs-fill" style="width:70%;background:var(--accent2)"></div></div><div class="gs-lbl">Range</div></div>
+          <div class="gs"><div class="gs-num">0.2g</div><div class="gs-bar"><div class="gs-fill" style="width:60%;background:var(--warn)"></div></div><div class="gs-lbl">BB Wt</div></div>
+        </div>
+      </div>
+      <div class="gun-card">
+        <div class="gun-head"><div class="gun-name">Glock 17</div><div class="gun-type">SIDEARM</div></div>
+        <div class="gun-emoji">🔫</div>
+        <div class="gun-stats">
+          <div class="gs"><div class="gs-num">280</div><div class="gs-bar"><div class="gs-fill" style="width:55%;background:var(--accent)"></div></div><div class="gs-lbl">FPS</div></div>
+          <div class="gs"><div class="gs-num">15m</div><div class="gs-bar"><div class="gs-fill" style="width:30%;background:var(--accent2)"></div></div><div class="gs-lbl">Range</div></div>
+          <div class="gs"><div class="gs-num">0.2g</div><div class="gs-bar"><div class="gs-fill" style="width:60%;background:var(--warn)"></div></div><div class="gs-lbl">BB Wt</div></div>
+        </div>
+      </div>
+      <button class="add-btn" onclick="showToast('+ Add Replica — coming soon')">+ ADD REPLICA</button>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// GLOBALS
+// ═══════════════════════════════════════════════════════════════
+let ws = null;
+let myId = null;
+let myCallsign = 'GHOST';
+let myTeam = 'alpha';
+let myRole = 'Assault';
+let myStatus = 'alive';
+let roomCode = 'ALPHA01';
+let players = {};   // id → player obj
+let objectives = [];
+let orders = [];
+let map = null;
+let markers = {};   // id → L.Marker
+let myMarker = null;
+let myLat = null, myLng = null, myAcc = null, myHdg = 0;
+let gpsWatchId = null;
+let wsReconnectTimer = null;
+let unreadComms = 0;
+let activeTab = 'map';
+
+// ═══════════════════════════════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════════════════════════════
+function updateClock() {
+  const n = new Date();
+  document.getElementById('clock').textContent =
+    [n.getHours(), n.getMinutes(), n.getSeconds()].map(x => String(x).padStart(2,'0')).join(':');
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ═══════════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════════
+let toastTimer = null;
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (type ? ' ' + type : '') + ' show';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════════════
+function switchTab(el) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  activeTab = el.dataset.s;
+  document.getElementById('screen-' + activeTab).classList.add('active');
+  if (activeTab === 'comms') { unreadComms = 0; updateCommsBadge(); }
+  if (activeTab === 'map' && map) setTimeout(() => map.invalidateSize(), 100);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// JOIN
+// ═══════════════════════════════════════════════════════════════
+function joinGame() {
+  myCallsign = document.getElementById('inp-callsign').value.trim().toUpperCase() || 'SOLDIER';
+  myTeam = document.getElementById('inp-team').value;
+  myRole = document.getElementById('inp-role').value;
+  roomCode = document.getElementById('inp-room').value.trim().toUpperCase() || 'ALPHA01';
+
+  document.getElementById('lobby').classList.add('hidden');
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('my-callsign').textContent = myCallsign;
+  document.getElementById('my-rank').textContent = `Private · ${myTeam.toUpperCase()}`;
+  document.getElementById('room-badge').textContent = `ROOM: ${roomCode}`;
+
+  initMap();
+  startGPS();
+  connectWS();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MAP
+// ═══════════════════════════════════════════════════════════════
+function initMap() {
+  map = L.map('leaflet-map', {
+    center: [51.5, -0.1],
+    zoom: 17,
+    zoomControl: true,
+    attributionControl: false,
+  });
+
+  // Dark satellite-ish tile
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 20,
+    attribution: '© OSM'
+  }).addTo(map);
+
+  L.control.attribution({ position: 'bottomright', prefix: false }).addTo(map);
+}
+
+function makeMarkerIcon(player, isMe) {
+  const team = player.status === 'dead' ? 'dead' : player.team;
+  const label = player.callsign.slice(0, 3);
+  const extraClass = isMe ? ' me' : '';
+  const pulse = team !== 'dead' ? `<div class="marker-pulse ${team}"></div>` : '';
+  const html = `
+    <div class="player-marker-wrap">
+      ${pulse}
+      <div class="player-marker ${team}${extraClass}">${isMe ? '★' : label}</div>
+      <div class="marker-label" style="color:${team==='alpha'?'var(--accent)':team==='bravo'?'var(--accent2)':'var(--danger)'}">${player.callsign}</div>
+    </div>`;
+  return L.divIcon({ html, className: '', iconSize: [40, 50], iconAnchor: [20, 20] });
+}
+
+function updateMarker(player, isMe = false) {
+  if (player.lat == null || player.lng == null) return;
+  if (markers[player.id]) {
+    markers[player.id].setLatLng([player.lat, player.lng]);
+    markers[player.id].setIcon(makeMarkerIcon(player, isMe));
+  } else {
+    const m = L.marker([player.lat, player.lng], { icon: makeMarkerIcon(player, isMe) })
+      .addTo(map)
+      .bindPopup(`<b>${player.callsign}</b><br>${player.role}<br>Status: ${player.status}`);
+    markers[player.id] = m;
+  }
+}
+
+function removeMarker(id) {
+  if (markers[id]) { markers[id].remove(); delete markers[id]; }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GPS
+// ═══════════════════════════════════════════════════════════════
+function startGPS() {
+  if (!navigator.geolocation) {
+    showToast('⚠ GPS not available on this device', 'warn');
+    return;
+  }
+  const opts = { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 };
+  gpsWatchId = navigator.geolocation.watchPosition(onGPS, onGPSError, opts);
+}
+
+function onGPS(pos) {
+  myLat = pos.coords.latitude;
+  myLng = pos.coords.longitude;
+  myAcc = Math.round(pos.coords.accuracy);
+  myHdg = pos.coords.heading || 0;
+
+  // Update UI
+  const latStr = myLat.toFixed(6);
+  const lngStr = myLng.toFixed(6);
+  const accStr = myAcc + 'm';
+  const hdgStr = myHdg ? myHdg.toFixed(0) + '°' : 'N/A';
+
+  document.getElementById('info-lat').textContent = latStr;
+  document.getElementById('info-lng').textContent = lngStr;
+  document.getElementById('info-acc').textContent = accStr;
+  document.getElementById('info-hdg').textContent = hdgStr;
+  document.getElementById('gs-lat').textContent = latStr;
+  document.getElementById('gs-lng').textContent = lngStr;
+  document.getElementById('gs-acc').textContent = accStr;
+  document.getElementById('gs-hdg').textContent = hdgStr;
+  document.getElementById('gs-ts').textContent = new Date().toLocaleTimeString();
+
+  // Update my marker on map
+  if (map) {
+    const me = { id: myId || 'me', callsign: myCallsign, team: myTeam, status: myStatus, role: myRole, lat: myLat, lng: myLng };
+    if (!myId) {
+      // Before WS connected — show placeholder
+      if (!markers['_me']) {
+        const m = L.marker([myLat, myLng], { icon: makeMarkerIcon(me, true) }).addTo(map);
+        markers['_me'] = m;
+        map.setView([myLat, myLng], 17);
+      } else {
+        markers['_me'].setLatLng([myLat, myLng]);
+      }
+    } else {
+      if (markers['_me']) { markers['_me'].remove(); delete markers['_me']; }
+      updateMarker(me, true);
+      if (!myMarker) map.setView([myLat, myLng], 17);
+      myMarker = true;
+    }
+  }
+
+  // Send to server
+  sendWS({ type: 'location', lat: myLat, lng: myLng, heading: myHdg });
+}
+
+function onGPSError(err) {
+  const msgs = { 1: 'GPS permission denied', 2: 'GPS unavailable', 3: 'GPS timeout' };
+  showToast('⚠ ' + (msgs[err.code] || 'GPS error'), 'warn');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// WEBSOCKET
+// ═══════════════════════════════════════════════════════════════
+function getWSUrl() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  return `${proto}://${location.host}`;
+}
+
+function connectWS() {
+  clearTimeout(wsReconnectTimer);
+  try {
+    ws = new WebSocket(getWSUrl());
+  } catch(e) {
+    scheduleReconnect();
+    return;
+  }
+
+  ws.onopen = () => {
+    document.getElementById('conn-pill').textContent = '● LIVE';
+    document.getElementById('conn-pill').classList.remove('disconnected');
+    document.getElementById('gs-ws').textContent = 'CONNECTED';
+    sendWS({ type: 'join', callsign: myCallsign, team: myTeam, role: myRole, room: roomCode });
+    // Start keepalive
+    setInterval(() => sendWS({ type: 'ping' }), 25000);
+  };
+
+  ws.onmessage = (e) => {
+    let msg;
+    try { msg = JSON.parse(e.data); } catch { return; }
+    handleMsg(msg);
+  };
+
+  ws.onclose = () => {
+    document.getElementById('conn-pill').textContent = '● OFFLINE';
+    document.getElementById('conn-pill').classList.add('disconnected');
+    document.getElementById('gs-ws').textContent = 'RECONNECTING…';
+    scheduleReconnect();
+  };
+
+  ws.onerror = () => {
+    document.getElementById('gs-ws').textContent = 'ERROR';
+  };
+}
+
+function scheduleReconnect() {
+  wsReconnectTimer = setTimeout(connectWS, 4000);
+}
+
+function sendWS(msg) {
+  if (ws && ws.readyState === 1) ws.send(JSON.stringify(msg));
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MESSAGE HANDLER
+// ═══════════════════════════════════════════════════════════════
+function handleMsg(msg) {
+  switch(msg.type) {
+
+    case 'init':
+      myId = msg.playerId;
+      players = {};
+      msg.room.players.forEach(p => players[p.id] = p);
+      objectives = msg.room.objectives;
+      orders = msg.room.orders;
+      renderAll();
+      // Send GPS if we already have it
+      if (myLat) sendWS({ type: 'location', lat: myLat, lng: myLng, heading: myHdg });
+      break;
+
+    case 'player_joined':
+      players[msg.player.id] = msg.player;
+      renderSquad();
+      break;
+
+    case 'player_left':
+      delete players[msg.playerId];
+      removeMarker(msg.playerId);
+      renderSquad();
+      break;
+
+    case 'location_update': {
+      const p = players[msg.playerId];
+      if (p) {
+        p.lat = msg.lat;
+        p.lng = msg.lng;
+        p.heading = msg.heading;
+        p.lastSeen = msg.lastSeen;
+        updateMarker(p, msg.playerId === myId);
+      }
+      break;
+    }
+
+    case 'status_update': {
+      const p = players[msg.playerId];
+      if (p) {
+        p.status = msg.status;
+        if (msg.playerId === myId) myStatus = msg.status;
+        renderSquad();
+        updateMarker(p, msg.playerId === myId);
+      }
+      break;
+    }
+
+    case 'new_order':
+      orders.push(msg.order);
+      if (orders.length > 200) orders.shift();
+      renderOrders();
+      if (activeTab !== 'comms') { unreadComms++; updateCommsBadge(); }
+      break;
+
+    case 'objective_update': {
+      const obj = objectives.find(o => o.id === msg.id);
+      if (obj) { obj.done = msg.done; renderObjectives(); }
+      break;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════
+function renderAll() {
+  renderSquad();
+  renderOrders();
+  renderObjectives();
+  // Render markers for all players
+  Object.values(players).forEach(p => updateMarker(p, p.id === myId));
+}
+
+function renderSquad() {
+  const all = Object.values(players);
+  const alive = all.filter(p => p.status === 'alive').length;
+  const dead  = all.filter(p => p.status === 'dead').length;
+  const medic = all.filter(p => p.status === 'medic').length;
+  document.getElementById('s-alive').textContent = alive;
+  document.getElementById('s-dead').textContent  = dead;
+  document.getElementById('s-medic').textContent = medic;
+  document.getElementById('s-total').textContent = all.length;
+
+  const badgeClass = { alive:'b-alive', dead:'b-dead', medic:'b-medic', support:'b-support' };
+  const badgeText  = { alive:'ALIVE', dead:'DOWN', medic:'MEDIC REQ', support:'SUPPORT' };
+  const teamColor  = { alpha:'var(--accent)', bravo:'var(--accent2)', dead:'var(--danger)' };
+
+  const list = document.getElementById('squad-list');
+  list.innerHTML = all.sort((a,b) => {
+    // Commander first, dead last
+    const rank = s => s === 'alive' ? 0 : s === 'medic' ? 1 : s === 'support' ? 2 : 3;
+    return rank(a.status) - rank(b.status);
+  }).map(p => {
+    const col = teamColor[p.status === 'dead' ? 'dead' : p.team] || 'var(--accent)';
+    const coordStr = (p.lat && p.lng) ? `${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}` : 'No GPS signal';
+    const isMe = p.id === myId;
+    return `<div class="player-card ${p.status}" onclick="focusPlayer('${p.id}')">
+      <div class="p-avatar" style="border-color:${col}">${p.role === 'Medic' ? '✚' : p.role === 'Sniper' ? '🎯' : p.role === 'Scout' ? '🦅' : p.role === 'Commander' ? '⭐' : '🪖'}</div>
+      <div class="p-info">
+        <div class="p-callsign">${p.callsign}${isMe ? ' <span style="font-size:9px;color:var(--accent2)">[YOU]</span>' : ''}</div>
+        <div class="p-role">${p.role} · ${p.team.toUpperCase()}</div>
+        <div class="p-coord">${coordStr}</div>
+      </div>
+      <span class="p-badge ${badgeClass[p.status] || 'b-alive'}">${badgeText[p.status] || 'ALIVE'}</span>
+    </div>`;
+  }).join('');
+}
+
+function focusPlayer(id) {
+  const p = players[id];
+  if (p && p.lat && map) {
+    switchTab(document.querySelector('[data-s="map"]'));
+    map.setView([p.lat, p.lng], 18);
+    if (markers[id]) markers[id].openPopup();
+  } else {
+    showToast('⚠ No GPS signal for this player', 'warn');
+  }
+}
+
+function renderOrders() {
+  const feed = document.getElementById('orders-feed');
+  const wasAtBottom = feed.scrollHeight - feed.scrollTop <= feed.clientHeight + 50;
+  feed.innerHTML = orders.map(o => {
+    const t = new Date(o.ts);
+    const timeStr = [t.getHours(), t.getMinutes()].map(x => String(x).padStart(2,'0')).join(':');
+    return `<div class="order-card ${o.priority}">
+      <div class="order-head">
+        <div><span class="prio-badge prio-${o.priority}">${o.priority.toUpperCase()}</span><span class="order-from">${o.from}</span></div>
+        <div class="order-time">${timeStr}</div>
+      </div>
+      <div class="order-text">${escHtml(o.text)}</div>
+    </div>`;
+  }).join('');
+  if (wasAtBottom) feed.scrollTop = feed.scrollHeight;
+}
+
+function renderObjectives() {
+  const list = document.getElementById('obj-list');
+  list.innerHTML = objectives.map(o => `
+    <div class="obj-chip ${o.done ? 'done' : ''}" onclick="toggleObj('${o.id}', ${!o.done})">
+      <div class="obj-dot"></div>${escHtml(o.text)}
+    </div>`).join('');
+}
+
+function updateCommsBadge() {
+  const b = document.getElementById('badge-comms');
+  if (unreadComms > 0) { b.textContent = unreadComms > 9 ? '9+' : unreadComms; b.classList.add('show'); }
+  else b.classList.remove('show');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════════════════════════════
+function setStatus(s) {
+  myStatus = s;
+  ['alive','dead','medic','support'].forEach(x => document.getElementById('btn-'+x).classList.remove('on'));
+  document.getElementById('btn-'+s).classList.add('on');
+  sendWS({ type: 'status', status: s });
+  showToast('Status → ' + s.toUpperCase());
+}
+
+function sendOrder() {
+  const txt = document.getElementById('comms-text').value.trim();
+  if (!txt) return;
+  const prio = document.getElementById('comms-prio').value;
+  sendWS({ type: 'order', text: txt, priority: prio });
+  document.getElementById('comms-text').value = '';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.activeElement.id === 'comms-text') sendOrder();
+});
+
+function toggleObj(id, done) {
+  sendWS({ type: 'objective', id, done });
+}
+
+// Room code copy
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('room-badge').addEventListener('click', () => {
+    navigator.clipboard.writeText(roomCode).then(() => showToast('📋 Room code copied!'));
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// PERKS
+// ═══════════════════════════════════════════════════════════════
+const perkNames = { uav:'📡 UAV Deployed!', emp:'⚡ EMP Activated!', hack:'💻 Hack Initiated!', smoke:'💨 Smoke Deployed!', medkit:'🩹 Medkit Used!', air:'🚁 Air Support Called!' };
+
+function usePerk(id, cd) {
+  const card = document.getElementById('pk-'+id);
+  if (card.classList.contains('cd')) return;
+  card.classList.add('cd');
+  showToast(perkNames[id]);
+  sendWS({ type: 'order', text: `[PERK] ${perkNames[id]} deployed by ${myCallsign}`, priority: 'normal' });
+  const prog = document.getElementById('pp-'+id);
+  const cdEl = document.getElementById('pcd-'+id);
+  let elapsed = 0;
+  const iv = setInterval(() => {
+    elapsed++;
+    prog.style.width = (elapsed/cd*100) + '%';
+    cdEl.textContent = (cd-elapsed) + 's';
+    if (elapsed >= cd) {
+      clearInterval(iv);
+      card.classList.remove('cd');
+      prog.style.width = '0';
+      cdEl.textContent = 'READY';
+    }
+  }, 1000);
+}
+</script>
+</body>
+</html>
