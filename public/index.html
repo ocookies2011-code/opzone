@@ -14,8 +14,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
 :root{
   --bg:#080b0f;--bg2:#0d1117;--panel:#111720;--panel2:#192030;--border:#1e2d3d;
-  --red:#ff2a2a;--red-d:rgba(255,42,42,.15);--blue:#2a7fff;--blue-d:rgba(42,127,255,.15);
-  --gold:#e8c84a;--gold2:#c8a820;--text:#c8d8e8;--dim:#4a6070;
+  --red:#ff2a2a;--red-d:rgba(255,42,42,.15);
+  --blue:#2a7fff;--blue-d:rgba(42,127,255,.15);
+  --gold:#e8c84a;--gold2:#c8a820;
+  --text:#c8d8e8;--dim:#4a6070;
   --green:#00cc66;--warn:#ffaa00;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -35,9 +37,9 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .team-pick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .tb{padding:12px;border-radius:5px;border:2px solid;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .2s;background:transparent;text-transform:uppercase}
-.tb.red{border-color:var(--red);color:var(--red)}.tb.red.sel{background:var(--red-d);box-shadow:0 0 12px rgba(255,42,42,.3)}
-.tb.blue{border-color:var(--blue);color:var(--blue)}.tb.blue.sel{background:var(--blue-d);box-shadow:0 0 12px rgba(42,127,255,.3)}
-.jbtn{background:var(--gold);color:#000;border:none;border-radius:4px;padding:14px;font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:2px;cursor:pointer;width:100%;transition:all .2s;text-transform:uppercase}
+.tb.red{border-color:var(--red);color:var(--red)}.tb.red.sel{background:var(--red-d);box-shadow:0 0 14px rgba(255,42,42,.3)}
+.tb.blue{border-color:var(--blue);color:var(--blue)}.tb.blue.sel{background:var(--blue-d);box-shadow:0 0 14px rgba(42,127,255,.3)}
+.jbtn{background:var(--gold);color:#000;border:none;border-radius:4px;padding:14px;font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:2px;cursor:pointer;width:100%;transition:all .2s}
 .jbtn:hover{background:#f0d060;box-shadow:0 0 20px rgba(232,200,74,.4)}
 .lhr{border:none;border-top:1px solid var(--border)}
 .gn{font-size:10px;color:var(--dim);text-align:center;font-family:'Share Tech Mono',monospace;line-height:1.6}
@@ -57,79 +59,111 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .tbnr{height:22px;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:3px;flex-shrink:0}
 .tbnr.red{background:linear-gradient(90deg,rgba(255,42,42,.25),rgba(255,42,42,.08),rgba(255,42,42,.25));color:var(--red);border-bottom:1px solid rgba(255,42,42,.3)}
 .tbnr.blue{background:linear-gradient(90deg,rgba(42,127,255,.25),rgba(42,127,255,.08),rgba(42,127,255,.25));color:var(--blue);border-bottom:1px solid rgba(42,127,255,.3)}
+
+/* NAV */
 .nav{height:54px;display:flex;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
 .nt{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;color:var(--dim);border-bottom:2px solid transparent;transition:all .2s;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;position:relative}
 .nt .ico{font-size:16px}
 .nt.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(232,200,74,.05)}
 .nbadge{position:absolute;top:5px;right:calc(50% - 18px);background:var(--red);color:#fff;border-radius:8px;font-size:7px;padding:1px 4px;font-family:'Share Tech Mono',monospace;display:none}
 .nbadge.on{display:block}
+
 .main{flex:1;overflow:hidden;position:relative}
 .screen{display:none;height:100%;overflow-y:auto;flex-direction:column}
 .screen.active{display:flex}
 
-/* ═══ MAP SCREEN ═══ */
+/* ═══ MAP ═══ */
 #screen-map{position:relative;overflow:hidden}
 #leaflet-map{flex:1;min-height:0}
 .leaflet-container{background:#080f08!important}
 .leaflet-tile{filter:brightness(.72) saturate(.55) hue-rotate(5deg)}
 .leaflet-control-zoom a,.leaflet-draw-toolbar a{background:var(--panel)!important;color:var(--text)!important;border-color:var(--border)!important}
-.leaflet-draw-toolbar a:hover{background:var(--panel2)!important}
 
-/* ── PLAYER MARKERS ── */
+/* EMP BLACKOUT OVERLAY */
+#emp-overlay{position:absolute;inset:0;z-index:700;background:rgba(0,0,0,.92);display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:none}
+#emp-overlay.show{display:flex}
+.emp-icon{font-size:48px;animation:empFlicker 0.4s infinite}
+@keyframes empFlicker{0%,100%{opacity:1}50%{opacity:.3}}
+.emp-txt{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;color:#ff0;letter-spacing:4px;text-shadow:0 0 20px #ff0;text-align:center}
+.emp-sub{font-size:11px;color:#888;font-family:'Share Tech Mono',monospace;letter-spacing:2px;text-align:center}
+.emp-timer{font-family:'Share Tech Mono',monospace;font-size:22px;color:#ff0;margin-top:4px}
+
+/* CEASEFIRE OVERLAY */
+#ceasefire-overlay{position:absolute;inset:0;z-index:710;background:rgba(255,255,255,.08);display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:none;border:4px solid rgba(255,255,255,.4);animation:ceasefireFlash 1s infinite}
+#ceasefire-overlay.show{display:flex}
+@keyframes ceasefireFlash{0%,100%{border-color:rgba(255,255,255,.4)}50%{border-color:rgba(255,255,255,.9)}}
+.cf-txt{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:#fff;letter-spacing:4px;text-shadow:0 0 30px rgba(255,255,255,.8);text-align:center}
+
+/* UAV BANNER */
+#uav-banner{position:absolute;top:60px;left:50%;transform:translateX(-50%);z-index:650;background:rgba(0,196,255,.15);border:1px solid #00c4ff;border-radius:4px;padding:6px 14px;font-family:'Share Tech Mono',monospace;font-size:10px;color:#00c4ff;display:none;white-space:nowrap;text-shadow:0 0 8px #00c4ff;animation:blink 1s infinite}
+#uav-banner.show{display:block}
+
+/* HACK BANNER */
+#hack-banner{position:absolute;top:90px;left:50%;transform:translateX(-50%);z-index:650;background:rgba(0,255,136,.12);border:1px solid var(--green);border-radius:4px;padding:6px 14px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);display:none;white-space:nowrap;animation:blink 1s infinite}
+#hack-banner.show{display:block}
+
+/* REVIVED BANNER */
+#revived-banner{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:680;background:rgba(0,204,102,.2);border:2px solid var(--green);border-radius:8px;padding:16px 24px;font-family:'Orbitron',monospace;font-size:18px;color:var(--green);display:none;text-align:center;text-shadow:0 0 20px var(--green);letter-spacing:2px;animation:fadeInOut 3s forwards}
+@keyframes fadeInOut{0%{opacity:0;transform:translate(-50%,-50%) scale(.8)}20%{opacity:1;transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0}}
+
+/* PLAYER MARKERS */
 .pmw{position:relative;display:flex;flex-direction:column;align-items:center}
 .pm{border-radius:50%;border:2.5px solid;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:9px;font-weight:bold;cursor:pointer;position:relative;transition:all .3s}
 .pm.me{border-width:3px}
 .pm.red{border-color:var(--red);background:rgba(255,42,42,.18);color:var(--red);box-shadow:0 0 10px rgba(255,42,42,.4)}
 .pm.blue{border-color:var(--blue);background:rgba(42,127,255,.18);color:var(--blue);box-shadow:0 0 10px rgba(42,127,255,.4)}
+.pm.enemy-spotted{border-color:#ff0 !important;background:rgba(255,255,0,.15)!important;color:#ff0!important;box-shadow:0 0 14px rgba(255,255,0,.5)!important}
 .pm.dead{border-color:#555!important;background:rgba(20,20,20,.8)!important;color:#555!important;box-shadow:none!important}
-/* Status icon sits top-right of marker */
 .pm-status{position:absolute;top:-5px;right:-5px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;border:1.5px solid var(--bg);z-index:2}
 .pm-label{font-family:'Share Tech Mono',monospace;font-size:7px;background:rgba(0,0,0,.85);padding:1px 4px;border-radius:2px;white-space:nowrap;margin-top:2px;pointer-events:none}
 .pm-pulse{position:absolute;inset:-5px;border-radius:50%;border:1.5px solid;opacity:0;animation:ping 2s ease-out infinite;pointer-events:none}
-.pm-pulse.red{border-color:var(--red)}.pm-pulse.blue{border-color:var(--blue)}
+.pm-pulse.red{border-color:var(--red)}.pm-pulse.blue{border-color:var(--blue)}.pm-pulse.urgent{border-color:var(--warn)}
 @keyframes ping{0%{transform:scale(1);opacity:.55}70%{transform:scale(2);opacity:0}100%{opacity:0}}
+/* Enemy ghost marker (UAV/hack reveal) */
+.pm.ghost-enemy{border-style:dashed!important;opacity:.85;animation:ghostPulse 1s infinite}
+@keyframes ghostPulse{0%,100%{opacity:.85}50%{opacity:.5}}
 
-/* ── PERK ANIMATIONS (CSS-keyed, injected as DOM elements) ── */
-@keyframes uavSweep{0%{transform:rotate(0deg) scale(1);opacity:.8}50%{opacity:1}100%{transform:rotate(360deg) scale(2.5);opacity:0}}
-@keyframes empBlast{0%{transform:scale(.2);opacity:1}100%{transform:scale(4);opacity:0}}
-@keyframes smokeCloud{0%{transform:scale(.5);opacity:.9}50%{transform:scale(1.8);opacity:.5}100%{transform:scale(3);opacity:0}}
-@keyframes airStrike{0%{transform:translateY(-60px) scale(.5);opacity:1}70%{transform:translateY(0) scale(1.2);opacity:1}100%{transform:scale(3);opacity:0}}
-@keyframes hackPulse{0%,100%{opacity:.8}50%{opacity:.2}0%{transform:scale(1)}100%{transform:scale(2.5);opacity:0}}
-@keyframes medHeal{0%{transform:scale(.5);opacity:1}100%{transform:scale(2);opacity:0}}
-.perk-anim{position:absolute;border-radius:50%;pointer-events:none;z-index:1000;transform-origin:center;display:flex;align-items:center;justify-content:center;font-size:28px}
-.perk-anim.uav{width:80px;height:80px;border:2px solid #00c4ff;background:rgba(0,196,255,.1);animation:uavSweep 1.8s ease-out forwards}
-.perk-anim.emp{width:60px;height:60px;border:3px solid #ffff00;background:rgba(255,255,0,.15);animation:empBlast 1.2s ease-out forwards}
-.perk-anim.smoke{width:70px;height:70px;background:rgba(180,180,180,.3);border:2px solid #aaa;animation:smokeCloud 2s ease-out forwards}
-.perk-anim.air{width:50px;height:50px;border:3px solid #ff6600;background:rgba(255,102,0,.2);animation:airStrike 1.5s ease-out forwards}
-.perk-anim.hack{width:60px;height:60px;border:2px dashed #00ff88;background:rgba(0,255,136,.1);animation:hackPulse 1.5s ease-out forwards}
-.perk-anim.med{width:55px;height:55px;border:2px solid #00cc66;background:rgba(0,204,102,.2);animation:medHeal 1.2s ease-out forwards}
+/* PERK ANIMATIONS */
+@keyframes uavSpin{0%{transform:rotate(0) scale(1);opacity:.8}100%{transform:rotate(360deg) scale(3);opacity:0}}
+@keyframes empRing{0%{transform:scale(.1);opacity:1}100%{transform:scale(5);opacity:0}}
+@keyframes smokeGrow{0%{transform:scale(.4);opacity:.9}100%{transform:scale(3.5);opacity:0}}
+@keyframes airDrop{0%{transform:translateY(-80px) scale(.5);opacity:1}60%{transform:translateY(0) scale(1);opacity:1}100%{transform:scale(4);opacity:0}}
+@keyframes hackGlitch{0%{transform:scale(1) rotate(0);opacity:.9}25%{transform:scale(1.1) rotate(3deg);opacity:.6}50%{transform:scale(.9) rotate(-3deg);opacity:.9}100%{transform:scale(2.5);opacity:0}}
+@keyframes healPulse{0%{transform:scale(.5);opacity:1}100%{transform:scale(2.5);opacity:0}}
+@keyframes flareBurn{0%{transform:scale(.5);opacity:1}50%{transform:scale(1.2);opacity:.9}100%{transform:scale(2);opacity:.7}}
+.perk-anim{position:absolute;border-radius:50%;pointer-events:none;z-index:600;transform-origin:center;display:flex;align-items:center;justify-content:center;font-size:26px}
+.perk-anim.uav{width:80px;height:80px;border:2px solid #00c4ff;background:rgba(0,196,255,.1);animation:uavSpin 1.8s ease-out forwards}
+.perk-anim.emp{width:60px;height:60px;border:4px solid #ffff00;background:rgba(255,255,0,.1);animation:empRing 1.2s ease-out forwards}
+.perk-anim.smoke{width:70px;height:70px;background:rgba(170,170,170,.35);border:2px solid #aaa;animation:smokeGrow 2s ease-out forwards}
+.perk-anim.air{width:50px;height:50px;border:3px solid #ff6600;background:rgba(255,102,0,.2);animation:airDrop 1.6s ease-out forwards}
+.perk-anim.hack{width:60px;height:60px;border:2px dashed var(--green);background:rgba(0,255,136,.1);animation:hackGlitch 1.5s ease-out forwards}
+.perk-anim.medkit{width:55px;height:55px;border:2px solid var(--green);background:rgba(0,204,102,.2);animation:healPulse 1.2s ease-out forwards}
+.perk-anim.flare{width:30px;height:30px;border:2px solid #ff0000;background:rgba(255,0,0,.3);animation:flareBurn 3s ease-out forwards}
 
-/* ── MAP TOOLBAR ── */
+/* Map toolbar */
 .map-toolbar{position:absolute;top:12px;left:12px;z-index:500;display:flex;flex-direction:column;gap:6px;pointer-events:all}
 .mt-btn{background:rgba(8,11,15,.9);border:1px solid var(--border);border-radius:4px;padding:7px 10px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text);cursor:pointer;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:5px}
 .mt-btn:hover{border-color:var(--gold);color:var(--gold)}
 .mt-btn.active-tool{border-color:var(--gold);color:var(--gold);background:rgba(232,200,74,.1)}
 .mt-sep{height:1px;background:var(--border);margin:2px 0}
-
-/* Zone type picker */
-.zone-picker{background:rgba(8,11,15,.95);border:1px solid var(--border);border-radius:6px;padding:10px;position:absolute;top:0;left:calc(100% + 8px);min-width:170px;display:none;flex-direction:column;gap:5px}
+.zone-picker{background:rgba(8,11,15,.95);border:1px solid var(--border);border-radius:6px;padding:8px;position:absolute;top:0;left:calc(100% + 8px);min-width:165px;display:none;flex-direction:column;gap:4px}
 .zone-picker.show{display:flex}
-.zp-opt{padding:6px 10px;border-radius:3px;cursor:pointer;font-size:11px;font-weight:600;display:flex;align-items:center;gap:7px;transition:background .15s}
+.zp-opt{padding:5px 8px;border-radius:3px;cursor:pointer;font-size:11px;font-weight:600;display:flex;align-items:center;gap:7px;transition:background .15s}
 .zp-opt:hover{background:var(--panel2)}
 .zp-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 
-/* GPS + compass */
 .map-ov{position:absolute;z-index:500;pointer-events:none}
-.compass{top:12px;right:12px;width:48px;height:48px;background:rgba(8,11,15,.9);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px}
-.gps-box{bottom:72px;right:10px;background:rgba(8,11,15,.88);border:1px solid var(--border);border-radius:4px;padding:6px 9px;font-family:'Share Tech Mono',monospace;font-size:8px;line-height:1.8;text-align:right}
+.compass{top:12px;right:12px;width:46px;height:46px;background:rgba(8,11,15,.9);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px}
+.gps-box{bottom:72px;right:10px;background:rgba(8,11,15,.88);border:1px solid var(--border);border-radius:4px;padding:6px 9px;font-family:'Share Tech Mono',monospace;font-size:8px;line-height:1.9;text-align:right}
 .gv{color:var(--gold)}
+.tile-sw{position:absolute;bottom:72px;left:10px;z-index:500;background:rgba(8,11,15,.9);border:1px solid var(--border);border-radius:4px;padding:5px 7px;font-family:'Share Tech Mono',monospace;font-size:8px;display:flex;gap:5px;pointer-events:all}
+.ts-btn{padding:3px 6px;border-radius:2px;border:1px solid var(--border);cursor:pointer;font-size:7px;font-family:'Share Tech Mono',monospace;transition:all .2s;background:transparent;color:var(--dim)}
+.ts-btn:hover,.ts-btn.on{border-color:var(--gold);color:var(--gold);background:rgba(232,200,74,.08)}
 
-/* Tile switcher */
-.tile-sw{position:absolute;bottom:72px;left:10px;z-index:500;background:rgba(8,11,15,.9);border:1px solid var(--border);border-radius:4px;padding:6px 8px;font-family:'Share Tech Mono',monospace;font-size:9px;display:flex;gap:6px;pointer-events:all;flex-wrap:wrap;max-width:160px}
-.ts-btn{padding:3px 7px;border-radius:2px;border:1px solid var(--border);cursor:pointer;font-size:8px;font-family:'Share Tech Mono',monospace;transition:all .2s;background:transparent;color:var(--dim)}
-.ts-btn:hover,.ts-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(232,200,74,.08)}
+/* Team counter chip on map */
+.team-hud{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);z-index:500;background:rgba(8,11,15,.9);border:1px solid var(--border);border-radius:4px;padding:4px 10px;display:flex;gap:10px;font-family:'Share Tech Mono',monospace;font-size:9px;pointer-events:none}
+.thud-r{color:var(--red)}.thud-b{color:var(--blue)}
 
-/* Obj bar */
 .obj-bar{background:var(--panel);border-top:1px solid var(--border);padding:7px 10px;flex-shrink:0}
 .obj-bar-l{font-size:8px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace;margin-bottom:4px}
 .obj-list{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
@@ -138,11 +172,11 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .oc-dot{width:6px;height:6px;border-radius:50%;background:var(--warn);flex-shrink:0}
 .obj-chip.done .oc-dot{background:var(--green)}
 
-/* Footer brand */
-.ftr{background:var(--panel);border-top:1px solid var(--border);padding:4px;text-align:center;font-size:7px;color:var(--dim);font-family:'Share Tech Mono',monospace;flex-shrink:0;letter-spacing:1px}
+/* Footer */
+.ftr{background:var(--panel);border-top:1px solid var(--border);padding:4px;text-align:center;font-size:7px;color:var(--dim);font-family:'Share Tech Mono',monospace;flex-shrink:0}
 .ftr a{color:var(--dim);text-decoration:none}
 
-/* ═══ SQUAD SCREEN ═══ */
+/* ═══ SQUAD ═══ */
 #screen-squad{padding:10px;gap:8px}
 .sec-t{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:2px}
 .srow{display:grid;grid-template-columns:1fr 1fr;gap:6px}
@@ -203,22 +237,26 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .sb2.dead{border-color:var(--red);color:var(--red)}.sb2.dead.on,.sb2.dead:hover{background:rgba(255,42,42,.15)}
 .sb2.medic{border-color:var(--warn);color:var(--warn)}.sb2.medic.on,.sb2.medic:hover{background:rgba(255,170,0,.15)}
 .sb2.support{border-color:var(--blue);color:var(--blue)}.sb2.support.on,.sb2.support:hover{background:rgba(42,127,255,.15)}
-/* pulse ring for active status */
-.sb2.on::after{content:'';position:absolute;inset:-3px;border-radius:6px;border:1px solid;opacity:.4;animation:blink 1.5s infinite;border-color:inherit}
+.sb2.on::after{content:'';position:absolute;inset:-3px;border-radius:6px;border:1px solid;opacity:.35;animation:blink 1.5s infinite;border-color:inherit}
 
 .gps-panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px;font-family:'Share Tech Mono',monospace;font-size:10px;line-height:2}
 .gps-r{display:flex;justify-content:space-between}
-.gps-k{color:var(--dim)}.gps-v{color:var(--gold)}
+.gps-k{color:var(--dim)}.gps-v2{color:var(--gold)}
 
 /* Perks */
-.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
-.pkc{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 6px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
-.pkc:hover{border-color:var(--gold);background:rgba(232,200,74,.05)}
-.pkc.cd{opacity:.45;cursor:not-allowed}
-.pki{font-size:22px;margin-bottom:3px}
-.pkn{font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:'Share Tech Mono',monospace}
-.pkcd{font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-top:2px}
+.perks-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.pkc{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:8px 4px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.pkc:hover:not(.cd){border-color:var(--gold);background:rgba(232,200,74,.05)}
+.pkc.cd{opacity:.4;cursor:not-allowed}
+.pki{font-size:20px;margin-bottom:2px}
+.pkn{font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:'Share Tech Mono',monospace;line-height:1.2}
+.pkd{font-size:7px;color:var(--dim);line-height:1.3;margin-top:2px;padding:0 2px}
+.pkcd{font-size:8px;color:var(--warn);font-family:'Share Tech Mono',monospace;margin-top:2px}
 .pkp{position:absolute;bottom:0;left:0;height:2px;background:var(--gold);transition:width .1s}
+
+/* Perk feedback toast */
+.perk-fb{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);z-index:9400;background:rgba(8,11,15,.95);border:1px solid var(--gold);border-radius:6px;padding:10px 16px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--gold);max-width:300px;text-align:center;opacity:0;transition:opacity .3s;pointer-events:none}
+.perk-fb.show{opacity:1}
 
 /* ═══ LOADOUT ═══ */
 #screen-loadout{padding:10px;gap:8px}
@@ -232,16 +270,15 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .gsn{font-size:13px;font-weight:700}
 .gsb{height:3px;background:var(--border);border-radius:2px;margin:3px 0;overflow:hidden}
 .gsf{height:100%;border-radius:2px}
-.gsla{font-size:7px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
+.gsl{font-size:7px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
 .abtn{background:transparent;border:1px dashed var(--border);border-radius:6px;padding:14px;width:100%;color:var(--dim);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s}
 .abtn:hover{border-color:var(--gold);color:var(--gold)}
 
 /* TOAST */
 .toast{position:fixed;top:60px;left:50%;transform:translateX(-50%) translateY(-10px);background:var(--panel2);border:1px solid var(--gold);border-radius:4px;padding:8px 16px;font-size:11px;font-family:'Share Tech Mono',monospace;color:var(--gold);z-index:9500;opacity:0;transition:all .3s;white-space:nowrap;box-shadow:0 0 16px rgba(232,200,74,.2);pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast.w{border-color:var(--warn);color:var(--warn)}.toast.e{border-color:var(--red);color:var(--red)}
+.toast.w{border-color:var(--warn);color:var(--warn)}.toast.e{border-color:var(--red);color:var(--red)}.toast.g{border-color:var(--green);color:var(--green)}
 
-/* PAUSED OVERLAY */
 #pausedOv{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:6000;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px}
 #pausedOv.show{display:flex}
 .pov-txt{font-family:'Orbitron',monospace;font-size:26px;font-weight:900;color:var(--warn);letter-spacing:4px;text-shadow:0 0 30px rgba(255,170,0,.5);animation:blink 1s infinite}
@@ -271,11 +308,11 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
     </div>
     <hr class="lhr">
     <button class="jbtn" onclick="joinGame()">⚡ DEPLOY TO BATTLEFIELD</button>
-    <div class="gn">📡 Live GPS tracking · HTTPS required<br>Powered by Swindon Airsoft Tactical</div>
+    <div class="gn">📡 Live GPS · HTTPS required on mobile<br>You only see YOUR team on the map</div>
   </div>
 </div>
 
-<!-- PAUSED -->
+<!-- OVERLAYS -->
 <div id="pausedOv"><div class="pov-txt">⏸ GAME PAUSED</div><div class="pov-sub">Hold all positions — await admin</div></div>
 
 <!-- APP -->
@@ -283,7 +320,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   <div class="hdr">
     <div><div class="hlogo">SWINDON AIRSOFT</div><div class="hsub">Tactical Tracker · by Chris Zulu</div></div>
     <div class="hright">
-      <div class="rtag" id="rtag" title="Tap to copy">ROOM: —</div>
+      <div class="rtag" id="rtag">ROOM: —</div>
       <div class="cpill off" id="cpill">● OFF</div>
       <div class="clk" id="clk">00:00:00</div>
     </div>
@@ -303,43 +340,65 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
     <div class="screen active" id="screen-map">
       <div id="leaflet-map"></div>
 
-      <!-- Map Toolbar -->
-      <div class="map-toolbar" id="map-toolbar">
-        <div class="mt-btn" onclick="locateMe()" title="Centre on me">📍 My Position</div>
-        <div class="mt-sep"></div>
-        <div class="mt-btn" id="btn-draw-polygon" onclick="startDraw('polygon')">✏️ Draw Zone</div>
-        <div class="mt-btn" id="btn-draw-circle" onclick="startDraw('circle')">⭕ Draw Circle</div>
-        <div class="mt-btn" onclick="cancelDraw()">✖ Cancel Draw</div>
-        <div class="mt-sep"></div>
-        <div class="mt-btn" style="position:relative" onclick="toggleZonePicker()">🏷️ Zone Type <span id="zone-type-label" style="color:var(--gold)">Respawn</span>
-          <div class="zone-picker" id="zone-picker">
-            <div class="zp-opt" onclick="setZoneType('respawn','#00cc66','Respawn Zone');event.stopPropagation()"><div class="zp-dot" style="background:#00cc66"></div>Respawn Zone</div>
-            <div class="zp-opt" onclick="setZoneType('objective','#ffaa00','Objective');event.stopPropagation()"><div class="zp-dot" style="background:#ffaa00"></div>Objective</div>
-            <div class="zp-opt" onclick="setZoneType('hazard','#ff2a2a','Hazard Zone');event.stopPropagation()"><div class="zp-dot" style="background:#ff2a2a"></div>Hazard Zone</div>
-            <div class="zp-opt" onclick="setZoneType('safe','#2a7fff','Safe Zone');event.stopPropagation()"><div class="zp-opt" onclick="setZoneType('safe','#2a7fff','Safe Zone');event.stopPropagation()"><div class="zp-dot" style="background:#2a7fff"></div>Safe Zone</div>
-            <div class="zp-opt" onclick="setZoneType('boundary','#e8c84a','Boundary');event.stopPropagation()"><div class="zp-dot" style="background:#e8c84a"></div>Game Boundary</div>
-            <div class="zp-opt" onclick="setZoneType('custom','#cc44ff','Custom');event.stopPropagation()"><div class="zp-dot" style="background:#cc44ff"></div>Custom Zone</div>
-          </div>
-        </div>
-        <div class="mt-btn" onclick="clearMyZones()" style="color:var(--red)">🗑 Clear Zones</div>
+      <!-- EMP Overlay -->
+      <div id="emp-overlay">
+        <div class="emp-icon">⚡</div>
+        <div class="emp-txt">GPS SCRAMBLED</div>
+        <div class="emp-sub">EMP BLAST — MAP OFFLINE</div>
+        <div class="emp-timer" id="emp-timer">15</div>
       </div>
 
-      <!-- Compass -->
-      <div class="map-ov compass" style="top:12px;right:12px">🧭</div>
+      <!-- Ceasefire Overlay -->
+      <div id="ceasefire-overlay">
+        <div style="font-size:48px">🕊</div>
+        <div class="cf-txt">CEASEFIRE</div>
+        <div style="font-size:11px;color:#ccc;font-family:'Share Tech Mono',monospace;letter-spacing:2px">Weapons down — await orders</div>
+      </div>
 
-      <!-- GPS Info -->
+      <!-- UAV Banner -->
+      <div id="uav-banner">📡 UAV ACTIVE — Enemy positions revealed</div>
+      <!-- Hack Banner -->
+      <div id="hack-banner">💻 HACK — Enemy location revealed for 10s</div>
+      <!-- Revived Banner -->
+      <div id="revived-banner" style="display:none">🩹 YOU HAVE BEEN REVIVED!</div>
+
+      <!-- Map Toolbar -->
+      <div class="map-toolbar">
+        <div class="mt-btn" onclick="locateMe()">📍 My Position</div>
+        <div class="mt-sep"></div>
+        <div class="mt-btn" id="btn-dpoly" onclick="startDraw('polygon')">✏️ Draw Zone</div>
+        <div class="mt-btn" id="btn-dcirc" onclick="startDraw('circle')">⭕ Draw Circle</div>
+        <div class="mt-btn" onclick="cancelDraw()">✖ Cancel</div>
+        <div class="mt-sep"></div>
+        <div class="mt-btn" style="position:relative" onclick="toggleZonePicker()">🏷️ <span id="ztl">Respawn</span>
+          <div class="zone-picker" id="zone-picker">
+            <div class="zp-opt" onclick="setZT('respawn','#00cc66','Respawn');event.stopPropagation()"><div class="zp-dot" style="background:#00cc66"></div>Respawn Zone</div>
+            <div class="zp-opt" onclick="setZT('objective','#ffaa00','Objective');event.stopPropagation()"><div class="zp-dot" style="background:#ffaa00"></div>Objective</div>
+            <div class="zp-opt" onclick="setZT('hazard','#ff2a2a','Hazard');event.stopPropagation()"><div class="zp-dot" style="background:#ff2a2a"></div>Hazard Zone</div>
+            <div class="zp-opt" onclick="setZT('safe','#2a7fff','Safe Zone');event.stopPropagation()"><div class="zp-dot" style="background:#2a7fff"></div>Safe Zone</div>
+            <div class="zp-opt" onclick="setZT('boundary','#e8c84a','Boundary');event.stopPropagation()"><div class="zp-dot" style="background:#e8c84a"></div>Boundary</div>
+            <div class="zp-opt" onclick="setZT('custom','#cc44ff','Custom');event.stopPropagation()"><div class="zp-dot" style="background:#cc44ff"></div>Custom</div>
+          </div>
+        </div>
+        <div class="mt-btn" onclick="clearZones()" style="color:var(--red)">🗑 Clear Zones</div>
+      </div>
+
+      <div class="map-ov compass" style="top:12px;right:12px">🧭</div>
       <div class="map-ov gps-box" style="bottom:72px;right:10px">
         <div>LAT <span class="gv" id="i-lat">—</span></div>
         <div>LNG <span class="gv" id="i-lng">—</span></div>
         <div>ACC <span class="gv" id="i-acc">—</span></div>
       </div>
-
-      <!-- Tile Switcher -->
       <div class="tile-sw">
-        <div class="ts-btn active" data-tile="osm" onclick="switchTiles('osm',this)">OSM</div>
+        <div class="ts-btn on" data-tile="osm" onclick="switchTiles('osm',this)">OSM</div>
         <div class="ts-btn" data-tile="sat" onclick="switchTiles('sat',this)">SAT</div>
         <div class="ts-btn" data-tile="topo" onclick="switchTiles('topo',this)">TOPO</div>
         <div class="ts-btn" data-tile="dark" onclick="switchTiles('dark',this)">DARK</div>
+      </div>
+      <!-- Team HUD -->
+      <div class="team-hud">
+        <span class="thud-r">🔴 <span id="hud-red">0</span></span>
+        <span class="thud-b">🔵 <span id="hud-blue">0</span></span>
       </div>
 
       <div class="obj-bar">
@@ -351,11 +410,25 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
     <!-- SQUAD -->
     <div class="screen" id="screen-squad">
       <div class="sec-t">◈ SQUAD ROSTER</div>
-      <div class="srow">
-        <div class="sbox rb"><div class="snum r" id="s-red">0</div><div class="slbl">🔴 Red Team</div></div>
-        <div class="sbox bb"><div class="snum b" id="s-blue">0</div><div class="slbl">🔵 Blue Team</div></div>
+      <!-- My team stats -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:4px">
+        <div class="sbox"><div class="snum" id="s-my-alive" style="color:var(--green);font-family:Orbitron,monospace;font-size:20px;font-weight:700;line-height:1">0</div><div class="slbl">Alive</div></div>
+        <div class="sbox"><div class="snum" id="s-my-dead" style="color:var(--red);font-family:Orbitron,monospace;font-size:20px;font-weight:700;line-height:1">0</div><div class="slbl">Down</div></div>
+        <div class="sbox"><div class="snum" id="s-my-medic" style="color:var(--warn);font-family:Orbitron,monospace;font-size:20px;font-weight:700;line-height:1">0</div><div class="slbl">Medic</div></div>
+        <div class="sbox"><div class="snum" id="s-my-total" style="color:var(--gold);font-family:Orbitron,monospace;font-size:20px;font-weight:700;line-height:1">0</div><div class="slbl">Total</div></div>
       </div>
       <div id="squad-list" style="display:flex;flex-direction:column;gap:6px"></div>
+      <!-- Enemy intel - headcount only, no names/positions -->
+      <div id="enemy-intel-box" style="margin-top:8px;background:var(--panel);border:1px dashed var(--border);border-radius:4px;padding:10px 12px">
+        <div style="font-size:9px;letter-spacing:2px;color:var(--dim);font-family:Share Tech Mono,monospace;margin-bottom:8px">◈ ENEMY INTEL</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center">
+          <div><div id="ei-total" style="font-family:Orbitron,monospace;font-size:20px;font-weight:700;color:var(--dim)">0</div><div style="font-size:8px;color:var(--dim);letter-spacing:1px;text-transform:uppercase">Known</div></div>
+          <div><div id="ei-alive" style="font-family:Orbitron,monospace;font-size:20px;font-weight:700;color:var(--dim)">?</div><div style="font-size:8px;color:var(--dim);letter-spacing:1px;text-transform:uppercase">Alive</div></div>
+          <div><div id="ei-pos" style="font-family:Orbitron,monospace;font-size:20px;font-weight:700;color:var(--dim)">?</div><div style="font-size:8px;color:var(--dim);letter-spacing:1px;text-transform:uppercase">Located</div></div>
+        </div>
+        <div id="ei-uav-row" style="margin-top:8px;font-size:9px;font-family:Share Tech Mono,monospace;text-align:center;display:none;color:var(--accent2)">📡 UAV ACTIVE — enemy positions revealed on map</div>
+        <div id="ei-hint" style="margin-top:6px;font-size:9px;color:var(--dim);font-family:Share Tech Mono,monospace;text-align:center">Deploy UAV perk to reveal enemy positions</div>
+      </div>
     </div>
 
     <!-- COMMS -->
@@ -383,21 +456,46 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
       </div>
       <div class="gps-panel">
         <div class="sec-t" style="margin-bottom:4px">◈ GPS STATUS</div>
-        <div class="gps-r"><span class="gps-k">LATITUDE</span><span class="gps-v" id="gs-lat">Acquiring…</span></div>
-        <div class="gps-r"><span class="gps-k">LONGITUDE</span><span class="gps-v" id="gs-lng">—</span></div>
-        <div class="gps-r"><span class="gps-k">ACCURACY</span><span class="gps-v" id="gs-acc">—</span></div>
-        <div class="gps-r"><span class="gps-k">LAST FIX</span><span class="gps-v" id="gs-ts">—</span></div>
-        <div class="gps-r"><span class="gps-k">CONNECTION</span><span class="gps-v" id="gs-ws">Connecting…</span></div>
+        <div class="gps-r"><span class="gps-k">LATITUDE</span><span class="gps-v2" id="gs-lat">Acquiring…</span></div>
+        <div class="gps-r"><span class="gps-k">LONGITUDE</span><span class="gps-v2" id="gs-lng">—</span></div>
+        <div class="gps-r"><span class="gps-k">ACCURACY</span><span class="gps-v2" id="gs-acc">—</span></div>
+        <div class="gps-r"><span class="gps-k">LAST FIX</span><span class="gps-v2" id="gs-ts">—</span></div>
+        <div class="gps-r"><span class="gps-k">CONNECTION</span><span class="gps-v2" id="gs-ws">Connecting…</span></div>
       </div>
       <div>
         <div class="sec-t">◈ TACTICAL PERKS</div>
-        <div class="pg">
-          <div class="pkc" id="pk-uav" onclick="usePerk('uav','📡 UAV Deployed!',60)"><div class="pki">📡</div><div class="pkn">UAV</div><div class="pkcd" id="pcd-uav">READY</div><div class="pkp" id="pp-uav" style="width:0"></div></div>
-          <div class="pkc" id="pk-emp" onclick="usePerk('emp','⚡ EMP Activated!',90)"><div class="pki">⚡</div><div class="pkn">EMP</div><div class="pkcd" id="pcd-emp">READY</div><div class="pkp" id="pp-emp" style="width:0"></div></div>
-          <div class="pkc" id="pk-hack" onclick="usePerk('hack','💻 Hack Initiated!',120)"><div class="pki">💻</div><div class="pkn">HACK</div><div class="pkcd" id="pcd-hack">READY</div><div class="pkp" id="pp-hack" style="width:0"></div></div>
-          <div class="pkc" id="pk-smoke" onclick="usePerk('smoke','💨 Smoke Deployed!',30)"><div class="pki">💨</div><div class="pkn">SMOKE</div><div class="pkcd" id="pcd-smoke">READY</div><div class="pkp" id="pp-smoke" style="width:0"></div></div>
-          <div class="pkc" id="pk-med" onclick="usePerk('med','🩹 Medkit Used!',45)"><div class="pki">🩹</div><div class="pkn">MEDKIT</div><div class="pkcd" id="pcd-med">READY</div><div class="pkp" id="pp-med" style="width:0"></div></div>
-          <div class="pkc" id="pk-air" onclick="usePerk('air','🚁 Air Support Called!',180)"><div class="pki">🚁</div><div class="pkn">AIR SUP</div><div class="pkcd" id="pcd-air">READY</div><div class="pkp" id="pp-air" style="width:0"></div></div>
+        <div style="font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin:4px 0 8px">Each perk has a real tactical effect on the battlefield</div>
+        <div class="perks-grid">
+          <div class="pkc" id="pk-uav" onclick="usePerk('uav',60)">
+            <div class="pki">📡</div><div class="pkn">UAV SCAN</div>
+            <div class="pkd">Reveals enemy positions to your team for 20s</div>
+            <div class="pkcd" id="pcd-uav">READY</div><div class="pkp" id="pp-uav" style="width:0"></div>
+          </div>
+          <div class="pkc" id="pk-emp" onclick="usePerk('emp',90)">
+            <div class="pki">⚡</div><div class="pkn">EMP BLAST</div>
+            <div class="pkd">Scrambles enemy GPS maps within 100m for 15s</div>
+            <div class="pkcd" id="pcd-emp">READY</div><div class="pkp" id="pp-emp" style="width:0"></div>
+          </div>
+          <div class="pkc" id="pk-smoke" onclick="usePerk('smoke',30)">
+            <div class="pki">💨</div><div class="pkn">SMOKE</div>
+            <div class="pkd">Drops smoke zone on your position for 30s</div>
+            <div class="pkcd" id="pcd-smoke">READY</div><div class="pkp" id="pp-smoke" style="width:0"></div>
+          </div>
+          <div class="pkc" id="pk-hack" onclick="usePerk('hack',120)">
+            <div class="pki">💻</div><div class="pkn">INTEL HACK</div>
+            <div class="pkd">Reveals one random enemy position for 10s</div>
+            <div class="pkcd" id="pcd-hack">READY</div><div class="pkp" id="pp-hack" style="width:0"></div>
+          </div>
+          <div class="pkc" id="pk-medkit" onclick="usePerk('medkit',45)">
+            <div class="pki">🩹</div><div class="pkn">MEDKIT</div>
+            <div class="pkd">Revives downed teammates within 30m</div>
+            <div class="pkcd" id="pcd-medkit">READY</div><div class="pkp" id="pp-medkit" style="width:0"></div>
+          </div>
+          <div class="pkc" id="pk-air" onclick="usePerk('air',180)">
+            <div class="pki">🚁</div><div class="pkn">AIR SUPPORT</div>
+            <div class="pkd">Marks danger zone at your position for 60s</div>
+            <div class="pkcd" id="pcd-air">READY</div><div class="pkp" id="pp-air" style="width:0"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -405,16 +503,17 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
     <!-- LOADOUT -->
     <div class="screen" id="screen-loadout">
       <div class="sec-t">◈ MY KIT</div>
-      <div class="gc"><div class="gh"><div class="gn2">M4A1 CQBR</div><div class="gt">ASSAULT RIFLE</div></div><div class="ge">🔫</div><div class="gst"><div class="gsi"><div class="gsn">350</div><div class="gsb"><div class="gsf" style="width:85%;background:var(--green)"></div></div><div class="gsla">FPS</div></div><div class="gsi"><div class="gsn">40m</div><div class="gsb"><div class="gsf" style="width:70%;background:var(--gold)"></div></div><div class="gsla">Range</div></div><div class="gsi"><div class="gsn">0.2g</div><div class="gsb"><div class="gsf" style="width:60%;background:var(--warn)"></div></div><div class="gsla">BB</div></div></div></div>
-      <div class="gc"><div class="gh"><div class="gn2">Glock 17</div><div class="gt">SIDEARM</div></div><div class="ge">🔫</div><div class="gst"><div class="gsi"><div class="gsn">280</div><div class="gsb"><div class="gsf" style="width:55%;background:var(--green)"></div></div><div class="gsla">FPS</div></div><div class="gsi"><div class="gsn">15m</div><div class="gsb"><div class="gsf" style="width:30%;background:var(--gold)"></div></div><div class="gsla">Range</div></div><div class="gsi"><div class="gsn">0.2g</div><div class="gsb"><div class="gsf" style="width:60%;background:var(--warn)"></div></div><div class="gsla">BB</div></div></div></div>
+      <div class="gc"><div class="gh"><div class="gn2">M4A1 CQBR</div><div class="gt">ASSAULT RIFLE</div></div><div class="ge">🔫</div><div class="gst"><div class="gsi"><div class="gsn">350</div><div class="gsb"><div class="gsf" style="width:85%;background:var(--green)"></div></div><div class="gsl">FPS</div></div><div class="gsi"><div class="gsn">40m</div><div class="gsb"><div class="gsf" style="width:70%;background:var(--gold)"></div></div><div class="gsl">Range</div></div><div class="gsi"><div class="gsn">0.2g</div><div class="gsb"><div class="gsf" style="width:60%;background:var(--warn)"></div></div><div class="gsl">BB</div></div></div></div>
+      <div class="gc"><div class="gh"><div class="gn2">Glock 17</div><div class="gt">SIDEARM</div></div><div class="ge">🔫</div><div class="gst"><div class="gsi"><div class="gsn">280</div><div class="gsb"><div class="gsf" style="width:55%;background:var(--green)"></div></div><div class="gsl">FPS</div></div><div class="gsi"><div class="gsn">15m</div><div class="gsb"><div class="gsf" style="width:30%;background:var(--gold)"></div></div><div class="gsl">Range</div></div><div class="gsi"><div class="gsn">0.2g</div><div class="gsb"><div class="gsf" style="width:60%;background:var(--warn)"></div></div><div class="gsl">BB</div></div></div></div>
       <button class="abtn" onclick="toast('Add Replica coming soon')">+ ADD REPLICA</button>
     </div>
 
-  </div><!-- /main -->
+  </div>
   <div class="ftr">SWINDON AIRSOFT TACTICAL · by Chris Zulu · <a href="/admin">Admin Panel</a></div>
 </div>
 
 <div class="toast" id="toast-el"></div>
+<div class="perk-fb" id="perk-fb"></div>
 
 <script>
 // ════════════════════════════════════════════════════════════════
@@ -422,24 +521,25 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 // ════════════════════════════════════════════════════════════════
 let ws=null,myId=null,myCallsign='SOLDIER',myTeam='red',myRole='Assault',myStatus='alive',roomCode='FIELD01';
 let players={},objectives=[],orders=[],zones=[],markers={},zoneLayers={};
-let map=null,tileLayer=null,drawLayer=null,drawControl=null;
-let myLat=null,myLng=null,myAcc=null,myHdg=0;
-let myMarkerSet=false,unread=0,activeTab='map';
-let currentZoneType='respawn',currentZoneColor='#00cc66',currentZoneLabel='Respawn Zone';
-let activeDrawer=null;
+let map=null,tileLayer=null,drawLayer=null,empTimerInterval=null;
+let myLat=null,myLng=null,myAcc=null,myHdg=0,myMarkerSet=false;
+let unread=0,activeTab='map';
+let uavActive=false,uavTimeout=null;
+let currentZT='respawn',currentZC='#00cc66',currentZL='Respawn';
+// Ghost markers for UAV/hack reveals
+let ghostMarkers={};
+let redCount=0,blueCount=0;
 
 // ════════════════════════════════════════════════════════════════
 // UTILITIES
 // ════════════════════════════════════════════════════════════════
 setInterval(()=>{const n=new Date();document.getElementById('clk').textContent=[n.getHours(),n.getMinutes(),n.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');},1000);
-
 let toastT;
-function toast(msg,type=''){const t=document.getElementById('toast-el');t.textContent=msg;t.className='toast '+(type?type+' ':'')+' show';clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200);}
-
+function toast(msg,type=''){const t=document.getElementById('toast-el');t.textContent=msg;t.className='toast '+(type?' '+type:'')+' show';clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200);}
+let fbT;
+function perkFb(msg){const t=document.getElementById('perk-fb');t.textContent=msg;t.classList.add('show');clearTimeout(fbT);fbT=setTimeout(()=>t.classList.remove('show'),4000);}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
 function pickTeam(t){myTeam=t;document.getElementById('tbr').classList.toggle('sel',t==='red');document.getElementById('tbb').classList.toggle('sel',t==='blue');}
-
 function switchTab(el){
   document.querySelectorAll('.nt').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -458,7 +558,7 @@ function joinGame(){
   roomCode=(document.getElementById('inp-room').value.trim().toUpperCase()||'FIELD01');
   document.getElementById('lobby').classList.add('hidden');
   document.getElementById('app').classList.add('visible');
-  const b=document.getElementById('tbnr');b.className='tbnr '+myTeam;b.textContent=myTeam==='red'?'● RED TEAM':'● BLUE TEAM';
+  const b=document.getElementById('tbnr');b.className='tbnr '+myTeam;b.textContent=myTeam==='red'?'🔴 RED TEAM — EYES ON YOUR TEAM ONLY':'🔵 BLUE TEAM — EYES ON YOUR TEAM ONLY';
   document.getElementById('myc').className='myc '+(myTeam==='red'?'rc':'bc');
   document.getElementById('mav').className='mav '+(myTeam==='red'?'ra':'ba');
   document.getElementById('mcs').className='mcs '+(myTeam==='red'?'r':'b');
@@ -470,236 +570,179 @@ function joinGame(){
 }
 
 // ════════════════════════════════════════════════════════════════
-// MAP INIT & TILES
+// MAP
 // ════════════════════════════════════════════════════════════════
-const TILE_PROVIDERS={
-  osm:{url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',options:{maxZoom:20}},
-  sat:{url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',options:{maxZoom:19}},
-  topo:{url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',options:{maxZoom:17}},
-  dark:{url:'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png',options:{maxZoom:20}},
+const TILES={
+  osm:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  sat:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  topo:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+  dark:'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png',
 };
 
 function initMap(){
   map=L.map('leaflet-map',{center:[51.56,-1.78],zoom:16,zoomControl:true,attributionControl:false});
   applyTile('osm');
   drawLayer=new L.FeatureGroup().addTo(map);
-
-  // Leaflet Draw
-  drawControl=new L.Control.Draw({
-    draw:{polygon:{shapeOptions:{color:currentZoneColor,fillOpacity:.15,weight:2},showArea:false},circle:{shapeOptions:{color:currentZoneColor,fillOpacity:.12,weight:2}},marker:false,circlemarker:false,rectangle:false,polyline:false},
-    edit:{featureGroup:drawLayer,edit:false,remove:false},
-  });
-  // Don't add drawControl yet — we add on demand
-
   map.on(L.Draw.Event.CREATED,(e)=>{
-    const lbl=prompt('Zone label:',currentZoneLabel)||currentZoneLabel;
-    let zoneMsg={type:'zone_add',zoneType:currentZoneType,label:lbl,color:currentZoneColor};
-    if(e.layerType==='polygon'){
-      const ll=e.layer.getLatLngs()[0].map(p=>([p.lat,p.lng]));
-      zoneMsg.shape='polygon';zoneMsg.latlngs=ll;
-    } else if(e.layerType==='circle'){
-      const c=e.layer.getLatLng();
-      zoneMsg.shape='circle';zoneMsg.center=[c.lat,c.lng];zoneMsg.radius=e.layer.getRadius();
-    }
-    sendWS(zoneMsg);
-    // Remove the temporary draw layer, real one comes via WS
-    drawLayer.clearLayers();
-    stopDraw();
+    const lbl=prompt('Zone label:',currentZL)||currentZL;
+    let zm={type:'zone_add',zoneType:currentZT,label:lbl,color:currentZC};
+    if(e.layerType==='polygon'){zm.shape='polygon';zm.latlngs=e.layer.getLatLngs()[0].map(p=>[p.lat,p.lng]);}
+    else if(e.layerType==='circle'){const c=e.layer.getLatLng();zm.shape='circle';zm.center=[c.lat,c.lng];zm.radius=e.layer.getRadius();}
+    sendWS(zm);drawLayer.clearLayers();stopDraw();
   });
 }
 
 function applyTile(key){
   if(tileLayer)map.removeLayer(tileLayer);
-  const p=TILE_PROVIDERS[key]||TILE_PROVIDERS.osm;
-  tileLayer=L.tileLayer(p.url,{...p.options,attribution:''});
-  tileLayer.addTo(map);
-  // Dark filter for non-dark tiles
-  const needsFilter=['osm','sat','topo'].includes(key);
-  document.querySelectorAll('.leaflet-tile').forEach(t=>t.style.filter=needsFilter?'brightness(.72) saturate(.55) hue-rotate(5deg)':'none');
+  tileLayer=L.tileLayer(TILES[key]||TILES.osm,{maxZoom:20,attribution:''}).addTo(map);
 }
-
 function switchTiles(key,el){
   applyTile(key);
-  document.querySelectorAll('.ts-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
-  sendWS({type:'map_tiles_pref',tiles:key});
+  document.querySelectorAll('.ts-btn').forEach(b=>b.classList.remove('on'));el.classList.add('on');
 }
-
-function locateMe(){
-  if(myLat&&map){map.setView([myLat,myLng],18);toast('📍 Centred on your position');}
-  else toast('⚠ GPS not available yet','w');
-}
+function locateMe(){if(myLat&&map){map.setView([myLat,myLng],18);}else toast('⚠ GPS not yet available','w');}
 
 // ════════════════════════════════════════════════════════════════
 // ZONE DRAWING
 // ════════════════════════════════════════════════════════════════
-function toggleZonePicker(){
-  const p=document.getElementById('zone-picker');p.classList.toggle('show');
-}
-document.addEventListener('click',e=>{if(!e.target.closest('.zone-picker')&&!e.target.closest('[onclick*="toggleZonePicker"]'))document.getElementById('zone-picker').classList.remove('show');});
-
-function setZoneType(type,color,label){
-  currentZoneType=type;currentZoneColor=color;currentZoneLabel=label;
-  document.getElementById('zone-type-label').textContent=label;
-  document.getElementById('zone-picker').classList.remove('show');
-  // Update draw options color
-  if(drawControl&&map.hasLayer(drawControl))stopDraw();
-}
-
+function toggleZonePicker(){document.getElementById('zone-picker').classList.toggle('show');}
+document.addEventListener('click',e=>{if(!e.target.closest('#zone-picker')&&!e.target.closest('[onclick*="toggleZonePicker"]'))document.getElementById('zone-picker').classList.remove('show');});
+function setZT(type,color,label){currentZT=type;currentZC=color;currentZL=label;document.getElementById('ztl').textContent=label;document.getElementById('zone-picker').classList.remove('show');}
 function startDraw(shape){
   stopDraw();
-  // Rebuild draw control with current color
-  if(map.drawControlRef)map.removeControl(map.drawControlRef);
-  const dc=new L.Control.Draw({
-    draw:{
-      polygon:shape==='polygon'?{shapeOptions:{color:currentZoneColor,fillColor:currentZoneColor,fillOpacity:.15,weight:2},showArea:false}:false,
-      circle:shape==='circle'?{shapeOptions:{color:currentZoneColor,fillColor:currentZoneColor,fillOpacity:.12,weight:2}}:false,
-      marker:false,circlemarker:false,rectangle:false,polyline:false,
-    },
-    edit:{featureGroup:drawLayer,edit:false,remove:false},
-  });
-  map.addControl(dc);map.drawControlRef=dc;
-  // Trigger the handler
+  const opts={color:currentZC,fillColor:currentZC,fillOpacity:.15,weight:2};
+  const dc=new L.Control.Draw({draw:{polygon:shape==='polygon'?{shapeOptions:opts,showArea:false}:false,circle:shape==='circle'?{shapeOptions:opts}:false,marker:false,circlemarker:false,rectangle:false,polyline:false},edit:{featureGroup:drawLayer,edit:false,remove:false}});
+  map.addControl(dc);map._dcRef=dc;
   if(shape==='polygon')new L.Draw.Polygon(map,dc.options.draw.polygon).enable();
   if(shape==='circle')new L.Draw.Circle(map,dc.options.draw.circle).enable();
-  document.getElementById('btn-draw-'+shape).classList.add('active-tool');
-  toast('✏️ Click on map to draw zone · double-click to finish');
+  document.getElementById('btn-d'+shape.slice(0,4)).classList.add('active-tool');
+  toast('Click to draw · double-click to finish');
 }
-
-function stopDraw(){
-  if(map.drawControlRef){map.removeControl(map.drawControlRef);map.drawControlRef=null;}
-  document.querySelectorAll('.mt-btn').forEach(b=>b.classList.remove('active-tool'));
-}
-function cancelDraw(){stopDraw();drawLayer.clearLayers();toast('Draw cancelled');}
-
-function clearMyZones(){
-  if(!confirm('Clear all zones in this room?'))return;
-  sendWS({type:'zone_remove',id:'__all__'});
-}
+function stopDraw(){if(map&&map._dcRef){map.removeControl(map._dcRef);map._dcRef=null;}document.querySelectorAll('.mt-btn').forEach(b=>b.classList.remove('active-tool'));}
+function cancelDraw(){stopDraw();drawLayer.clearLayers();}
+function clearZones(){if(confirm('Clear all zones?'))sendWS({type:'zone_remove',id:'__all__'});}
 
 // ════════════════════════════════════════════════════════════════
 // ZONE RENDERING
 // ════════════════════════════════════════════════════════════════
-const ZONE_COLORS={respawn:'#00cc66',objective:'#ffaa00',hazard:'#ff2a2a',safe:'#2a7fff',boundary:'#e8c84a',custom:'#cc44ff'};
-const ZONE_LABELS={respawn:'♻ RESPAWN',objective:'🎯 OBJECTIVE',hazard:'⚠ HAZARD',safe:'🛡 SAFE',boundary:'⬛ BOUNDARY',custom:'📍 ZONE'};
-
 function renderZone(zone){
   if(zoneLayers[zone.id])return;
-  const color=zone.color||ZONE_COLORS[zone.zoneType]||'#cc44ff';
+  const color=zone.color||'#cc44ff';
   const opts={color,fillColor:color,fillOpacity:.15,weight:2,dashArray:'6,4'};
   let layer;
-  if(zone.shape==='circle'&&zone.center){
-    layer=L.circle(zone.center,{...opts,radius:zone.radius});
-  } else if(zone.latlngs&&zone.latlngs.length){
-    layer=L.polygon(zone.latlngs,opts);
-  }
+  if(zone.shape==='circle'&&zone.center)layer=L.circle(zone.center,{...opts,radius:zone.radius});
+  else if(zone.latlngs&&zone.latlngs.length)layer=L.polygon(zone.latlngs,opts);
   if(!layer)return;
-  const hdr=ZONE_LABELS[zone.zoneType]||'📍 ZONE';
-  layer.bindTooltip(`<b style="font-family:'Share Tech Mono',monospace;font-size:10px;color:${color}">${hdr}</b><br><span style="font-size:11px">${esc(zone.label)}</span>`,{permanent:true,direction:'center',className:'leaflet-zone-tip'});
+  layer.bindTooltip(`<b style="font-family:'Share Tech Mono',monospace;font-size:10px;color:${color}">${esc(zone.label)}</b>`,{permanent:true,direction:'center',className:'lz-tip'});
   layer.addTo(map);
-  // Right-click to remove
   layer.on('contextmenu',()=>{if(confirm('Remove zone "'+zone.label+'"?'))sendWS({type:'zone_remove',id:zone.id});});
   zoneLayers[zone.id]=layer;
 }
-
-function removeZoneLayer(id){if(zoneLayers[id]){map.removeLayer(zoneLayers[id]);delete zoneLayers[id];}}
-function clearAllZoneLayers(){Object.keys(zoneLayers).forEach(removeZoneLayer);zones=[];}
+function rmZone(id){if(zoneLayers[id]){map.removeLayer(zoneLayers[id]);delete zoneLayers[id];}}
+function clearAllZoneLayers(){Object.keys(zoneLayers).forEach(id=>{map.removeLayer(zoneLayers[id]);});zoneLayers={};zones=[];}
 
 // ════════════════════════════════════════════════════════════════
-// PLAYER MARKERS — status-aware icons
+// PLAYER MARKERS — team-filtered
 // ════════════════════════════════════════════════════════════════
 const STATUS_ICONS={alive:'',dead:'💀',medic:'🚑',support:'🆘'};
-const STATUS_COLORS={alive:'transparent',dead:'#333',medic:'var(--warn)',support:'var(--blue)'};
-const STATUS_BG={alive:'transparent',dead:'#000',medic:'rgba(255,170,0,.9)',support:'rgba(42,127,255,.9)'};
+const STATUS_BG={medic:'rgba(255,170,0,.9)',support:'rgba(42,127,255,.9)',dead:'#222'};
 const ROLE_ICONS={Assault:'⚔',Sniper:'🎯',Support:'🛡',Medic:'✚',Scout:'👁',Commander:'⭐'};
 
-function makeMarkerIcon(p,isMe){
+function makeMarkerIcon(p,isMe,isGhost=false){
   const team=p.status==='dead'?'dead':p.team;
   const sz=isMe?38:30;
   const roleIco=ROLE_ICONS[p.role]||'⚔';
-  const statusIco=STATUS_ICONS[p.status]||'';
-  const statusBg=STATUS_BG[p.status]||'transparent';
-  const statusBorder=p.status==='alive'?'none':'1.5px solid var(--bg)';
-  const pulse=p.status!=='dead'?`<div class="pm-pulse ${team}" style="width:${sz+10}px;height:${sz+10}px;top:-5px;left:-5px"></div>`:'';
-  // Status badge top-right
-  const badge=p.status!=='alive'?`<div class="pm-status" style="background:${statusBg};border:${statusBorder}">${statusIco}</div>`:'';
-  // Extra glow ring for medic/support
   const urgent=p.status==='medic'||p.status==='support';
-  const urgentStyle=urgent?`animation:wpulse2 1s infinite;box-shadow:0 0 18px ${p.status==='medic'?'rgba(255,170,0,.6)':'rgba(42,127,255,.6)'}!important;`:'';
-
+  const badge=p.status!=='alive'?`<div class="pm-status" style="background:${STATUS_BG[p.status]||'transparent'}">${STATUS_ICONS[p.status]||''}</div>`:'';
+  const pulseClass=urgent?'urgent':team;
+  const ghostClass=isGhost?' ghost-enemy':'';
+  const urgentStyle=urgent?`box-shadow:0 0 18px ${p.status==='medic'?'rgba(255,170,0,.6)':'rgba(42,127,255,.6)'}!important;`:'';
   const html=`<div class="pmw">
-    ${pulse}
-    <div class="pm ${team}${isMe?' me':''}" style="width:${sz}px;height:${sz}px;${urgentStyle}">
-      ${badge}
-      <span style="font-size:${isMe?14:11}px">${isMe?'★':roleIco}</span>
+    ${(!isGhost&&p.status!=='dead')?`<div class="pm-pulse ${pulseClass}" style="width:${sz+10}px;height:${sz+10}px;top:-5px;left:-5px"></div>`:''}
+    <div class="pm ${isGhost?'ghost-enemy':team}${isMe?' me':''}${ghostClass}" style="width:${sz}px;height:${sz}px;${urgentStyle}">
+      ${badge}<span style="font-size:${isMe?14:11}px">${isGhost?'?':isMe?'★':roleIco}</span>
     </div>
-    <div class="pm-label" style="color:${team==='red'?'var(--red)':team==='blue'?'var(--blue)':'#555'}">${esc(p.callsign)}${p.status!=='alive'?' · '+p.status.toUpperCase():''}</div>
+    <div class="pm-label" style="color:${isGhost?'#ff0':team==='red'?'var(--red)':team==='blue'?'var(--blue)':'#555'}">${esc(p.callsign)}${isGhost?' ⚠ENEMY':p.status!=='alive'?' · '+p.status.toUpperCase():''}</div>
   </div>`;
   return L.divIcon({html,className:'',iconSize:[sz+10,sz+28],iconAnchor:[(sz+10)/2,(sz+10)/2]});
 }
 
+// Only show a marker if it's my team OR if we have GPS data (from UAV/hack reveal)
+function shouldShowOnMap(p){
+  if(p.id===myId)return true;
+  if(p.team===myTeam)return true;
+  // Enemy — only show if UAV revealed them
+  return false;
+}
+
 function updMarker(p,isMe=false){
-  if(p.lat==null||p.lng==null){rmMarker(p.id);return;}
+  const show=isMe||(p.team===myTeam)||(p._ghostRevealed);
+  if(!show||p.lat==null||p.lng==null){rmMarker(p.id);return;}
+  const isGhost=p._ghostRevealed&&p.team!==myTeam;
   if(markers[p.id]){
     markers[p.id].setLatLng([p.lat,p.lng]);
-    markers[p.id].setIcon(makeMarkerIcon(p,isMe));
-    markers[p.id].setPopupContent(markerPopup(p));
+    markers[p.id].setIcon(makeMarkerIcon(p,isMe,isGhost));
   } else {
-    const m=L.marker([p.lat,p.lng],{icon:makeMarkerIcon(p,isMe),zIndexOffset:isMe?1000:0}).addTo(map).bindPopup(markerPopup(p));
+    const m=L.marker([p.lat,p.lng],{icon:makeMarkerIcon(p,isMe,isGhost),zIndexOffset:isMe?1000:0})
+      .addTo(map).bindPopup(popupHtml(p,isGhost));
     markers[p.id]=m;
     if(isMe&&!myMarkerSet){map.setView([p.lat,p.lng],17);myMarkerSet=true;}
   }
 }
+
 function rmMarker(id){if(markers[id]){markers[id].remove();delete markers[id];}}
-function markerPopup(p){return `<div style="font-family:'Share Tech Mono',monospace;font-size:11px;min-width:120px"><b style="font-size:13px;color:${p.team==='red'?'#ff5555':'#5599ff'}">${p.callsign}</b><br>${p.role} · ${p.team.toUpperCase()} TEAM<br>Status: <b>${p.status.toUpperCase()}</b>${p.lat?`<br>${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`:'<br>No GPS'}</div>`;}
+
+function popupHtml(p,isGhost=false){
+  return `<div style="font-family:'Share Tech Mono',monospace;font-size:11px;min-width:110px">
+    <b style="font-size:13px;color:${p.team==='red'?'#ff5555':'#5599ff'}">${isGhost?'⚠ ENEMY':''}${p.callsign}</b>
+    <br>${isGhost?'???':p.role+' · '+p.team.toUpperCase()}
+    <br>Status: <b>${p.status.toUpperCase()}</b>
+    ${p.lat&&!isGhost?`<br>${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}`:''}
+  </div>`;
+}
+
+function updateHud(){
+  const ps=Object.values(players);
+  redCount=ps.filter(p=>p.team==='red').length;
+  blueCount=ps.filter(p=>p.team==='blue').length;
+  document.getElementById('hud-red').textContent=redCount;
+  document.getElementById('hud-blue').textContent=blueCount;
+}
 
 // ════════════════════════════════════════════════════════════════
 // PERK MAP ANIMATIONS
 // ════════════════════════════════════════════════════════════════
-const PERK_ANIM_CLASS={uav:'uav',emp:'emp',hack:'hack',smoke:'smoke',med:'med',air:'air'};
-const PERK_EMOJIS={uav:'📡',emp:'⚡',hack:'💻',smoke:'💨',med:'🩹',air:'🚁'};
+const PERK_CLS={uav:'uav',emp:'emp',smoke:'smoke',air:'air',hack:'hack',medkit:'medkit',flare:'flare'};
+const PERK_EMO={uav:'📡',emp:'⚡',smoke:'💨',air:'🚁',hack:'💻',medkit:'🩹',flare:'🔴'};
 
-function showPerkAnimation(perk,lat,lng){
+function showPerkAnim(perk,lat,lng){
   if(!map||lat==null||lng==null)return;
-  const animClass=PERK_ANIM_CLASS[perk]||'uav';
-  const emoji=PERK_EMOJIS[perk]||'💥';
-  const point=map.latLngToLayerPoint([lat,lng]);
+  const cls=PERK_CLS[perk]||'uav';
+  const emo=PERK_EMO[perk]||'💥';
+  const pt=map.latLngToLayerPoint([lat,lng]);
   const mapEl=document.getElementById('leaflet-map');
-
-  // Create DOM element over map
   const el=document.createElement('div');
-  el.className=`perk-anim ${animClass}`;
-  el.textContent=emoji;
-  el.style.left=(point.x-35)+'px';
-  el.style.top=(point.y-35)+'px';
+  el.className=`perk-anim ${cls}`;el.textContent=emo;
+  el.style.left=(pt.x-35)+'px';el.style.top=(pt.y-35)+'px';
   mapEl.appendChild(el);
-
-  // For UAV — add a sweeping scan ring
-  if(perk==='uav'){
-    const ring=document.createElement('div');
-    ring.style.cssText=`position:absolute;width:160px;height:160px;border-radius:50%;border:2px solid rgba(0,196,255,.4);left:${point.x-80}px;top:${point.y-80}px;animation:uavSweep 1.8s ease-out forwards;pointer-events:none;z-index:999`;
-    mapEl.appendChild(ring);
-    setTimeout(()=>ring.remove(),2000);
-  }
-  // EMP — multiple expanding rings
+  // EMP — 3 rings
   if(perk==='emp'){
-    [0,300,600].forEach(delay=>{
-      const ring=document.createElement('div');
-      ring.style.cssText=`position:absolute;width:40px;height:40px;border-radius:50%;border:3px solid rgba(255,255,0,.7);left:${point.x-20}px;top:${point.y-20}px;animation:empBlast 1.4s ${delay}ms ease-out forwards;pointer-events:none;z-index:999`;
-      mapEl.appendChild(ring);
-      setTimeout(()=>ring.remove(),2000+delay);
+    [0,250,500].forEach(delay=>{
+      const r=document.createElement('div');
+      r.style.cssText=`position:absolute;width:40px;height:40px;border-radius:50%;border:3px solid rgba(255,255,0,.7);left:${pt.x-20}px;top:${pt.y-20}px;animation:empRing 1.3s ${delay}ms ease-out forwards;pointer-events:none;z-index:599`;
+      mapEl.appendChild(r);setTimeout(()=>r.remove(),1800+delay);
     });
   }
-
-  setTimeout(()=>el.remove(),2200);
-
-  // Update perk positions on map move
-  const listener=()=>{
-    const np=map.latLngToLayerPoint([lat,lng]);
-    el.style.left=(np.x-35)+'px';el.style.top=(np.y-35)+'px';
-  };
-  map.on('move',listener);
-  setTimeout(()=>map.off('move',listener),2200);
+  // UAV — second sweeping ring
+  if(perk==='uav'){
+    const r=document.createElement('div');
+    r.style.cssText=`position:absolute;width:150px;height:150px;border-radius:50%;border:2px solid rgba(0,196,255,.35);left:${pt.x-75}px;top:${pt.y-75}px;animation:uavSpin 1.8s ease-out forwards;pointer-events:none;z-index:599`;
+    mapEl.appendChild(r);setTimeout(()=>r.remove(),2000);
+  }
+  const dur=perk==='flare'?3200:perk==='smoke'?2200:2000;
+  setTimeout(()=>el.remove(),dur);
+  const mv=()=>{const np=map.latLngToLayerPoint([lat,lng]);el.style.left=(np.x-35)+'px';el.style.top=(np.y-35)+'px';};
+  map.on('move',mv);setTimeout(()=>map.off('move',mv),dur);
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -717,15 +760,7 @@ function onGPS(pos){
   ['i-lng','gs-lng'].forEach(id=>document.getElementById(id).textContent=lo);
   ['i-acc','gs-acc'].forEach(id=>document.getElementById(id).textContent=ac);
   document.getElementById('gs-ts').textContent=new Date().toLocaleTimeString();
-  // Update my marker
-  if(myId&&map){
-    const me=players[myId];
-    if(me){me.lat=myLat;me.lng=myLng;updMarker(me,true);}
-  } else if(map&&!myMarkerSet){
-    // Pre-WS placeholder
-    if(!markers['_pre']){const m=L.marker([myLat,myLng],{icon:makeMarkerIcon({callsign:myCallsign,team:myTeam,role:myRole,status:'alive',lat:myLat,lng:myLng},true)}).addTo(map);markers['_pre']=m;map.setView([myLat,myLng],17);}
-    else markers['_pre'].setLatLng([myLat,myLng]);
-  }
+  if(myId&&players[myId]){players[myId].lat=myLat;players[myId].lng=myLng;updMarker(players[myId],true);}
   sendWS({type:'location',lat:myLat,lng:myLng,heading:myHdg});
 }
 function onGPSErr(e){toast('⚠ GPS: '+(['','Permission denied','Unavailable','Timeout'][e.code]||'Error'),'w');}
@@ -733,7 +768,7 @@ function onGPSErr(e){toast('⚠ GPS: '+(['','Permission denied','Unavailable','T
 // ════════════════════════════════════════════════════════════════
 // WEBSOCKET
 // ════════════════════════════════════════════════════════════════
-function wsUrl(){const p=location.protocol==='https:'?'wss':'ws';return`${p}://${location.host}`;}
+function wsUrl(){return(location.protocol==='https:'?'wss':'ws')+'://'+location.host;}
 function connectWS(){
   try{ws=new WebSocket(wsUrl());}catch{setTimeout(connectWS,4000);return;}
   ws.onopen=()=>{
@@ -744,7 +779,11 @@ function connectWS(){
   ws.onmessage=e=>{let m;try{m=JSON.parse(e.data);}catch{return;}handle(m);};
   ws.onclose=()=>{setConn(false);document.getElementById('gs-ws').textContent='RECONNECTING…';setTimeout(connectWS,4000);};
 }
-function setConn(ok){document.getElementById('cpill').textContent=ok?'● LIVE':'● OFF';document.getElementById('cpill').className='cpill'+(ok?'':' off');document.getElementById('gs-ws').textContent=ok?'CONNECTED':'OFFLINE';}
+function setConn(ok){
+  document.getElementById('cpill').textContent=ok?'● LIVE':'● OFF';
+  document.getElementById('cpill').className='cpill'+(ok?'':' off');
+  document.getElementById('gs-ws').textContent=ok?'CONNECTED':'OFFLINE';
+}
 function sendWS(m){if(ws&&ws.readyState===1)ws.send(JSON.stringify(m));}
 
 // ════════════════════════════════════════════════════════════════
@@ -752,69 +791,205 @@ function sendWS(m){if(ws&&ws.readyState===1)ws.send(JSON.stringify(m));}
 // ════════════════════════════════════════════════════════════════
 function handle(msg){
   switch(msg.type){
+
     case 'init':
-      myId=msg.playerId;players={};
+      myId=msg.playerId;
+      // Clear all existing markers
+      Object.keys(markers).forEach(id=>rmMarker(id));
+      Object.keys(zoneLayers).forEach(id=>removeZoneLayer(id));
+      players={};
       msg.room.players.forEach(p=>players[p.id]=p);
-      objectives=msg.room.objectives;orders=msg.room.orders;
-      zones=msg.room.zones||[];
-      if(markers['_pre']){markers['_pre'].remove();delete markers['_pre'];}
-      if(map){zones.forEach(renderZone);Object.values(players).forEach(p=>updMarker(p,p.id===myId));}
-      renderAll();
+      objectives=msg.room.objectives;orders=msg.room.orders;zones=msg.room.zones||[];
+      if(map){
+        zones.forEach(renderZone);
+        Object.values(players).forEach(p=>{
+          // On init, only show own team markers on map (enemies have lat:null from server anyway)
+          if(p.id===myId||p.team===myTeam) updMarker(p,p.id===myId);
+          // Enemy players arrive with lat:null (server filters) so updMarker drops them safely
+        });
+      }
+      renderAll();updateHud();
       if(myLat)sendWS({type:'location',lat:myLat,lng:myLng,heading:myHdg});
       if(msg.room.gamePaused)document.getElementById('pausedOv').classList.add('show');
-      // Apply map tiles from room setting
-      if(msg.room.mapTiles&&msg.room.mapTiles!=='osm'){
-        const btn=document.querySelector(`[data-tile="${msg.room.mapTiles}"]`);
-        if(btn)switchTiles(msg.room.mapTiles,btn);
-      }
+      if(msg.room.mapTiles&&msg.room.mapTiles!=='osm'){const btn=document.querySelector(`[data-tile="${msg.room.mapTiles}"]`);if(btn)switchTiles(msg.room.mapTiles,btn);}
       break;
 
-    case 'player_joined': players[msg.player.id]=msg.player;renderSquad();break;
-    case 'player_left': delete players[msg.playerId];rmMarker(msg.playerId);renderSquad();break;
+    case 'player_joined':
+      players[msg.player.id]=msg.player;
+      // Only update map marker if same team
+      if(msg.player.team===myTeam)updMarker(msg.player,false);
+      renderSquad();updateHud();
+      break;
+
+    case 'player_left':
+      delete players[msg.playerId];rmMarker(msg.playerId);renderSquad();updateHud();
+      break;
 
     case 'location_update':{
       const p=players[msg.playerId];
-      if(p){p.lat=msg.lat;p.lng=msg.lng;p.heading=msg.heading;p.lastSeen=msg.lastSeen;
-        if(msg.playerId!==myId)updMarker(p,false);}
+      if(p){
+        p.lat=msg.lat;p.lng=msg.lng;p.heading=msg.heading;p.lastSeen=msg.lastSeen;
+        const isEnemy=p.team!==myTeam;
+        // If UAV is active and enemy sends location update, flag them as ghost-revealed
+        if(isEnemy&&uavActive&&!p._ghostRevealed)p._ghostRevealed=true;
+        // Only update map if own team or ghost-revealed by UAV/hack
+        if(msg.playerId===myId||p.team===myTeam||p._ghostRevealed){
+          updMarker(p,msg.playerId===myId);
+        } else {
+          // Enemy with no reveal — never show on map, remove any stale marker
+          rmMarker(p.id);
+        }
+      }
       break;
     }
+
+    case 'enemy_count_update':
+      redCount=msg.redCount;blueCount=msg.blueCount;
+      document.getElementById('hud-red').textContent=redCount;
+      document.getElementById('hud-blue').textContent=blueCount;
+      break;
 
     case 'status_update':{
       const p=players[msg.playerId];
-      if(p){p.status=msg.status;if(msg.playerId===myId)myStatus=msg.status;
-        renderSquad();updMarker(p,msg.playerId===myId);}
+      if(p){
+        p.status=msg.status;
+        if(msg.playerId===myId)myStatus=msg.status;
+        renderSquad();
+        if(p.team===myTeam||p._ghostRevealed)updMarker(p,msg.playerId===myId);
+      }
       break;
     }
 
-    case 'new_order': orders.push(msg.order);if(orders.length>200)orders.shift();renderOrders();if(activeTab!=='comms'){unread++;updBadge();}break;
+    case 'new_order':
+      orders.push(msg.order);if(orders.length>200)orders.shift();renderOrders();
+      if(activeTab!=='comms'){unread++;updBadge();}
+      break;
 
     case 'objective_update':{const o=objectives.find(x=>x.id===msg.id);if(o){o.done=msg.done;renderObj();}break;}
-    case 'objective_added': objectives.push(msg.objective);renderObj();break;
-    case 'objective_removed': objectives=objectives.filter(o=>o.id!==msg.id);renderObj();break;
+    case 'objective_added':objectives.push(msg.objective);renderObj();break;
+    case 'objective_removed':objectives=objectives.filter(o=>o.id!==msg.id);renderObj();break;
 
-    case 'zone_added': zones.push(msg.zone);if(map)renderZone(msg.zone);break;
+    case 'zone_added':zones.push(msg.zone);if(map)renderZone(msg.zone);break;
     case 'zone_removed':
       if(msg.id==='__all__'){clearAllZoneLayers();}
-      else{zones=zones.filter(z=>z.id!==msg.id);removeZoneLayer(msg.id);}
+      else{zones=zones.filter(z=>z.id!==msg.id);rmZone(msg.id);}
       break;
-    case 'zones_cleared': clearAllZoneLayers();break;
+    case 'zones_cleared':clearAllZoneLayers();break;
 
-    case 'perk_event':
-      // Show animation on map at player's location
-      if(map)showPerkAnimation(msg.perk,msg.lat,msg.lng);
-      toast(`${msg.callsign}: ${msg.label}`);
+    // ── PERK EFFECTS ─────────────────────────────────────────────
+    case 'perk_anim':
+      // Visual animation on map for everyone
+      if(map)showPerkAnim(msg.perk,msg.lat,msg.lng);
       break;
 
-    case 'map_tiles_changed':{
-      const btn=document.querySelector(`[data-tile="${msg.tiles}"]`);
-      if(btn)switchTiles(msg.tiles,btn);
+    case 'perk_feedback':
+      // Server result feedback to caster only
+      perkFb(`${msg.perk.toUpperCase()}: ${msg.message}`);
       break;
-    }
 
-    case 'game_paused': document.getElementById('pausedOv').classList.add('show');break;
-    case 'game_resumed': document.getElementById('pausedOv').classList.remove('show');break;
-    case 'game_reset': Object.values(players).forEach(p=>p.status='alive');renderSquad();Object.values(players).forEach(p=>updMarker(p,p.id===myId));break;
-    case 'kicked': alert('You have been removed: '+(msg.reason||'Kicked by admin'));location.reload();break;
+    case 'uav_reveal':
+      // Enemy positions revealed to my team
+      uavActive=true;
+      msg.reveals.forEach(p=>{
+        p._ghostRevealed=true;
+        players[p.id]=p;
+        if(map)updMarker(p,false);
+      });
+      document.getElementById('uav-banner').textContent=`📡 UAV ACTIVE — ${msg.reveals.length} enemy contact(s) revealed`;
+      document.getElementById('uav-banner').classList.add('show');
+      toast(`📡 UAV: ${msg.reveals.length} enemy/enemies revealed by ${msg.callsign}!`,'g');
+      uavTimeout&&clearTimeout(uavTimeout);
+      uavTimeout=setTimeout(()=>{
+        uavActive=false;
+        // Remove ghost markers
+        Object.values(players).filter(p=>p._ghostRevealed&&p.team!==myTeam).forEach(p=>{
+          p._ghostRevealed=false;rmMarker(p.id);
+        });
+        document.getElementById('uav-banner').classList.remove('show');
+      }, msg.duration||20000);
+      break;
+
+    case 'uav_expired':
+      uavActive=false;
+      Object.values(players).filter(p=>p._ghostRevealed&&p.team!==myTeam).forEach(p=>{p._ghostRevealed=false;rmMarker(p.id);});
+      document.getElementById('uav-banner').classList.remove('show');
+      break;
+
+    case 'hack_reveal':
+      // One specific enemy shown to me only
+      msg.target._ghostRevealed=true;
+      players[msg.target.id]=msg.target;
+      if(map)updMarker(msg.target,false);
+      document.getElementById('hack-banner').textContent=`💻 HACKED: ${msg.target.callsign} — ${msg.target.lat?.toFixed(4)||'?'}, ${msg.target.lng?.toFixed(4)||'?'}`;
+      document.getElementById('hack-banner').classList.add('show');
+      toast(`💻 Intel: ${msg.target.callsign} location revealed for 10s`,'g');
+      setTimeout(()=>{
+        const p=players[msg.target.id];
+        if(p){p._ghostRevealed=false;rmMarker(p.id);}
+        document.getElementById('hack-banner').classList.remove('show');
+      }, msg.duration||10000);
+      break;
+
+    case 'hack_detected':
+      toast(`⚠ HACKED — ${msg.from} has your position!`,'e');
+      break;
+
+    case 'emp_hit':
+      // MY GPS map is scrambled
+      document.getElementById('emp-overlay').classList.add('show');
+      const dur=Math.floor((msg.duration||15000)/1000);
+      let remaining=dur;
+      document.getElementById('emp-timer').textContent=remaining;
+      empTimerInterval&&clearInterval(empTimerInterval);
+      empTimerInterval=setInterval(()=>{remaining--;document.getElementById('emp-timer').textContent=remaining;if(remaining<=0){clearInterval(empTimerInterval);}},1000);
+      toast(`⚡ EMP BLAST from ${msg.from} — Map offline for ${dur}s`,'e');
+      break;
+
+    case 'emp_cleared':
+      document.getElementById('emp-overlay').classList.remove('show');
+      empTimerInterval&&clearInterval(empTimerInterval);
+      toast('📡 GPS systems restored');
+      break;
+
+    case 'revived':
+      myStatus='alive';
+      ['alive','dead','medic','support'].forEach(x=>document.getElementById('btn-'+x).classList.remove('on'));
+      document.getElementById('btn-alive').classList.add('on');
+      const rb=document.getElementById('revived-banner');rb.textContent=`🩹 REVIVED by ${msg.by}!`;
+      rb.style.display='flex';setTimeout(()=>rb.style.display='none',3000);
+      toast(`🩹 You were revived by ${msg.by}!`,'g');
+      if(myId&&players[myId]){players[myId].status='alive';updMarker(players[myId],true);}
+      break;
+
+    case 'blackout':
+      document.getElementById('emp-overlay').classList.add('show');
+      document.querySelector('.emp-txt').textContent='BLACKOUT';
+      document.querySelector('.emp-sub').textContent='ALL GPS SYSTEMS OFFLINE';
+      const bdur=Math.floor((msg.duration||20000)/1000);let br=bdur;
+      document.getElementById('emp-timer').textContent=br;
+      empTimerInterval&&clearInterval(empTimerInterval);
+      empTimerInterval=setInterval(()=>{br--;document.getElementById('emp-timer').textContent=br;if(br<=0)clearInterval(empTimerInterval);},1000);
+      break;
+
+    case 'blackout_end':
+      document.getElementById('emp-overlay').classList.remove('show');
+      document.querySelector('.emp-txt').textContent='GPS SCRAMBLED';
+      document.querySelector('.emp-sub').textContent='EMP BLAST — MAP OFFLINE';
+      empTimerInterval&&clearInterval(empTimerInterval);
+      toast('📡 Systems restored');
+      break;
+
+    case 'ceasefire_signal':
+      const co=document.getElementById('ceasefire-overlay');co.classList.add('show');
+      toast('🕊 CEASEFIRE — Weapons down!','w');
+      setTimeout(()=>co.classList.remove('show'),8000);
+      break;
+
+    case 'game_paused':document.getElementById('pausedOv').classList.add('show');break;
+    case 'game_resumed':document.getElementById('pausedOv').classList.remove('show');break;
+    case 'game_reset':Object.values(players).forEach(p=>p.status='alive');renderSquad();Object.values(players).forEach(p=>p.team===myTeam&&updMarker(p,p.id===myId));break;
+    case 'map_tiles_changed':{const btn=document.querySelector(`[data-tile="${msg.tiles}"]`);if(btn)switchTiles(msg.tiles,btn);break;}
+    case 'kicked':alert('You have been removed: '+(msg.reason||'Kicked by admin'));location.reload();break;
   }
 }
 
@@ -825,19 +1000,47 @@ function renderAll(){renderSquad();renderOrders();renderObj();}
 
 function renderSquad(){
   const all=Object.values(players);
-  document.getElementById('s-red').textContent=all.filter(p=>p.team==='red').length;
-  document.getElementById('s-blue').textContent=all.filter(p=>p.team==='blue').length;
+  const myTeamPs=all.filter(p=>p.team===myTeam);
+  const enemyPs=all.filter(p=>p.team!==myTeam);
+
+  // My team stats
+  document.getElementById('s-my-total').textContent=myTeamPs.length;
+  document.getElementById('s-my-alive').textContent=myTeamPs.filter(p=>p.status==='alive').length;
+  document.getElementById('s-my-dead').textContent=myTeamPs.filter(p=>p.status==='dead').length;
+  document.getElementById('s-my-medic').textContent=myTeamPs.filter(p=>p.status==='medic'||p.status==='support').length;
+
+  // HUD counters
+  const allRed=all.filter(p=>p.team==='red').length;
+  const allBlue=all.filter(p=>p.team==='blue').length;
+  document.getElementById('hud-red').textContent=allRed;
+  document.getElementById('hud-blue').textContent=allBlue;
+
+  // Enemy intel box — headcount only, NO names, NO positions
+  document.getElementById('ei-total').textContent=enemyPs.length||'?';
+  // Only reveal alive/located counts if UAV is active
+  if(uavActive){
+    document.getElementById('ei-alive').textContent=enemyPs.filter(p=>p.status==='alive').length;
+    document.getElementById('ei-pos').textContent=enemyPs.filter(p=>p._ghostRevealed&&p.lat).length;
+    const uavRow=document.getElementById('ei-uav-row');if(uavRow)uavRow.style.display='block';
+    const hint=document.getElementById('ei-hint');if(hint)hint.style.display='none';
+  } else {
+    document.getElementById('ei-alive').textContent='?';
+    document.getElementById('ei-pos').textContent='?';
+    const uavRow=document.getElementById('ei-uav-row');if(uavRow)uavRow.style.display='none';
+    const hint=document.getElementById('ei-hint');if(hint)hint.style.display='block';
+  }
+
   const bc={alive:'ba',dead:'bd',medic:'bm',support:'bs'};
   const bt={alive:'ALIVE',dead:'DOWN',medic:'MEDIC REQ',support:'SUPPORT'};
-  document.getElementById('squad-list').innerHTML=all.sort((a,b)=>{
-    const r=s=>s==='alive'?0:s==='medic'?1:s==='support'?2:3;return r(a.status)-r(b.status);
-  }).map(p=>{
+
+  const sorted=[...myTeamPs].sort((a,b)=>{const r=s=>s==='alive'?0:s==='medic'?1:s==='support'?2:3;return r(a.status)-r(b.status);});
+  document.getElementById('squad-list').innerHTML=sorted.map(p=>{
     const col=p.status==='dead'?'#555':p.team==='red'?'var(--red)':'var(--blue)';
     const co=p.lat?`${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}`:'No GPS';
     const isMe=p.id===myId;
-    const roleIco=ROLE_ICONS[p.role]||'⚔';
+    const ri=ROLE_ICONS[p.role]||'⚔';
     return `<div class="pc ${p.status==='dead'?'d':''} ${p.status==='medic'?'m':''}" onclick="focusP('${p.id}')">
-      <div class="pa" style="border-color:${col}">${roleIco}</div>
+      <div class="pa" style="border-color:${col}">${ri}</div>
       <div class="pi">
         <div class="pcall">${esc(p.callsign)}${isMe?' <span style="font-size:8px;color:var(--gold)">[YOU]</span>':''}</div>
         <div class="prole">${p.role} · ${p.team.toUpperCase()} TEAM</div>
@@ -848,12 +1051,17 @@ function renderSquad(){
   }).join('');
 }
 
-function focusP(id){const p=players[id];if(p&&p.lat&&map){switchTab(document.querySelector('[data-s="map"]'));map.setView([p.lat,p.lng],18);if(markers[id])markers[id].openPopup();}else toast('⚠ No GPS for this player','w');}
+function focusP(id){
+  const p=players[id];
+  if(p&&p.lat&&p.team===myTeam&&map){switchTab(document.querySelector('[data-s="map"]'));map.setView([p.lat,p.lng],18);if(markers[id])markers[id].openPopup();}
+  else if(p&&p.team!==myTeam)toast('⚠ Enemy position classified','w');
+  else toast('⚠ No GPS for this player','w');
+}
 
 function renderOrders(){
   const feed=document.getElementById('feed');
   const atBot=feed.scrollHeight-feed.scrollTop<=feed.clientHeight+60;
-  const tc=t=>t==='red'?'red-t':t==='blue'?'blue-t':t==='ADMIN'||t==='⭐ ADMIN'?'adm':'sys';
+  const tc=t=>t==='red'?'red-t':t==='blue'?'blue-t':t&&(t.includes('ADMIN')||t.includes('⭐'))?'adm':'sys';
   const pc=p=>p==='high'?'ph':p==='low'?'pl':'pn';
   feed.innerHTML=orders.map(o=>{
     const t=new Date(o.ts);const ts=[t.getHours(),t.getMinutes()].map(x=>String(x).padStart(2,'0')).join(':');
@@ -877,29 +1085,23 @@ function setStatus(s){
   document.getElementById('btn-'+s).classList.add('on');
   sendWS({type:'status',status:s});
   toast('Status → '+s.toUpperCase());
-  // Update my marker immediately
   if(myId&&players[myId]){players[myId].status=s;updMarker(players[myId],true);}
 }
 
-function sendOrder(){
-  const txt=document.getElementById('ctxt').value.trim();if(!txt)return;
-  sendWS({type:'order',text:txt,priority:document.getElementById('cprio').value});
-  document.getElementById('ctxt').value='';
-}
+function sendOrder(){const txt=document.getElementById('ctxt').value.trim();if(!txt)return;sendWS({type:'order',text:txt,priority:document.getElementById('cprio').value});document.getElementById('ctxt').value='';}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.activeElement.id==='ctxt')sendOrder();});
-
 function toggleObj(id,done){sendWS({type:'objective',id,done});}
 
 // ════════════════════════════════════════════════════════════════
-// PERKS
+// PERKS — send to server, server applies real effects
 // ════════════════════════════════════════════════════════════════
-function usePerk(id,label,cd){
+function usePerk(id,cd){
   const c=document.getElementById('pk-'+id);if(c.classList.contains('cd'))return;
-  c.classList.add('cd');toast(label);
-  // Send perk event to server — server broadcasts to all with lat/lng
-  sendWS({type:'perk',perk:id,label});
-  // Show animation for self immediately
-  if(myLat&&map)showPerkAnimation(id,myLat,myLng);
+  c.classList.add('cd');
+  // Show animation locally immediately
+  if(myLat&&map)showPerkAnim(id,myLat,myLng);
+  // Server processes the real effect
+  sendWS({type:'perk',perk:id});
   const prog=document.getElementById('pp-'+id),cdEl=document.getElementById('pcd-'+id);
   let e=0;const iv=setInterval(()=>{e++;prog.style.width=(e/cd*100)+'%';cdEl.textContent=(cd-e)+'s';if(e>=cd){clearInterval(iv);c.classList.remove('cd');prog.style.width='0';cdEl.textContent='READY';}},1000);
 }

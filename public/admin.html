@@ -3,622 +3,810 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin — Swindon Airsoft Tactical</title>
+<title>Admin — Swindon Airsoft</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"/>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
-:root{--bg:#06080c;--bg2:#0c1018;--panel:#101520;--panel2:#18222e;--border:#1c2a3a;--gold:#e8c84a;--gold2:#c8a820;--red:#ff2a2a;--blue:#2a7fff;--green:#00cc66;--warn:#ffaa00;--text:#c8d8e8;--dim:#4a6070}
+:root{--bg:#06080c;--bg2:#0c1018;--panel:#101520;--panel2:#18222e;--border:#1c2a3a;--gold:#e8c84a;--gold2:#c8a820;--red:#ff2a2a;--blue:#2a7fff;--green:#00cc66;--warn:#ffaa00;--text:#c8d8e8;--dim:#4a6070;--purple:#cc44ff}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh}
 body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(232,200,74,.006) 2px,rgba(232,200,74,.006) 4px);pointer-events:none;z-index:9000}
 
 /* LOGIN */
-#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:5000;flex-direction:column;gap:20px;padding:24px}
-#login-screen.hidden{display:none}
+#ls{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:5000;flex-direction:column;gap:18px;padding:24px}
+#ls.h{display:none}
 .lg-logo{font-family:'Orbitron',monospace;font-size:20px;font-weight:900;color:var(--gold);letter-spacing:4px;text-shadow:0 0 25px rgba(232,200,74,.4);text-align:center}
 .lg-sub{font-size:10px;letter-spacing:3px;color:var(--dim);font-family:'Share Tech Mono',monospace;text-align:center}
 .lg-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:24px;width:100%;max-width:340px;display:flex;flex-direction:column;gap:14px}
-.lg-title{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;text-align:center;border-bottom:1px solid var(--border);padding-bottom:12px}
-.lg-f label{font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace;display:block;margin-bottom:4px}
-.lg-f input{background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:13px;padding:10px 12px;outline:none;width:100%;transition:border-color .2s}
-.lg-f input:focus{border-color:var(--gold)}
+.lgt{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;text-align:center;border-bottom:1px solid var(--border);padding-bottom:12px}
+.lgf label{font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace;display:block;margin-bottom:4px}
+.lgf input{background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:13px;padding:10px 12px;outline:none;width:100%;transition:border-color .2s}
+.lgf input:focus{border-color:var(--gold)}
 .lg-btn{background:var(--gold);color:#000;border:none;border-radius:4px;padding:13px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;width:100%;transition:all .2s}
 .lg-btn:hover{background:#f0d060}
 .lg-err{font-size:11px;color:var(--red);text-align:center;font-family:'Share Tech Mono',monospace;display:none}
 .lg-err.show{display:block}
 
 /* APP */
-#admin-app{display:none;min-height:100vh;flex-direction:column}
-#admin-app.visible{display:flex}
-.adm-hdr{background:var(--panel);border-bottom:2px solid var(--gold2);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.adm-logo{font-family:'Orbitron',monospace;font-size:15px;font-weight:900;color:var(--gold);letter-spacing:3px;text-shadow:0 0 12px rgba(232,200,74,.4)}
-.adm-sub{font-size:8px;letter-spacing:2px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-top:2px}
-.adm-hr{display:flex;align-items:center;gap:12px}
-.adm-pill{font-family:'Share Tech Mono',monospace;font-size:9px;padding:3px 8px;border-radius:2px;border:1px solid var(--green);color:var(--green)}
-.adm-clk{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--gold)}
-.logout-btn{background:transparent;border:1px solid var(--red);color:var(--red);border-radius:3px;padding:5px 12px;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer;text-transform:uppercase;transition:all .2s}
-.logout-btn:hover{background:rgba(255,42,42,.15)}
-.adm-body{flex:1;display:flex;overflow:hidden}
+#aa{display:none;min-height:100vh;flex-direction:column}
+#aa.v{display:flex}
+.ah{background:var(--panel);border-bottom:2px solid var(--gold2);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.al{font-family:'Orbitron',monospace;font-size:14px;font-weight:900;color:var(--gold);letter-spacing:3px;text-shadow:0 0 10px rgba(232,200,74,.4)}
+.as{font-size:7px;letter-spacing:2px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-top:2px}
+.ahr{display:flex;align-items:center;gap:10px}
+.apill{font-family:'Share Tech Mono',monospace;font-size:8px;padding:2px 8px;border-radius:2px;border:1px solid var(--green);color:var(--green)}
+.aclk{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--gold)}
+.lout{background:transparent;border:1px solid var(--red);color:var(--red);border-radius:3px;padding:5px 12px;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;cursor:pointer;text-transform:uppercase;transition:all .2s}
+.lout:hover{background:rgba(255,42,42,.15)}
+.ab{flex:1;display:flex;overflow:hidden}
 
 /* SIDEBAR */
-.sb{width:200px;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
-.sb-sec{padding:14px 12px 6px;font-size:8px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace}
-.sb-item{padding:10px 16px;cursor:pointer;font-size:13px;font-weight:600;letter-spacing:1px;color:var(--dim);display:flex;align-items:center;gap:8px;transition:all .2s;border-left:2px solid transparent}
-.sb-item:hover{color:var(--text);background:rgba(255,255,255,.03)}
-.sb-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(232,200,74,.06)}
-.sb-item .si{font-size:16px}
+.sb{width:190px;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.sbs{padding:12px 12px 5px;font-size:8px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace}
+.sbi{padding:10px 16px;cursor:pointer;font-size:13px;font-weight:600;letter-spacing:1px;color:var(--dim);display:flex;align-items:center;gap:8px;transition:all .2s;border-left:2px solid transparent}
+.sbi:hover{color:var(--text);background:rgba(255,255,255,.03)}
+.sbi.active{color:var(--gold);border-left-color:var(--gold);background:rgba(232,200,74,.06)}
+.sico{font-size:15px}
 
 /* CONTENT */
-.adm-content{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
+.ac{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
 .ap{background:var(--panel);border:1px solid var(--border);border-radius:6px}
-.ap-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
-.ap-title{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase}
-.ap-body{padding:16px}
+.aph{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.apt{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--gold);text-transform:uppercase}
+.apb{padding:14px}
 
 /* Stats */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.stat-c{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:14px;text-align:center}
-.stat-c .sn{font-family:'Orbitron',monospace;font-size:28px;font-weight:700;line-height:1}
-.stat-c .sl{font-size:9px;letter-spacing:1px;color:var(--dim);text-transform:uppercase;margin-top:4px}
-.g{color:var(--green)}.r{color:var(--red)}.b{color:var(--blue)}.gd{color:var(--gold)}.w{color:var(--warn)}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.sc{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center}
+.sn{font-family:'Orbitron',monospace;font-size:26px;font-weight:700;line-height:1}
+.sl{font-size:8px;letter-spacing:1px;color:var(--dim);text-transform:uppercase;margin-top:4px}
+.gc{color:var(--green)}.rc{color:var(--red)}.bc{color:var(--blue)}.gdc{color:var(--gold)}.wc{color:var(--warn)}.pc2{color:var(--purple)}
 
 /* Room cards */
-.room-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
-.room-card{background:var(--panel2);border:1px solid var(--border);border-radius:6px;overflow:hidden;transition:border-color .2s}
-.rc-head{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(232,200,74,.04)}
-.rc-code{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--gold);letter-spacing:2px}
-.rc-meta{font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace}
-.rc-teams{display:flex;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);align-items:center;flex-wrap:wrap}
-.team-pill{padding:3px 10px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:1px;font-family:'Share Tech Mono',monospace}
-.team-pill.red{background:rgba(255,42,42,.15);color:var(--red);border:1px solid rgba(255,42,42,.3)}
-.team-pill.blue{background:rgba(42,127,255,.15);color:var(--blue);border:1px solid rgba(42,127,255,.3)}
-.paused-badge{background:rgba(255,170,0,.15);color:var(--warn);border:1px solid var(--warn);font-size:8px;padding:2px 7px;border-radius:2px;font-family:'Share Tech Mono',monospace}
-.rc-players{padding:8px 14px;max-height:140px;overflow-y:auto}
-.rp-row{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}
-.rp-row:last-child{border-bottom:none}
-.rp-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.rp-cs{font-weight:700;flex:1}
-.rp-team{font-size:8px;font-family:'Share Tech Mono',monospace;letter-spacing:1px}
-.rp-team.red{color:var(--red)}.rp-team.blue{color:var(--blue)}
-.rp-sts{font-size:8px;padding:1px 5px;border-radius:2px;font-family:'Share Tech Mono',monospace}
-.rp-sts.alive{background:rgba(0,204,102,.12);color:var(--green)}
-.rp-sts.dead{background:rgba(255,42,42,.12);color:var(--red)}
-.rp-sts.medic{background:rgba(255,170,0,.12);color:var(--warn)}
-.rp-sts.support{background:rgba(42,127,255,.12);color:var(--blue)}
-.rp-btn{background:transparent;border:1px solid var(--red);color:var(--red);border-radius:2px;padding:1px 6px;font-size:8px;cursor:pointer;font-family:'Share Tech Mono',monospace;transition:all .2s}
-.rp-btn:hover{background:rgba(255,42,42,.15)}
-.rc-actions{padding:8px 14px;display:flex;flex-wrap:wrap;gap:5px;background:rgba(0,0,0,.15)}
-.rac{padding:5px 9px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer;border:1px solid;text-transform:uppercase;transition:all .2s;font-family:'Rajdhani',sans-serif}
-.rac.pause{border-color:var(--warn);color:var(--warn)}.rac.pause:hover{background:rgba(255,170,0,.1)}
-.rac.resume{border-color:var(--green);color:var(--green)}.rac.resume:hover{background:rgba(0,204,102,.1)}
-.rac.reset{border-color:var(--blue);color:var(--blue)}.rac.reset:hover{background:rgba(42,127,255,.1)}
-.rac.del{border-color:var(--red);color:var(--red)}.rac.del:hover{background:rgba(255,42,42,.1)}
-.rac.bcast{border-color:var(--gold);color:var(--gold)}.rac.bcast:hover{background:rgba(232,200,74,.1)}
-.rac.map{border-color:#cc44ff;color:#cc44ff}.rac.map:hover{background:rgba(204,68,255,.1)}
+.rg{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:10px}
+.rcard{background:var(--panel2);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.rch{padding:9px 13px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(232,200,74,.04)}
+.rcc{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--gold);letter-spacing:2px}
+.rcm{font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace}
+.rct{display:flex;gap:6px;padding:7px 13px;border-bottom:1px solid var(--border);align-items:center;flex-wrap:wrap}
+.tp{padding:2px 9px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'Share Tech Mono',monospace}
+.tp.red{background:rgba(255,42,42,.15);color:var(--red);border:1px solid rgba(255,42,42,.3)}
+.tp.blue{background:rgba(42,127,255,.15);color:var(--blue);border:1px solid rgba(42,127,255,.3)}
+.pbg{font-size:8px;padding:2px 6px;border-radius:2px;background:rgba(255,170,0,.15);color:var(--warn);border:1px solid var(--warn);font-family:'Share Tech Mono',monospace}
+.rpl{padding:7px 13px;max-height:130px;overflow-y:auto}
+.pr{display:flex;align-items:center;gap:7px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}
+.pr:last-child{border-bottom:none}
+.prd{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.prc{font-weight:700;flex:1}
+.prt{font-size:8px;font-family:'Share Tech Mono',monospace;letter-spacing:1px}
+.prt.red{color:var(--red)}.prt.blue{color:var(--blue)}
+.prs{font-size:8px;padding:1px 5px;border-radius:2px;font-family:'Share Tech Mono',monospace}
+.prs.alive{background:rgba(0,204,102,.12);color:var(--green)}
+.prs.dead{background:rgba(255,42,42,.12);color:var(--red)}
+.prs.medic{background:rgba(255,170,0,.12);color:var(--warn)}
+.prs.support{background:rgba(42,127,255,.12);color:var(--blue)}
+.pkbtn{background:transparent;border:1px solid var(--red);color:var(--red);border-radius:2px;padding:1px 5px;font-size:8px;cursor:pointer;font-family:'Share Tech Mono',monospace;transition:all .2s}
+.pkbtn:hover{background:rgba(255,42,42,.15)}
+.rca{padding:8px 13px;display:flex;flex-wrap:wrap;gap:5px;background:rgba(0,0,0,.15)}
+.ra{padding:5px 8px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:1px;cursor:pointer;border:1px solid;text-transform:uppercase;transition:all .2s;font-family:'Rajdhani',sans-serif}
+.ra:hover{opacity:.8}
+.ra.pause{border-color:var(--warn);color:var(--warn)}.ra.resume{border-color:var(--green);color:var(--green)}
+.ra.reset{border-color:var(--blue);color:var(--blue)}.ra.del{border-color:var(--red);color:var(--red)}
+.ra.bcast{border-color:var(--gold);color:var(--gold)}.ra.map{border-color:var(--purple);color:var(--purple)}
 
 /* Inputs */
-.adm-inp{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:9px 12px;outline:none;transition:border-color .2s;min-width:0}
-.adm-inp:focus{border-color:var(--gold)}
-.adm-sel{background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--dim);font-size:11px;padding:6px 8px;outline:none;cursor:pointer;font-family:'Share Tech Mono',monospace}
-.adm-btn{background:var(--gold);color:#000;border:none;border-radius:4px;padding:9px 16px;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer;text-transform:uppercase;white-space:nowrap;transition:all .2s;flex-shrink:0}
-.adm-btn:hover{background:#f0d060}
-.adm-btn.danger{background:var(--red);color:#fff}.adm-btn.danger:hover{background:#ff5555}
-.adm-btn.blue-btn{background:var(--blue);color:#fff}.adm-btn.blue-btn:hover{background:#5599ff}
-.adm-btn.sm{padding:5px 10px;font-size:9px}
-.brow{display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap}
-.rsel-row{display:flex;gap:8px;margin-bottom:12px;align-items:center}
-.rsel-row label{font-size:9px;letter-spacing:2px;color:var(--dim);font-family:'Share Tech Mono',monospace;white-space:nowrap}
+.ai{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:8px 11px;outline:none;transition:border-color .2s;min-width:0}
+.ai:focus{border-color:var(--gold)}
+.asel{background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--dim);font-size:10px;padding:5px 7px;outline:none;cursor:pointer;font-family:'Share Tech Mono',monospace}
+.abtn{background:var(--gold);color:#000;border:none;border-radius:4px;padding:8px 14px;font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;cursor:pointer;text-transform:uppercase;white-space:nowrap;transition:all .2s;flex-shrink:0}
+.abtn:hover{background:#f0d060}
+.abtn.danger{background:var(--red);color:#fff}.abtn.danger:hover{background:#ff5555}
+.abtn.blue-b{background:var(--blue);color:#fff}
+.abtn.purple-b{background:var(--purple);color:#fff}
+.abtn.sm{padding:4px 9px;font-size:8px}
+.brow{display:flex;gap:7px;margin-bottom:10px;align-items:center;flex-wrap:wrap}
+.rsr{display:flex;gap:8px;margin-bottom:12px;align-items:center}
+.rsr label{font-size:9px;letter-spacing:2px;color:var(--dim);font-family:'Share Tech Mono',monospace;white-space:nowrap}
 
-/* Zone list */
-.zone-list{display:flex;flex-direction:column;gap:6px}
-.zone-item{background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:8px 12px;display:flex;align-items:center;gap:10px}
-.zone-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
-.zone-label-txt{flex:1;font-size:12px;font-weight:600}
-.zone-type-badge{font-size:8px;padding:2px 6px;border-radius:2px;font-family:'Share Tech Mono',monospace;letter-spacing:1px;color:var(--dim);background:var(--panel);border:1px solid var(--border)}
-.zone-del{background:transparent;border:1px solid rgba(255,42,42,.4);color:var(--red);border-radius:2px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:'Share Tech Mono',monospace;transition:all .2s}
-.zone-del:hover{background:rgba(255,42,42,.15)}
-
-/* Map editor */
-#admin-map{height:400px;border-radius:4px;overflow:hidden;margin-top:12px}
+/* ── LIVE MAP ── */
+#live-map{height:500px;border-radius:4px;overflow:hidden}
 .leaflet-container{background:#080f08!important}
 .leaflet-tile{filter:brightness(.72) saturate(.55) hue-rotate(5deg)}
+.leaflet-control-zoom a,.leaflet-draw-toolbar a{background:var(--panel)!important;color:var(--text)!important;border-color:var(--border)!important}
+/* Admin map player markers */
+.apm{border-radius:50%;border:2.5px solid;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:bold;font-family:'Share Tech Mono',monospace}
+.apm.red{border-color:var(--red);background:rgba(255,42,42,.2);color:var(--red)}
+.apm.blue{border-color:var(--blue);background:rgba(42,127,255,.2);color:var(--blue)}
+.apm.dead{border-color:#555;background:rgba(20,20,20,.7);color:#555}
+.map-controls{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.mc-btn{padding:5px 10px;border:1px solid var(--border);border-radius:3px;cursor:pointer;font-size:9px;font-family:'Share Tech Mono',monospace;transition:all .2s;background:var(--bg2);color:var(--dim)}
+.mc-btn:hover,.mc-btn.on{border-color:var(--gold);color:var(--gold);background:rgba(232,200,74,.08)}
+.map-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:9px;font-family:'Share Tech Mono',monospace;padding:8px 0}
+.ml{display:flex;align-items:center;gap:5px}
+.ml-dot{width:10px;height:10px;border-radius:50%;border:2px solid}
 
-/* Tile buttons */
-.tile-btns{display:flex;gap:6px;flex-wrap:wrap}
-.tile-btn{padding:6px 12px;border:1px solid var(--border);border-radius:3px;cursor:pointer;font-size:10px;font-family:'Share Tech Mono',monospace;transition:all .2s;background:var(--bg2);color:var(--dim)}
-.tile-btn.active,.tile-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(232,200,74,.08)}
+/* ── ADMIN PERKS ── */
+.aperk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:8px}
+.aperk-card{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:14px;display:flex;flex-direction:column;gap:8px;transition:border-color .2s}
+.aperk-card:hover{border-color:var(--gold)}
+.aperk-head{display:flex;align-items:center;gap:8px}
+.aperk-icon{font-size:24px}
+.aperk-name{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:1px}
+.aperk-desc{font-size:11px;color:var(--dim);line-height:1.4}
+.aperk-btns{display:flex;gap:6px;flex-wrap:wrap}
+.aperk-btn{padding:6px 12px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer;border:1px solid;text-transform:uppercase;font-family:'Rajdhani',sans-serif;transition:all .2s;background:transparent}
+.aperk-btn.red-t{border-color:var(--red);color:var(--red)}.aperk-btn.red-t:hover{background:var(--red-d,rgba(255,42,42,.15))}
+.aperk-btn.blue-t{border-color:var(--blue);color:var(--blue)}.aperk-btn.blue-t:hover{background:rgba(42,127,255,.15)}
+.aperk-btn.all{border-color:var(--gold);color:var(--gold)}.aperk-btn.all:hover{background:rgba(232,200,74,.12)}
+.aperk-btn.danger{border-color:var(--red);color:var(--red)}.aperk-btn.danger:hover{background:rgba(255,42,42,.2)}
+.aperk-result{font-size:10px;color:var(--green);font-family:'Share Tech Mono',monospace;display:none;padding:4px 0}
+.aperk-result.show{display:block}
+.flare-hint{font-size:9px;color:var(--warn);font-family:'Share Tech Mono',monospace;padding:4px 0}
 
-/* Objectives */
-.obj-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)}
-.obj-row:last-child{border-bottom:none}
-.obj-txt{flex:1;font-size:13px;font-weight:600}
-.obj-done-badge{font-size:9px;padding:2px 6px;border-radius:2px;font-family:'Share Tech Mono',monospace}
-.yes{background:rgba(0,204,102,.12);color:var(--green)}.no{background:rgba(255,170,0,.12);color:var(--warn)}
-.obj-del{background:transparent;border:1px solid rgba(255,42,42,.4);color:var(--red);border-radius:2px;padding:2px 7px;font-size:9px;cursor:pointer;font-family:'Share Tech Mono',monospace;transition:all .2s}
-.obj-del:hover{background:rgba(255,42,42,.15)}
-
-/* Event log */
-.log-list{display:flex;flex-direction:column;gap:4px;max-height:400px;overflow-y:auto}
-.log-entry{background:var(--panel2);border:1px solid var(--border);border-radius:3px;padding:7px 10px;display:flex;gap:10px;font-size:11px;font-family:'Share Tech Mono',monospace}
-.log-ts{color:var(--dim);white-space:nowrap;flex-shrink:0}
-.log-type{color:var(--gold);flex-shrink:0;min-width:140px}
-.log-data{color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-
-/* Zone type options */
-.zt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
-.zt-opt{padding:8px;border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:10px;font-family:'Share Tech Mono',monospace;text-align:center;transition:all .2s;background:var(--bg2)}
+/* Zone, Obj */
+.zl{display:flex;flex-direction:column;gap:5px}
+.zi{background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:7px 11px;display:flex;align-items:center;gap:8px}
+.zdot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+.zlbl{flex:1;font-size:12px;font-weight:600}
+.ztype{font-size:8px;padding:2px 5px;border-radius:2px;font-family:'Share Tech Mono',monospace;letter-spacing:1px;color:var(--dim);background:var(--panel);border:1px solid var(--border)}
+.zdel{background:transparent;border:1px solid rgba(255,42,42,.4);color:var(--red);border-radius:2px;padding:2px 7px;font-size:9px;cursor:pointer;font-family:'Share Tech Mono',monospace;transition:all .2s}
+.zdel:hover{background:rgba(255,42,42,.15)}
+.zt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:10px}
+.zt-opt{padding:7px;border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:9px;font-family:'Share Tech Mono',monospace;text-align:center;transition:all .2s;background:var(--bg2)}
 .zt-opt:hover,.zt-opt.sel{border-color:var(--gold);background:rgba(232,200,74,.08);color:var(--gold)}
-.zt-dot{width:14px;height:14px;border-radius:50%;margin:0 auto 4px}
+.zt-d{width:13px;height:13px;border-radius:50%;margin:0 auto 3px}
+.or{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
+.or:last-child{border-bottom:none}
+.otx{flex:1;font-size:13px;font-weight:600}
+.odb{font-size:9px;padding:2px 6px;border-radius:2px;font-family:'Share Tech Mono',monospace}
+.yes{background:rgba(0,204,102,.12);color:var(--green)}.no{background:rgba(255,170,0,.12);color:var(--warn)}
+.odel{background:transparent;border:1px solid rgba(255,42,42,.4);color:var(--red);border-radius:2px;padding:2px 7px;font-size:9px;cursor:pointer;font-family:'Share Tech Mono',monospace}
+.odel:hover{background:rgba(255,42,42,.15)}
 
-.rl{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace}
-.rl-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s infinite}
+/* Log */
+.ll{display:flex;flex-direction:column;gap:4px;max-height:400px;overflow-y:auto}
+.le{background:var(--panel2);border:1px solid var(--border);border-radius:3px;padding:6px 10px;display:flex;gap:10px;font-size:10px;font-family:'Share Tech Mono',monospace}
+.lts{color:var(--dim);white-space:nowrap;flex-shrink:0}
+.ltype{color:var(--gold);flex-shrink:0;min-width:140px}
+.ldata{color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.rl{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace}
+.rld{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-
-.sec-hide{display:none}
-.empty{text-align:center;padding:30px;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:11px}
+@keyframes empBlast{0%{transform:scale(.1);opacity:1}100%{transform:scale(4);opacity:0}}
+.leaflet-zone-tip{background:rgba(8,11,15,.88)!important;border:1px solid rgba(255,255,255,.15)!important;color:#c8d8e8!important;font-family:'Share Tech Mono',monospace!important;font-size:10px!important;padding:3px 8px!important;border-radius:3px!important;box-shadow:none!important;}
+.leaflet-zone-tip::before{display:none!important}
+.sh{display:none}
+.empty{text-align:center;padding:28px;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:11px}
 
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-
-/* toast */
-.adm-toast{position:fixed;bottom:20px;right:20px;background:var(--panel2);border:1px solid var(--gold);border-radius:4px;padding:10px 18px;font-size:11px;font-family:'Share Tech Mono',monospace;color:var(--gold);z-index:9999;opacity:0;transition:all .3s;transform:translateY(10px)}
-.adm-toast.show{opacity:1;transform:translateY(0)}
-.adm-toast.err{border-color:var(--red);color:var(--red)}
-.adm-toast.ok{border-color:var(--green);color:var(--green)}
+.atst{position:fixed;bottom:18px;right:18px;background:var(--panel2);border:1px solid var(--gold);border-radius:4px;padding:9px 16px;font-size:11px;font-family:'Share Tech Mono',monospace;color:var(--gold);z-index:9999;opacity:0;transition:all .3s;transform:translateY(8px)}
+.atst.show{opacity:1;transform:translateY(0)}
+.atst.err{border-color:var(--red);color:var(--red)}
+.atst.ok{border-color:var(--green);color:var(--green)}
 </style>
 </head>
 <body>
 
 <!-- LOGIN -->
-<div id="login-screen">
+<div id="ls">
   <div class="lg-logo">SWINDON AIRSOFT</div>
   <div class="lg-sub">Admin Command Centre</div>
   <div class="lg-card">
-    <div class="lg-title">🔐 Restricted Access</div>
-    <div class="lg-f"><label>Username</label><input type="text" id="lg-user" placeholder="Enter username" autocomplete="username"></div>
-    <div class="lg-f"><label>Password</label><input type="password" id="lg-pass" placeholder="Enter password" autocomplete="current-password"></div>
+    <div class="lgt">🔐 Restricted Access</div>
+    <div class="lgf"><label>Username</label><input type="text" id="lu" placeholder="Enter username" autocomplete="username"></div>
+    <div class="lgf"><label>Password</label><input type="password" id="lp" placeholder="Enter password" autocomplete="current-password"></div>
     <button class="lg-btn" onclick="doLogin()">ACCESS COMMAND</button>
-    <div class="lg-err" id="lg-err">⚠ Invalid credentials</div>
+    <div class="lg-err" id="le">⚠ Invalid credentials</div>
   </div>
 </div>
 
 <!-- ADMIN APP -->
-<div id="admin-app">
-  <div class="adm-hdr">
-    <div><div class="adm-logo">SWINDON AIRSOFT — ADMIN</div><div class="adm-sub">Command Centre · by Chris Zulu</div></div>
-    <div class="adm-hr">
-      <div class="rl"><div class="rl-dot"></div>Live · 5s refresh</div>
-      <div class="adm-pill">● AUTHENTICATED</div>
-      <div class="adm-clk" id="adm-clk">00:00:00</div>
-      <button class="logout-btn" onclick="doLogout()">LOGOUT</button>
+<div id="aa">
+  <div class="ah">
+    <div><div class="al">SWINDON AIRSOFT — ADMIN</div><div class="as">Command Centre · by Chris Zulu</div></div>
+    <div class="ahr">
+      <div class="rl"><div class="rld"></div>Live · 3s refresh</div>
+      <div class="apill">● AUTHENTICATED</div>
+      <div class="aclk" id="ac">00:00:00</div>
+      <button class="lout" onclick="doLogout()">LOGOUT</button>
     </div>
   </div>
-
-  <div class="adm-body">
+  <div class="ab">
     <div class="sb">
-      <div class="sb-sec">Navigation</div>
-      <div class="sb-item active" data-v="overview" onclick="showView(this)"><span class="si">📊</span>Overview</div>
-      <div class="sb-item" data-v="rooms" onclick="showView(this)"><span class="si">🏟️</span>Rooms</div>
-      <div class="sb-item" data-v="mapeditor" onclick="showView(this)"><span class="si">🗺️</span>Map Editor</div>
-      <div class="sb-item" data-v="broadcast" onclick="showView(this)"><span class="si">📢</span>Broadcast</div>
-      <div class="sb-item" data-v="objectives" onclick="showView(this)"><span class="si">🎯</span>Objectives</div>
-      <div class="sb-item" data-v="log" onclick="showView(this)"><span class="si">📋</span>Event Log</div>
+      <div class="sbs">Navigation</div>
+      <div class="sbi active" data-v="overview" onclick="sv(this)"><span class="sico">📊</span>Overview</div>
+      <div class="sbi" data-v="livemap" onclick="sv(this)"><span class="sico">🗺️</span>Live Map</div>
+      <div class="sbi" data-v="adminperks" onclick="sv(this)"><span class="sico">⚡</span>Admin Perks</div>
+      <div class="sbi" data-v="rooms" onclick="sv(this)"><span class="sico">🏟️</span>Rooms</div>
+      <div class="sbi" data-v="zoneeditor" onclick="sv(this)"><span class="sico">✏️</span>Zone Editor</div>
+      <div class="sbi" data-v="broadcast" onclick="sv(this)"><span class="sico">📢</span>Broadcast</div>
+      <div class="sbi" data-v="objectives" onclick="sv(this)"><span class="sico">🎯</span>Objectives</div>
+      <div class="sbi" data-v="log" onclick="sv(this)"><span class="sico">📋</span>Event Log</div>
     </div>
-
-    <div class="adm-content" id="adm-content">
+    <div class="ac" id="adc">
 
       <!-- OVERVIEW -->
       <div id="view-overview">
-        <div class="stats-grid" style="margin-bottom:16px">
-          <div class="stat-c"><div class="sn gd" id="ov-rooms">0</div><div class="sl">Active Rooms</div></div>
-          <div class="stat-c"><div class="sn g" id="ov-players">0</div><div class="sl">Total Players</div></div>
-          <div class="stat-c"><div class="sn r" id="ov-red">0</div><div class="sl">Red Team</div></div>
-          <div class="stat-c"><div class="sn b" id="ov-blue">0</div><div class="sl">Blue Team</div></div>
+        <div class="sg" style="margin-bottom:14px">
+          <div class="sc"><div class="sn gdc" id="ov-r">0</div><div class="sl">Rooms</div></div>
+          <div class="sc"><div class="sn gc" id="ov-p">0</div><div class="sl">Players</div></div>
+          <div class="sc"><div class="sn rc" id="ov-rd">0</div><div class="sl">Red Team</div></div>
+          <div class="sc"><div class="sn bc" id="ov-bl">0</div><div class="sl">Blue Team</div></div>
+        </div>
+        <div class="ap"><div class="aph"><div class="apt">◈ Live Rooms</div><div style="font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace" id="ov-up">—</div></div><div class="apb"><div id="ovrl"><div class="empty">No active rooms</div></div></div></div>
+      </div>
+
+      <!-- LIVE MAP -->
+      <div id="view-livemap" class="sh">
+        <div class="ap">
+          <div class="aph">
+            <div class="apt">◈ Live Battlefield Map — All Teams Visible</div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <select class="asel" id="lm-room" onchange="loadLiveMap()"><option value="">Select room…</option></select>
+              <button class="abtn sm" onclick="loadLiveMap()">REFRESH</button>
+            </div>
+          </div>
+          <div class="apb">
+            <div class="map-controls">
+              <div class="mc-btn on" data-tile="osm" onclick="lmTile('osm',this)">OSM</div>
+              <div class="mc-btn" data-tile="sat" onclick="lmTile('sat',this)">SAT</div>
+              <div class="mc-btn" data-tile="topo" onclick="lmTile('topo',this)">TOPO</div>
+              <div class="mc-btn" data-tile="dark" onclick="lmTile('dark',this)">DARK</div>
+              <div style="flex:1"></div>
+              <div class="mc-btn on" id="lm-flare-btn" onclick="toggleFlareMode()">🔴 Place Flare</div>
+              <div style="font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace" id="lm-status">Select a room to load the map</div>
+            </div>
+            <div class="map-legend">
+              <div class="ml"><div class="ml-dot" style="border-color:var(--red);background:rgba(255,42,42,.2)"></div>Red Team</div>
+              <div class="ml"><div class="ml-dot" style="border-color:var(--blue);background:rgba(42,127,255,.2)"></div>Blue Team</div>
+              <div class="ml"><div class="ml-dot" style="border-color:#555;background:rgba(20,20,20,.7)"></div>Down</div>
+              <div class="ml"><div class="ml-dot" style="border-color:#ffaa00;background:rgba(255,170,0,.2)"></div>Medic Req</div>
+              <div class="ml"><div class="ml-dot" style="border-color:#ff0000;background:rgba(255,0,0,.3)"></div>Admin Flare</div>
+            </div>
+            <div id="live-map"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADMIN PERKS -->
+      <div id="view-adminperks" class="sh">
+        <div class="ap">
+          <div class="aph"><div class="apt">◈ Select Target Room</div></div>
+          <div class="apb">
+            <div class="rsr"><label>ROOM:</label><select class="asel" id="ap-room" style="flex:1"></select></div>
+            <div style="font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace">Admin perks have real effects — use responsibly. All actions are logged.</div>
+          </div>
         </div>
         <div class="ap">
-          <div class="ap-head"><div class="ap-title">◈ Live Rooms</div><div style="font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace" id="ov-upd">—</div></div>
-          <div class="ap-body"><div id="ov-rooms-list"><div class="empty">No active rooms</div></div></div>
+          <div class="aph"><div class="apt">◈ Admin Tactical Perks</div></div>
+          <div class="apb">
+            <div class="aperk-grid">
+
+              <div class="aperk-card">
+                <div class="aperk-head"><div class="aperk-icon">👁</div><div class="aperk-name">GOD'S EYE</div></div>
+                <div class="aperk-desc">See all players from both teams on the live admin map — players are unaware.</div>
+                <div class="aperk-btns"><button class="aperk-btn all" onclick="adminPerk('god_eye')">VIEW LIVE MAP</button></div>
+              </div>
+
+              <div class="aperk-card">
+                <div class="aperk-head"><div class="aperk-icon">📦</div><div class="aperk-name">INTEL DROP</div></div>
+                <div class="aperk-desc">Reveals all enemy positions to one team for 30 seconds. Massive tactical advantage.</div>
+                <div class="aperk-btns">
+                  <button class="aperk-btn red-t" onclick="adminPerk('intel_drop','red')">→ RED TEAM</button>
+                  <button class="aperk-btn blue-t" onclick="adminPerk('intel_drop','blue')">→ BLUE TEAM</button>
+                </div>
+                <div class="aperk-result" id="apr-intel_drop"></div>
+              </div>
+
+              <div class="aperk-card">
+                <div class="aperk-head"><div class="aperk-icon">⚫</div><div class="aperk-name">BLACKOUT</div></div>
+                <div class="aperk-desc">Disables GPS map for ALL players for 20 seconds. Total battlefield chaos.</div>
+                <div class="aperk-btns"><button class="aperk-btn danger" onclick="adminPerk('blackout')">DEPLOY BLACKOUT</button></div>
+                <div class="aperk-result" id="apr-blackout"></div>
+              </div>
+
+              <div class="aperk-card">
+                <div class="aperk-head"><div class="aperk-icon">🔴</div><div class="aperk-name">FLARE DROP</div></div>
+                <div class="aperk-desc">Place a visible red flare marker anywhere on the live map. Visible to all players for 2 min.</div>
+                <div class="aperk-btns"><button class="aperk-btn all" onclick="goToMapFlare()">OPEN LIVE MAP → PLACE FLARE</button></div>
+                <div class="flare-hint">Switch to Live Map tab, then click "Place Flare" and click the map</div>
+              </div>
+
+              <div class="aperk-card">
+                <div class="aperk-head"><div class="aperk-icon">🕊</div><div class="aperk-name">CEASEFIRE</div></div>
+                <div class="aperk-desc">Fires a visual ceasefire signal across ALL player maps and announces to all comms.</div>
+                <div class="aperk-btns"><button class="aperk-btn all" onclick="adminPerk('ceasefire')">SIGNAL CEASEFIRE</button></div>
+                <div class="aperk-result" id="apr-ceasefire"></div>
+              </div>
+
+              <div class="aperk-card" style="border-color:var(--red)">
+                <div class="aperk-head"><div class="aperk-icon">💀</div><div class="aperk-name">MASS ELIMINATE</div></div>
+                <div class="aperk-desc">Sets an entire team's status to DEAD. Use for ruling on out-of-bounds violations.</div>
+                <div class="aperk-btns">
+                  <button class="aperk-btn red-t" onclick="adminPerk('eliminate_team','red')">ELIMINATE RED</button>
+                  <button class="aperk-btn blue-t" onclick="adminPerk('eliminate_team','blue')">ELIMINATE BLUE</button>
+                </div>
+                <div class="aperk-result" id="apr-eliminate_team"></div>
+              </div>
+
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- ROOMS -->
-      <div id="view-rooms" class="sec-hide">
-        <div class="ap">
-          <div class="ap-head"><div class="ap-title">◈ Create Room</div></div>
-          <div class="ap-body">
-            <div class="brow">
-              <input class="adm-inp" id="new-room-code" placeholder="Room code e.g. FIELD02" maxlength="8" style="text-transform:uppercase;flex:none;width:200px">
-              <button class="adm-btn" onclick="createRoom()">CREATE ROOM</button>
-            </div>
-          </div>
-        </div>
-        <div class="ap">
-          <div class="ap-head"><div class="ap-title">◈ All Active Rooms</div></div>
-          <div class="ap-body"><div class="room-grid" id="rooms-grid"><div class="empty">No active rooms</div></div></div>
-        </div>
+      <div id="view-rooms" class="sh">
+        <div class="ap"><div class="aph"><div class="apt">◈ Create Room</div></div><div class="apb"><div class="brow"><input class="ai" id="nrc" placeholder="Room code e.g. FIELD02" maxlength="8" style="text-transform:uppercase;flex:none;width:190px"><button class="abtn" onclick="createRoom()">CREATE</button></div></div></div>
+        <div class="ap"><div class="aph"><div class="apt">◈ All Active Rooms</div></div><div class="apb"><div class="rg" id="rg"><div class="empty">No rooms</div></div></div></div>
       </div>
 
-      <!-- MAP EDITOR -->
-      <div id="view-mapeditor" class="sec-hide">
+      <!-- ZONE EDITOR -->
+      <div id="view-zoneeditor" class="sh">
         <div class="ap">
-          <div class="ap-head"><div class="ap-title">◈ Map Settings</div></div>
-          <div class="ap-body">
-            <div class="rsel-row"><label>APPLY TO ROOM:</label><select class="adm-sel" id="map-room-sel" style="flex:1" onchange="loadMapForRoom()"></select></div>
-            <div style="margin-bottom:12px">
-              <div style="font-size:9px;letter-spacing:2px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-bottom:8px">MAP TILES</div>
-              <div class="tile-btns">
-                <div class="tile-btn active" data-tile="osm" onclick="setMapTile('osm',this)">🗺 OpenStreetMap</div>
-                <div class="tile-btn" data-tile="sat" onclick="setMapTile('sat',this)">🛰 Satellite</div>
-                <div class="tile-btn" data-tile="topo" onclick="setMapTile('topo',this)">🏔 Topo</div>
-                <div class="tile-btn" data-tile="dark" onclick="setMapTile('dark',this)">🌑 Dark</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="ap">
-          <div class="ap-head">
-            <div class="ap-title">◈ Zone Editor</div>
-            <div style="display:flex;gap:8px">
-              <button class="adm-btn sm" onclick="clearAllZones()">🗑 Clear All Zones</button>
-            </div>
-          </div>
-          <div class="ap-body">
-            <div class="rsel-row"><label>ROOM:</label><select class="adm-sel" id="zone-room-sel" style="flex:1" onchange="loadZonesForRoom()"></select></div>
-
-            <div style="font-size:9px;letter-spacing:2px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-bottom:8px">ZONE TYPE</div>
+          <div class="aph"><div class="apt">◈ Zone Editor</div><button class="abtn sm danger" onclick="clearAllZonesAdmin()">🗑 Clear All</button></div>
+          <div class="apb">
+            <div class="rsr"><label>ROOM:</label><select class="asel" id="ze-room" style="flex:1" onchange="loadZones()"></select></div>
+            <div style="font-size:9px;letter-spacing:2px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-bottom:7px">ZONE TYPE</div>
             <div class="zt-grid">
-              <div class="zt-opt sel" data-zt="respawn" onclick="selZoneType(this)"><div class="zt-dot" style="background:#00cc66"></div>Respawn</div>
-              <div class="zt-opt" data-zt="objective" onclick="selZoneType(this)"><div class="zt-dot" style="background:#ffaa00"></div>Objective</div>
-              <div class="zt-opt" data-zt="hazard" onclick="selZoneType(this)"><div class="zt-dot" style="background:#ff2a2a"></div>Hazard</div>
-              <div class="zt-opt" data-zt="safe" onclick="selZoneType(this)"><div class="zt-dot" style="background:#2a7fff"></div>Safe Zone</div>
-              <div class="zt-opt" data-zt="boundary" onclick="selZoneType(this)"><div class="zt-dot" style="background:#e8c84a"></div>Boundary</div>
-              <div class="zt-opt" data-zt="custom" onclick="selZoneType(this)"><div class="zt-dot" style="background:#cc44ff"></div>Custom</div>
+              <div class="zt-opt sel" data-zt="respawn" onclick="selZT(this)"><div class="zt-d" style="background:#00cc66"></div>Respawn</div>
+              <div class="zt-opt" data-zt="objective" onclick="selZT(this)"><div class="zt-d" style="background:#ffaa00"></div>Objective</div>
+              <div class="zt-opt" data-zt="hazard" onclick="selZT(this)"><div class="zt-d" style="background:#ff2a2a"></div>Hazard</div>
+              <div class="zt-opt" data-zt="safe" onclick="selZT(this)"><div class="zt-d" style="background:#2a7fff"></div>Safe Zone</div>
+              <div class="zt-opt" data-zt="boundary" onclick="selZT(this)"><div class="zt-d" style="background:#e8c84a"></div>Boundary</div>
+              <div class="zt-opt" data-zt="custom" onclick="selZT(this)"><div class="zt-d" style="background:#cc44ff"></div>Custom</div>
             </div>
-
-            <div class="brow" style="margin-bottom:12px">
-              <input class="adm-inp" id="zone-label-inp" placeholder="Zone label e.g. Red Team Respawn" maxlength="60">
-              <button class="adm-btn" onclick="startAdminDraw('polygon')">✏️ Draw Polygon</button>
-              <button class="adm-btn" onclick="startAdminDraw('circle')">⭕ Draw Circle</button>
-              <button class="adm-btn danger sm" onclick="cancelAdminDraw()">✖ Cancel</button>
-            </div>
-
-            <div id="admin-map"></div>
-
-            <div style="margin-top:16px">
-              <div style="font-size:9px;letter-spacing:2px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-bottom:8px">CURRENT ZONES</div>
-              <div class="zone-list" id="zone-list-admin"><div class="empty">No zones for this room</div></div>
-            </div>
+            <div class="brow" style="margin-bottom:10px"><input class="ai" id="zlbl" placeholder="Zone label…" maxlength="60"><button class="abtn" onclick="startZDraw('polygon')">✏️ Polygon</button><button class="abtn" onclick="startZDraw('circle')">⭕ Circle</button><button class="abtn danger sm" onclick="cancelZDraw()">✖</button></div>
+            <div id="ze-map" style="height:380px;border-radius:4px;overflow:hidden"></div>
+            <div style="margin-top:14px;font-size:9px;letter-spacing:2px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-bottom:7px">CURRENT ZONES</div>
+            <div id="ze-list"><div class="empty">Select a room</div></div>
           </div>
         </div>
       </div>
 
       <!-- BROADCAST -->
-      <div id="view-broadcast" class="sec-hide">
-        <div class="ap">
-          <div class="ap-head"><div class="ap-title">◈ Broadcast to All Rooms</div></div>
-          <div class="ap-body">
-            <div class="brow">
-              <input class="adm-inp" id="bcast-all-txt" placeholder="Message to ALL rooms…" maxlength="200">
-              <select class="adm-sel" id="bcast-all-prio"><option value="high">HIGH</option><option value="normal">NORMAL</option><option value="low">LOW</option></select>
-              <button class="adm-btn danger" onclick="broadcastAll()">📢 ALL ROOMS</button>
-            </div>
-          </div>
-        </div>
-        <div class="ap">
-          <div class="ap-head"><div class="ap-title">◈ Broadcast to Room</div></div>
-          <div class="ap-body">
-            <div class="rsel-row"><label>ROOM:</label><select class="adm-sel" id="bcast-room-sel" style="flex:1"></select></div>
-            <div class="brow">
-              <input class="adm-inp" id="bcast-room-txt" placeholder="Message for room…" maxlength="200">
-              <select class="adm-sel" id="bcast-room-prio"><option value="high">HIGH</option><option value="normal">NORMAL</option><option value="low">LOW</option></select>
-              <button class="adm-btn" onclick="broadcastRoom()">📡 SEND</button>
-            </div>
-          </div>
-        </div>
-        <div class="ap">
-          <div class="ap-head"><div class="ap-title">◈ Quick Commands</div></div>
-          <div class="ap-body" style="display:flex;flex-wrap:wrap;gap:8px">
-            <button class="rac pause" onclick="pauseAll()">⏸ PAUSE ALL</button>
-            <button class="rac resume" onclick="resumeAll()">▶ RESUME ALL</button>
-            <button class="rac reset" onclick="resetAll()">🔄 RESPAWN ALL</button>
-          </div>
-        </div>
+      <div id="view-broadcast" class="sh">
+        <div class="ap"><div class="aph"><div class="apt">◈ Broadcast to All Rooms</div></div><div class="apb"><div class="brow"><input class="ai" id="ba-txt" placeholder="Message to ALL rooms…" maxlength="200"><select class="asel" id="ba-prio"><option value="high">HIGH</option><option value="normal">NORMAL</option><option value="low">LOW</option></select><button class="abtn danger" onclick="broadcastAll2()">📢 ALL</button></div></div></div>
+        <div class="ap"><div class="aph"><div class="apt">◈ Broadcast to Room</div></div><div class="apb"><div class="rsr"><label>ROOM:</label><select class="asel" id="br-room" style="flex:1"></select></div><div class="brow"><input class="ai" id="br-txt" placeholder="Message for room…" maxlength="200"><select class="asel" id="br-prio"><option value="high">HIGH</option><option value="normal">NORMAL</option><option value="low">LOW</option></select><button class="abtn" onclick="broadcastRoom()">📡 SEND</button></div></div></div>
+        <div class="ap"><div class="aph"><div class="apt">◈ Quick Commands</div></div><div class="apb" style="display:flex;flex-wrap:wrap;gap:7px"><button class="ra pause" onclick="pauseAll2()">⏸ PAUSE ALL</button><button class="ra resume" onclick="resumeAll2()">▶ RESUME ALL</button><button class="ra reset" onclick="resetAll2()">🔄 RESPAWN ALL</button></div></div>
       </div>
 
       <!-- OBJECTIVES -->
-      <div id="view-objectives" class="sec-hide">
-        <div class="ap">
-          <div class="ap-head"><div class="ap-title">◈ Manage Objectives</div></div>
-          <div class="ap-body">
-            <div class="rsel-row"><label>ROOM:</label><select class="adm-sel" id="obj-room-sel" style="flex:1" onchange="loadObjForRoom()"></select></div>
-            <div class="brow" style="margin-bottom:16px">
-              <input class="adm-inp" id="new-obj-txt" placeholder="New objective text…" maxlength="100">
-              <button class="adm-btn" onclick="addObj()">+ ADD</button>
-            </div>
-            <div id="obj-list-admin"><div class="empty">Select a room to manage objectives</div></div>
-          </div>
-        </div>
+      <div id="view-objectives" class="sh">
+        <div class="ap"><div class="aph"><div class="apt">◈ Manage Objectives</div></div><div class="apb"><div class="rsr"><label>ROOM:</label><select class="asel" id="obj-room" style="flex:1" onchange="loadObjs()"></select></div><div class="brow" style="margin-bottom:14px"><input class="ai" id="obj-new" placeholder="New objective…" maxlength="100"><button class="abtn" onclick="addObj()">+ ADD</button></div><div id="obj-list2"><div class="empty">Select a room</div></div></div></div>
       </div>
 
-      <!-- EVENT LOG -->
-      <div id="view-log" class="sec-hide">
-        <div class="ap">
-          <div class="ap-head"><div class="ap-title">◈ Event Log</div><button class="adm-btn sm" onclick="loadLog()">REFRESH</button></div>
-          <div class="ap-body"><div class="log-list" id="log-list"><div class="empty">Loading…</div></div></div>
-        </div>
+      <!-- LOG -->
+      <div id="view-log" class="sh">
+        <div class="ap"><div class="aph"><div class="apt">◈ Event Log</div><button class="abtn sm" onclick="loadLog()">REFRESH</button></div><div class="apb"><div class="ll" id="log-list"><div class="empty">Loading…</div></div></div></div>
       </div>
 
     </div>
   </div>
 </div>
 
-<div class="adm-toast" id="adm-toast"></div>
+<div class="atst" id="atst"></div>
 
 <script>
 let token=sessionStorage.getItem('sa_admin_token')||'';
 let roomsData=[];
-let adminMap=null,adminDrawLayer=null,adminTileLayer=null,adminDrawControl=null;
-let selectedZoneType='respawn';
-let selectedZoneColor='#00cc66';
-const ZONE_COLORS={respawn:'#00cc66',objective:'#ffaa00',hazard:'#ff2a2a',safe:'#2a7fff',boundary:'#e8c84a',custom:'#cc44ff'};
-const ZONE_LABELS={respawn:'♻ Respawn',objective:'🎯 Objective',hazard:'⚠ Hazard',safe:'🛡 Safe',boundary:'⬛ Boundary',custom:'📍 Custom'};
+let liveMap=null,liveMapTile=null,liveMapMarkers={},liveMapZoneLayers={};
+let zeMap=null,zeMapTile=null,zeDrawLayer=null;
+let selectedZT='respawn';
+let flareModeActive=false;
+const ZC={respawn:'#00cc66',objective:'#ffaa00',hazard:'#ff2a2a',safe:'#2a7fff',boundary:'#e8c84a',custom:'#cc44ff'};
+const TILES={osm:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',sat:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',topo:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',dark:'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'};
 
-setInterval(()=>{const n=new Date();const el=document.getElementById('adm-clk');if(el)el.textContent=[n.getHours(),n.getMinutes(),n.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');},1000);
+setInterval(()=>{const n=new Date();const e=document.getElementById('ac');if(e)e.textContent=[n.getHours(),n.getMinutes(),n.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');},1000);
 
 let toastT;
-function toast(msg,type=''){const t=document.getElementById('adm-toast');t.textContent=msg;t.className='adm-toast '+(type?type+' ':'')+' show';clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3500);}
+function toast(msg,type=''){const t=document.getElementById('atst');t.textContent=msg;t.className='atst '+(type?type+' ':'')+' show';clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3500);}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 window.addEventListener('load',()=>{if(token)tryAutoLogin();});
-
-async function tryAutoLogin(){
-  const r=await apiFetch('/api/admin/rooms').catch(()=>null);
-  if(r&&r.ok){showAdmin();}else{token='';sessionStorage.removeItem('sa_admin_token');}
-}
-
+async function tryAutoLogin(){const r=await apiFetch('/api/admin/rooms').catch(()=>null);if(r&&r.ok)showAdmin();else{token='';sessionStorage.removeItem('sa_admin_token');}}
 async function doLogin(){
-  const user=document.getElementById('lg-user').value.trim(),pass=document.getElementById('lg-pass').value;
-  document.getElementById('lg-err').classList.remove('show');
+  const user=document.getElementById('lu').value.trim(),pass=document.getElementById('lp').value;
+  document.getElementById('le').classList.remove('show');
   const r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pass})}).catch(()=>null);
   const d=r?await r.json():{};
   if(r&&r.ok&&d.token){token=d.token;sessionStorage.setItem('sa_admin_token',token);showAdmin();}
-  else document.getElementById('lg-err').classList.add('show');
+  else document.getElementById('le').classList.add('show');
 }
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.getElementById('login-screen').classList.contains('hidden'))doLogin();});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.getElementById('ls').classList.contains('h'))doLogin();});
+async function doLogout(){await apiFetch('/api/admin/logout',{method:'POST'}).catch(()=>{});token='';sessionStorage.removeItem('sa_admin_token');clearInterval(window._rt);document.getElementById('aa').style.display='none';document.getElementById('aa').classList.remove('v');document.getElementById('ls').classList.remove('h');document.getElementById('lp').value='';}
+function showAdmin(){document.getElementById('ls').classList.add('h');document.getElementById('aa').style.display='flex';document.getElementById('aa').classList.add('v');loadData();window._rt=setInterval(()=>{loadData();if(currentView==='livemap')loadLiveMap();},3000);}
+async function apiFetch(url,opts={}){opts.headers=Object.assign({'Content-Type':'application/json','x-admin-token':token},opts.headers||{});return fetch(url,opts);}
 
-async function doLogout(){
-  await apiFetch('/api/admin/logout',{method:'POST'}).catch(()=>{});
-  token='';sessionStorage.removeItem('sa_admin_token');clearInterval(window._refreshTimer);
-  document.getElementById('admin-app').style.display='none';document.getElementById('admin-app').classList.remove('visible');
-  document.getElementById('login-screen').classList.remove('hidden');document.getElementById('lg-pass').value='';
-}
-
-function showAdmin(){
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('admin-app').style.display='flex';document.getElementById('admin-app').classList.add('visible');
-  loadData();window._refreshTimer=setInterval(loadData,5000);
-}
-
-async function apiFetch(url,opts={}){
-  opts.headers=Object.assign({'Content-Type':'application/json','x-admin-token':token},opts.headers||{});
-  return fetch(url,opts);
+let currentView='overview';
+function sv(el){
+  document.querySelectorAll('.sbi').forEach(x=>x.classList.remove('active'));el.classList.add('active');
+  document.querySelectorAll('[id^="view-"]').forEach(x=>x.classList.add('sh'));
+  currentView=el.dataset.v;document.getElementById('view-'+currentView).classList.remove('sh');
+  if(currentView==='log')loadLog();
+  if(currentView==='livemap'){populateSelects();initLiveMap();}
+  if(currentView==='zoneeditor'){populateSelects();initZeMap();}
+  if(currentView==='objectives'||currentView==='broadcast'||currentView==='adminperks')populateSelects();
 }
 
-// Views
-function showView(el){
-  document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));el.classList.add('active');
-  document.querySelectorAll('[id^="view-"]').forEach(x=>x.classList.add('sec-hide'));
-  const v=el.dataset.v;document.getElementById('view-'+v).classList.remove('sec-hide');
-  if(v==='log')loadLog();
-  if(v==='mapeditor'){populateRoomSelects();initAdminMap();}
-  if(v==='objectives'||v==='broadcast')populateRoomSelects();
-}
-
-// Data
 async function loadData(){
-  const r=await apiFetch('/api/admin/rooms');
-  if(!r.ok){if(r.status===401)doLogout();return;}
+  const r=await apiFetch('/api/admin/rooms');if(!r.ok){if(r.status===401)doLogout();return;}
   roomsData=await r.json();
-  renderOverview();renderRoomsGrid();populateRoomSelects();
-  document.getElementById('ov-upd').textContent='Updated '+new Date().toLocaleTimeString();
+  renderOverview();renderRooms();
+  document.getElementById('ov-up').textContent='Updated '+new Date().toLocaleTimeString();
 }
 
 function renderOverview(){
   const tp=roomsData.reduce((a,r)=>a+r.playerCount,0);
   const tr=roomsData.reduce((a,r)=>a+r.redCount,0);
   const tb=roomsData.reduce((a,r)=>a+r.blueCount,0);
-  document.getElementById('ov-rooms').textContent=roomsData.length;
-  document.getElementById('ov-players').textContent=tp;
-  document.getElementById('ov-red').textContent=tr;
-  document.getElementById('ov-blue').textContent=tb;
-  const el=document.getElementById('ov-rooms-list');
-  if(!roomsData.length){el.innerHTML='<div class="empty">No active rooms</div>';return;}
-  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">`+
-    roomsData.map(r=>`<div style="background:var(--panel2);border:1px solid ${r.gamePaused?'var(--warn)':'var(--border)'};border-radius:6px;padding:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span style="font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--gold);letter-spacing:2px">${r.code}</span>
-        ${r.gamePaused?'<span style="font-size:8px;padding:2px 6px;border-radius:2px;background:rgba(255,170,0,.15);color:var(--warn);border:1px solid var(--warn);font-family:Share Tech Mono,monospace">PAUSED</span>':''}
+  document.getElementById('ov-r').textContent=roomsData.length;
+  document.getElementById('ov-p').textContent=tp;
+  document.getElementById('ov-rd').textContent=tr;
+  document.getElementById('ov-bl').textContent=tb;
+  const el=document.getElementById('ovrl');
+  if(!roomsData.length){el.innerHTML='<div class="empty">No rooms</div>';return;}
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px">`+
+    roomsData.map(r=>`<div style="background:var(--panel2);border:1px solid ${r.gamePaused?'var(--warn)':'var(--border)'};border-radius:6px;padding:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span style="font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--gold)">${r.code}</span>
+        ${r.gamePaused?'<span class="pbg">PAUSED</span>':''}
       </div>
-      <div style="display:flex;gap:8px;margin-bottom:4px">
-        <span class="team-pill red">🔴 ${r.redCount} RED</span>
-        <span class="team-pill blue">🔵 ${r.blueCount} BLUE</span>
-      </div>
-      <div style="font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace">${r.playerCount} players · ${r.zones?.length||0} zones</div>
+      <div style="display:flex;gap:7px;margin-bottom:4px"><span class="tp red">🔴 ${r.redCount}</span><span class="tp blue">🔵 ${r.blueCount}</span></div>
+      <div style="font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace">${r.playerCount} players · ${(r.zones||[]).length} zones</div>
     </div>`).join('')+`</div>`;
 }
 
-function renderRoomsGrid(){
-  const el=document.getElementById('rooms-grid');
-  if(!roomsData.length){el.innerHTML='<div class="empty">No active rooms</div>';return;}
-  el.innerHTML=roomsData.map(r=>`<div class="room-card">
-    <div class="rc-head">
-      <div><div class="rc-code">${r.code}</div><div class="rc-meta">${r.playerCount} players · ${new Date(r.createdAt).toLocaleTimeString()} · ${r.zones?.length||0} zones</div></div>
-      ${r.gamePaused?'<span class="paused-badge">⏸ PAUSED</span>':''}
-    </div>
-    <div class="rc-teams"><span class="team-pill red">🔴 RED: ${r.redCount}</span><span class="team-pill blue">🔵 BLUE: ${r.blueCount}</span></div>
-    <div class="rc-players">
-      ${r.players.length?r.players.map(p=>`<div class="rp-row">
-        <div class="rp-dot" style="background:${p.team==='red'?'var(--red)':'var(--blue)'}"></div>
-        <div class="rp-cs">${esc(p.callsign)}</div>
-        <div class="rp-team ${p.team}">${p.team.toUpperCase()}</div>
-        <span class="rp-sts ${p.status}">${p.status.toUpperCase()}</span>
-        <button class="rp-btn" onclick="kickP('${r.code}','${p.id}','${esc(p.callsign)}')">KICK</button>
-      </div>`).join(''):'<div style="font-size:10px;color:var(--dim);padding:6px 0;font-family:\'Share Tech Mono\',monospace">No players</div>'}
-    </div>
-    <div class="rc-actions">
-      <button class="rac ${r.gamePaused?'resume':'pause'}" onclick="${r.gamePaused?`resumeRoom('${r.code}')`:`pauseRoom('${r.code}')`}">${r.gamePaused?'▶ RESUME':'⏸ PAUSE'}</button>
-      <button class="rac reset" onclick="resetRoom('${r.code}')">🔄 RESPAWN</button>
-      <button class="rac bcast" onclick="qBcast('${r.code}')">📢 BROADCAST</button>
-      <button class="rac map" onclick="openMapForRoom('${r.code}')">🗺️ MAP EDITOR</button>
-      <button class="rac del" onclick="deleteRoom('${r.code}')">🗑 CLOSE</button>
+function renderRooms(){
+  const el=document.getElementById('rg');if(!roomsData.length){el.innerHTML='<div class="empty">No rooms</div>';return;}
+  el.innerHTML=roomsData.map(r=>`<div class="rcard">
+    <div class="rch"><div><div class="rcc">${r.code}</div><div class="rcm">${r.playerCount} players · ${new Date(r.createdAt).toLocaleTimeString()}</div></div>${r.gamePaused?'<span class="pbg">⏸ PAUSED</span>':''}</div>
+    <div class="rct"><span class="tp red">🔴 ${r.redCount}</span><span class="tp blue">🔵 ${r.blueCount}</span></div>
+    <div class="rpl">${r.players.length?r.players.map(p=>`<div class="pr"><div class="prd" style="background:${p.team==='red'?'var(--red)':'var(--blue)'}"></div><div class="prc">${esc(p.callsign)}</div><div class="prt ${p.team}">${p.team.toUpperCase()}</div><span class="prs ${p.status}">${p.status.toUpperCase()}</span><button class="pkbtn" onclick="kickP('${r.code}','${p.id}','${esc(p.callsign)}')">KICK</button></div>`).join(''):'<div style="font-size:10px;color:var(--dim);padding:5px 0;font-family:\'Share Tech Mono\',monospace">No players</div>'}</div>
+    <div class="rca">
+      <button class="ra ${r.gamePaused?'resume':'pause'}" onclick="${r.gamePaused?`resumeRoom('${r.code}')`:`pauseRoom('${r.code}')`}">${r.gamePaused?'▶':'⏸'}</button>
+      <button class="ra reset" onclick="resetRoom('${r.code}')">🔄</button>
+      <button class="ra bcast" onclick="qBcast('${r.code}')">📢</button>
+      <button class="ra map" onclick="openLiveMapRoom('${r.code}')">🗺️ MAP</button>
+      <button class="ra del" onclick="deleteRoom('${r.code}')">🗑</button>
     </div>
   </div>`).join('');
 }
 
-function populateRoomSelects(){
-  ['bcast-room-sel','obj-room-sel','map-room-sel','zone-room-sel'].forEach(id=>{
+function populateSelects(){
+  ['lm-room','ap-room','ze-room','br-room','obj-room'].forEach(id=>{
     const el=document.getElementById(id);if(!el)return;
     const prev=el.value;
-    el.innerHTML=roomsData.length?roomsData.map(r=>`<option value="${r.code}">${r.code} (${r.playerCount} players)</option>`).join(''):'<option value="">No rooms</option>';
+    el.innerHTML=roomsData.length?roomsData.map(r=>`<option value="${r.code}">${r.code} (${r.playerCount})</option>`).join(''):'<option value="">No rooms</option>';
     if(prev&&[...el.options].some(o=>o.value===prev))el.value=prev;
   });
 }
 
-// Room actions
-async function createRoom(){const code=document.getElementById('new-room-code').value.trim().toUpperCase();if(!code){toast('Enter a room code','err');return;}const r=await apiFetch('/api/admin/rooms',{method:'POST',body:JSON.stringify({code})});if(r.ok){toast('✓ Room '+code+' created','ok');document.getElementById('new-room-code').value='';loadData();}else toast('Failed','err');}
-async function pauseRoom(code){const r=await apiFetch(`/api/admin/rooms/${code}/pause`,{method:'POST'});if(r.ok){toast('⏸ '+code+' paused','ok');loadData();}else toast('Error','err');}
-async function resumeRoom(code){const r=await apiFetch(`/api/admin/rooms/${code}/resume`,{method:'POST'});if(r.ok){toast('▶ '+code+' resumed','ok');loadData();}else toast('Error','err');}
-async function resetRoom(code){if(!confirm(`Respawn all in ${code}?`))return;const r=await apiFetch(`/api/admin/rooms/${code}/reset`,{method:'POST'});if(r.ok){toast('🔄 Reset','ok');loadData();}else toast('Error','err');}
-async function deleteRoom(code){if(!confirm(`Close room ${code}?`))return;const r=await apiFetch(`/api/admin/rooms/${code}`,{method:'DELETE'});if(r.ok){toast('Room closed','ok');loadData();}else toast('Error','err');}
-function qBcast(code){const msg=prompt(`Broadcast to ${code}:`);if(!msg)return;apiFetch(`/api/admin/rooms/${code}/broadcast`,{method:'POST',body:JSON.stringify({text:msg,priority:'high'})}).then(r=>{if(r.ok)toast('📢 Sent','ok');});}
-function openMapForRoom(code){document.getElementById('map-room-sel').value=code;document.getElementById('zone-room-sel').value=code;showView(document.querySelector('[data-v="mapeditor"]'));loadMapForRoom();loadZonesForRoom();}
-async function kickP(rc,pid,name){if(!confirm(`Kick ${name}?`))return;const r=await apiFetch(`/api/admin/rooms/${rc}/kick/${pid}`,{method:'POST',body:JSON.stringify({reason:'Removed by admin'})});if(r.ok){toast('Kicked '+name,'ok');loadData();}else toast('Error','err');}
-async function pauseAll(){if(!confirm('Pause ALL?'))return;for(const r of roomsData)await apiFetch(`/api/admin/rooms/${r.code}/pause`,{method:'POST'});toast('All paused','ok');loadData();}
-async function resumeAll(){for(const r of roomsData)await apiFetch(`/api/admin/rooms/${r.code}/resume`,{method:'POST'});toast('All resumed','ok');loadData();}
-async function resetAll(){if(!confirm('Respawn all players?'))return;for(const r of roomsData)await apiFetch(`/api/admin/rooms/${r.code}/reset`,{method:'POST'});toast('All reset','ok');loadData();}
-async function broadcastAll(){const txt=document.getElementById('bcast-all-txt').value.trim();if(!txt){toast('Enter message','err');return;}const r=await apiFetch('/api/admin/broadcast-all',{method:'POST',body:JSON.stringify({text:txt,priority:document.getElementById('bcast-all-prio').value})});if(r.ok){toast('📢 Broadcast sent','ok');document.getElementById('bcast-all-txt').value='';}else toast('Error','err');}
-async function broadcastRoom(){const code=document.getElementById('bcast-room-sel').value;const txt=document.getElementById('bcast-room-txt').value.trim();if(!txt){toast('Enter message','err');return;}const r=await apiFetch(`/api/admin/rooms/${code}/broadcast`,{method:'POST',body:JSON.stringify({text:txt,priority:document.getElementById('bcast-room-prio').value})});if(r.ok){toast('📡 Sent to '+code,'ok');document.getElementById('bcast-room-txt').value='';}else toast('Error','err');}
+// ── LIVE MAP + REAL-TIME WS ───────────────────────────────────
+// Admin connects a special observer WebSocket that receives admin-level data
+let adminWs=null,adminWsRoom=null;
+let liveMapPlayers={}; // track latest player state for live map
 
-// MAP EDITOR
-const TILE_URLS={osm:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',sat:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',topo:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',dark:'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'};
+function adminWsUrl(){const p=location.protocol==='https:'?'wss':'ws';return`${p}://${location.host}`;}
 
-function initAdminMap(){
-  if(adminMap)return;
-  adminMap=L.map('admin-map',{center:[51.56,-1.78],zoom:15,attributionControl:false});
-  adminTileLayer=L.tileLayer(TILE_URLS.osm,{maxZoom:20}).addTo(adminMap);
-  adminDrawLayer=new L.FeatureGroup().addTo(adminMap);
-  adminMap.on(L.Draw.Event.CREATED,(e)=>{
-    const code=document.getElementById('zone-room-sel').value;if(!code){toast('Select a room','err');return;}
-    const lbl=(document.getElementById('zone-label-inp').value.trim()||ZONE_LABELS[selectedZoneType]||'Zone');
-    let body={zoneType:selectedZoneType,label:lbl,color:selectedZoneColor};
+function connectAdminWs(roomCode){
+  if(adminWs&&adminWs.readyState===1&&adminWsRoom===roomCode)return; // already connected
+  if(adminWs){adminWs.close();adminWs=null;}
+  adminWsRoom=roomCode;
+  try{adminWs=new WebSocket(adminWsUrl());}catch{return;}
+  adminWs.onopen=()=>{
+    // Join as special admin observer — server sees admin token in join msg
+    adminWs.send(JSON.stringify({type:'admin_observe',room:roomCode,token:token}));
+  };
+  adminWs.onmessage=(e)=>{
+    let msg;try{msg=JSON.parse(e.data);}catch{return;}
+    handleAdminWsMsg(msg);
+  };
+  adminWs.onclose=()=>{adminWs=null;};
+}
+
+function handleAdminWsMsg(msg){
+  if(!liveMap)return;
+  switch(msg.type){
+    case 'init':{
+      // Full snapshot — build player state
+      liveMapPlayers={};
+      (msg.room?.players||[]).forEach(p=>liveMapPlayers[p.id]=p);
+      rebuildLiveMapMarkers();
+      rebuildZoneLayers(msg.room?.zones||[]);
+      updateLiveMapStatus(msg.room);
+      break;
+    }
+    case 'location_update':{
+      if(liveMapPlayers[msg.playerId]){
+        liveMapPlayers[msg.playerId].lat=msg.lat;
+        liveMapPlayers[msg.playerId].lng=msg.lng;
+        updateAdminMarker(liveMapPlayers[msg.playerId]);
+      }
+      break;
+    }
+    case 'status_update':{
+      if(liveMapPlayers[msg.playerId]){
+        liveMapPlayers[msg.playerId].status=msg.status;
+        updateAdminMarker(liveMapPlayers[msg.playerId]);
+      }
+      break;
+    }
+    case 'player_joined':
+      liveMapPlayers[msg.player.id]=msg.player;
+      updateAdminMarker(msg.player);
+      break;
+    case 'player_left':
+      delete liveMapPlayers[msg.playerId];
+      if(liveMapMarkers[msg.playerId]){liveMap.removeLayer(liveMapMarkers[msg.playerId]);delete liveMapMarkers[msg.playerId];}
+      break;
+    case 'zone_added':
+      addZoneLayer(msg.zone);break;
+    case 'zone_removed':
+      if(liveMapZoneLayers[msg.id]){liveMap.removeLayer(liveMapZoneLayers[msg.id]);delete liveMapZoneLayers[msg.id];}break;
+    case 'zones_cleared':
+      Object.values(liveMapZoneLayers).forEach(l=>liveMap.removeLayer(l));liveMapZoneLayers={};break;
+    case 'perk_anim':
+      showAdminPerkAnim(msg.perk,msg.lat,msg.lng,msg.callsign);break;
+    case 'game_paused':case 'game_resumed':case 'game_reset':
+      // Refresh full data
+      setTimeout(loadLiveMap,200);break;
+  }
+}
+
+function makeAdminMarkerHtml(p){
+  const team=p.status==='dead'?'dead':p.team;
+  const col=team==='red'?'#ff2a2a':team==='blue'?'#2a7fff':'#555';
+  const bdr=p.status==='medic'?'#ffaa00':p.status==='support'?'#4488ff':col;
+  const glow=p.status==='medic'?'0 0 12px #ffaa00':p.status==='support'?'0 0 12px #4488ff':'';
+  const roleIco={Assault:'⚔',Sniper:'🎯',Support:'🛡',Medic:'✚',Scout:'👁',Commander:'⭐'}[p.role]||'⚔';
+  const badge=p.status!=='alive'?`<div style="position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:${p.status==='medic'?'#ffaa00':p.status==='dead'?'#333':'#2a7fff'};border:1.5px solid #000;display:flex;align-items:center;justify-content:center;font-size:8px">${p.status==='medic'?'🚑':p.status==='dead'?'💀':'🆘'}</div>`:'';
+  return `<div style="position:relative;display:flex;flex-direction:column;align-items:center">
+    <div class="apm ${team}" style="width:30px;height:30px;border-color:${bdr};position:relative;${glow?`box-shadow:${glow}`:''}">${badge}<span style="font-size:11px">${roleIco}</span></div>
+    <div style="font-family:Share Tech Mono,monospace;font-size:7px;background:rgba(0,0,0,.88);padding:1px 4px;border-radius:2px;margin-top:2px;color:${col};white-space:nowrap">${esc(p.callsign)}</div>
+  </div>`;
+}
+
+function updateAdminMarker(p){
+  if(!liveMap||!p)return;
+  if(p.lat==null){
+    if(liveMapMarkers[p.id]){liveMap.removeLayer(liveMapMarkers[p.id]);delete liveMapMarkers[p.id];}
+    return;
+  }
+  const icon=L.divIcon({html:makeAdminMarkerHtml(p),className:'',iconSize:[42,48],iconAnchor:[21,21]});
+  const col=p.team==='red'?'#ff5555':'#5599ff';
+  const popup=`<div style="font-family:Share Tech Mono,monospace;font-size:11px"><b style="color:${col}">${p.callsign}</b><br>${p.role} · ${p.team.toUpperCase()} TEAM<br>Status: <b>${p.status.toUpperCase()}</b><br>${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</div>`;
+  if(liveMapMarkers[p.id]){
+    liveMapMarkers[p.id].setLatLng([p.lat,p.lng]);
+    liveMapMarkers[p.id].setIcon(icon);
+    liveMapMarkers[p.id].setPopupContent(popup);
+  } else {
+    const m=L.marker([p.lat,p.lng],{icon}).addTo(liveMap).bindPopup(popup);
+    liveMapMarkers[p.id]=m;
+  }
+}
+
+function rebuildLiveMapMarkers(){
+  Object.values(liveMapMarkers).forEach(m=>liveMap.removeLayer(m));liveMapMarkers={};
+  let hasGPS=false;
+  Object.values(liveMapPlayers).forEach(p=>{if(p.lat)hasGPS=true;updateAdminMarker(p);});
+  if(hasGPS){const lls=Object.values(liveMapMarkers).map(m=>m.getLatLng());if(lls.length>1)liveMap.fitBounds(L.latLngBounds(lls),{padding:[30,30]});else if(lls.length===1)liveMap.setView(lls[0],17);}
+}
+
+function rebuildZoneLayers(zones){
+  Object.values(liveMapZoneLayers).forEach(l=>liveMap.removeLayer(l));liveMapZoneLayers={};
+  zones.forEach(addZoneLayer);
+}
+
+function addZoneLayer(zone){
+  if(!liveMap)return;
+  const col=zone.color||'#cc44ff';
+  const opts={color:col,fillColor:col,fillOpacity:.15,weight:2,dashArray:'5,4'};
+  let layer;
+  if(zone.shape==='circle'&&zone.center)layer=L.circle(zone.center,{...opts,radius:zone.radius});
+  else if(zone.latlngs&&zone.latlngs.length)layer=L.polygon(zone.latlngs,opts);
+  if(layer){layer.bindTooltip(zone.label,{permanent:true,direction:'center',className:'leaflet-zone-tip'});layer.addTo(liveMap);liveMapZoneLayers[zone.id]=layer;}
+}
+
+function updateLiveMapStatus(room){
+  if(!room)return;
+  const ps=room.players||Object.values(liveMapPlayers);
+  document.getElementById('lm-status').textContent=`${ps.length} players · ${(room.zones||[]).length} zones · ${room.gamePaused?'⏸ PAUSED':'● ACTIVE'} · WS LIVE`;
+}
+
+// Perk animation on admin map
+function showAdminPerkAnim(perk,lat,lng,callsign){
+  if(!liveMap||lat==null)return;
+  const animMap={uav:{color:'#00c4ff',rings:3,label:'📡 UAV'},emp:{color:'#ffff00',rings:4,label:'⚡ EMP'},smoke:{color:'#aaaaaa',rings:2,label:'💨 SMOKE'},air:{color:'#ff6600',rings:3,label:'🚁 AIR SUPPORT'},hack:{color:'#00ff88',rings:2,label:'💻 HACK'},medkit:{color:'#00cc66',rings:2,label:'🩹 MEDKIT'},flare:{color:'#ff0000',rings:1,label:'🔴 FLARE'},intel_drop:{color:'#e8c84a',rings:3,label:'📦 INTEL DROP'},blackout:{color:'#333333',rings:4,label:'⚫ BLACKOUT'},ceasefire:{color:'#ffffff',rings:5,label:'🕊 CEASEFIRE'},god_eye:{color:'#cc44ff',rings:3,label:'👁 GOD EYE'}};
+  const cfg=animMap[perk]||{color:'#ffffff',rings:2,label:'PERK'};
+  const mapEl=document.getElementById('live-map');
+  const pt=liveMap.latLngToLayerPoint([lat,lng]);
+  for(let i=0;i<cfg.rings;i++){
+    const ring=document.createElement('div');
+    const sz=40+i*30;
+    ring.style.cssText=`position:absolute;width:${sz}px;height:${sz}px;border-radius:50%;border:2px solid ${cfg.color};left:${pt.x-sz/2}px;top:${pt.y-sz/2}px;animation:empBlast ${0.8+i*0.3}s ${i*200}ms ease-out forwards;pointer-events:none;z-index:900;opacity:.8`;
+    mapEl.appendChild(ring);setTimeout(()=>ring.remove(),1400+i*300);
+  }
+  // Label popup
+  const lbl=document.createElement('div');
+  lbl.style.cssText=`position:absolute;left:${pt.x-40}px;top:${pt.y-55}px;background:rgba(0,0,0,.85);color:${cfg.color};border:1px solid ${cfg.color};border-radius:4px;padding:3px 8px;font-family:Share Tech Mono,monospace;font-size:10px;white-space:nowrap;pointer-events:none;z-index:901`;
+  lbl.textContent=`${cfg.label} — ${callsign||'ADMIN'}`;
+  mapEl.appendChild(lbl);setTimeout(()=>lbl.remove(),2500);
+}
+
+function initLiveMap(){
+  if(liveMap)return;
+  liveMap=L.map('live-map',{center:[51.56,-1.78],zoom:15,attributionControl:false});
+  liveMapTile=L.tileLayer(TILES.osm,{maxZoom:20}).addTo(liveMap);
+  liveMap.on('click',(e)=>{
+    if(!flareModeActive)return;
+    const code=document.getElementById('lm-room').value;if(!code){toast('Select a room first','err');return;}
+    apiFetch(`/api/admin/rooms/${code}/perk`,{method:'POST',body:JSON.stringify({perk:'flare',lat:e.latlng.lat,lng:e.latlng.lng})}).then(async r=>{
+      if(r.ok){const d=await r.json();toast('🔴 Flare deployed!','ok');showAprResult('flare',d.message);}
+      else toast('Error deploying flare','err');
+    });
+    flareModeActive=false;document.getElementById('lm-flare-btn').classList.remove('on');
+    document.getElementById('lm-status').textContent='Flare placed!';
+  });
+}
+
+function lmTile(key,el){
+  document.querySelectorAll('.mc-btn[data-tile]').forEach(b=>b.classList.remove('on'));el.classList.add('on');
+  if(liveMapTile)liveMap.removeLayer(liveMapTile);
+  liveMapTile=L.tileLayer(TILES[key],{maxZoom:20}).addTo(liveMap);
+}
+
+function toggleFlareMode(){
+  flareModeActive=!flareModeActive;
+  document.getElementById('lm-flare-btn').classList.toggle('on',flareModeActive);
+  document.getElementById('lm-status').textContent=flareModeActive?'Click on map to place flare…':'';
+  if(flareModeActive)toast('Click anywhere on the map to drop a flare','w');
+}
+
+function goToMapFlare(){sv(document.querySelector('[data-v="livemap"]'));setTimeout(()=>{if(!liveMap)initLiveMap();toggleFlareMode();},200);}
+
+async function loadLiveMap(){
+  const code=document.getElementById('lm-room').value;if(!code)return;
+  if(!liveMap)initLiveMap();
+  document.getElementById('lm-status').textContent='Connecting…';
+
+  // Load initial snapshot via REST, then hook up WS for live updates
+  const r=await apiFetch(`/api/admin/rooms/${code}/live`);if(!r.ok)return;
+  const data=await r.json();
+
+  // Build player state from REST snapshot
+  liveMapPlayers={};
+  (data.players||[]).forEach(p=>liveMapPlayers[p.id]=p);
+  rebuildLiveMapMarkers();
+  rebuildZoneLayers(data.zones||[]);
+
+  document.getElementById('lm-status').textContent=`${data.players.length} players · ${(data.zones||[]).length} zones · ${data.gamePaused?'⏸ PAUSED':'● ACTIVE'}`;
+
+  // Connect admin observer WS for real-time updates
+  connectAdminWs(code);
+}
+
+function openLiveMapRoom(code){
+  sv(document.querySelector('[data-v="livemap"]'));
+  setTimeout(()=>{document.getElementById('lm-room').value=code;loadLiveMap();},100);
+}
+
+// ── ADMIN PERKS ───────────────────────────────────────────────
+async function adminPerk(perk,team){
+  const code=document.getElementById('ap-room').value;if(!code){toast('Select a room first','err');return;}
+  if(perk==='god_eye'){
+    openLiveMapRoom(code);
+    toast("👁 God's Eye active — all players visible on live map",'ok');
+    return;
+  }
+  if(perk==='blackout'&&!confirm('Deploy BLACKOUT to all players? Their maps will go dark for 20s.'))return;
+  if(perk.includes('eliminate')&&!confirm(`Eliminate the ${team.toUpperCase()} team? All their statuses → DEAD.`))return;
+  const body={perk};if(team)body.team=team;
+  const r=await apiFetch(`/api/admin/rooms/${code}/perk`,{method:'POST',body:JSON.stringify(body)});
+  if(r.ok){
+    const d=await r.json();
+    toast(d.message||'Perk deployed','ok');
+    showAprResult(perk,d.message);
+    // Show animation on live map if it's open
+    if(liveMap&&currentView==='livemap'){
+      // Find first player with GPS for effect position
+      const p=Object.values(liveMapPlayers).find(p=>p.lat);
+      if(p)showAdminPerkAnim(perk,p.lat,p.lng,'ADMIN');
+    }
+  } else {const d=await r.json().catch(()=>({error:'Error'}));toast(d.error||'Error deploying perk','err');}
+}
+function showAprResult(perk,msg){const el=document.getElementById('apr-'+perk);if(!el)return;el.textContent='✓ '+msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),6000);}
+
+// ── ZONE EDITOR ───────────────────────────────────────────────
+const ZCTYPES={respawn:'#00cc66',objective:'#ffaa00',hazard:'#ff2a2a',safe:'#2a7fff',boundary:'#e8c84a',custom:'#cc44ff'};
+function initZeMap(){
+  if(zeMap)return;
+  zeMap=L.map('ze-map',{center:[51.56,-1.78],zoom:14,attributionControl:false});
+  zeMapTile=L.tileLayer(TILES.osm,{maxZoom:20}).addTo(zeMap);
+  zeDrawLayer=new L.FeatureGroup().addTo(zeMap);
+  zeMap.on(L.Draw.Event.CREATED,(e)=>{
+    const code=document.getElementById('ze-room').value;if(!code){toast('Select a room','err');return;}
+    const lbl=(document.getElementById('zlbl').value.trim()||selectedZT);
+    let body={zoneType:selectedZT,label:lbl,color:ZCTYPES[selectedZT]||'#cc44ff'};
     if(e.layerType==='polygon'){body.shape='polygon';body.latlngs=e.layer.getLatLngs()[0].map(p=>[p.lat,p.lng]);}
     else if(e.layerType==='circle'){const c=e.layer.getLatLng();body.shape='circle';body.center=[c.lat,c.lng];body.radius=e.layer.getRadius();}
     apiFetch(`/api/admin/rooms/${code}/zones`,{method:'POST',body:JSON.stringify(body)}).then(async r=>{
-      if(r.ok){toast('✓ Zone added','ok');e.layer.addTo(adminDrawLayer);loadZonesForRoom();}
-      else toast('Error adding zone','err');
+      if(r.ok){toast('Zone added','ok');zeDrawLayer.clearLayers();loadZones();}else toast('Error','err');
     });
-    cancelAdminDraw();
+    cancelZDraw();
   });
 }
 
-function loadMapForRoom(){
-  const code=document.getElementById('map-room-sel').value;if(!code||!adminMap)return;
-  const room=roomsData.find(r=>r.code===code);if(!room)return;
-  // Move map to centre on any player with GPS
-  const p=room.players.find(pl=>pl.lat);
-  if(p&&adminMap)adminMap.setView([p.lat,p.lng],16);
+function selZT(el){document.querySelectorAll('.zt-opt').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');selectedZT=el.dataset.zt;}
+function startZDraw(shape){
+  cancelZDraw();
+  const col=ZCTYPES[selectedZT]||'#cc44ff';
+  const opts={color:col,fillColor:col,fillOpacity:.15,weight:2};
+  const dc=new L.Control.Draw({draw:{polygon:shape==='polygon'?{shapeOptions:opts,showArea:false}:false,circle:shape==='circle'?{shapeOptions:opts}:false,marker:false,circlemarker:false,rectangle:false,polyline:false},edit:{featureGroup:zeDrawLayer,edit:false,remove:false}});
+  zeMap.addControl(dc);zeMap._dcRef=dc;
+  if(shape==='polygon')new L.Draw.Polygon(zeMap,dc.options.draw.polygon).enable();
+  if(shape==='circle')new L.Draw.Circle(zeMap,dc.options.draw.circle).enable();
+  toast('Click to draw · double-click to finish');
 }
+function cancelZDraw(){if(zeMap&&zeMap._dcRef){zeMap.removeControl(zeMap._dcRef);zeMap._dcRef=null;}}
 
-function setMapTile(key,el){
-  document.querySelectorAll('.tile-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');
-  if(adminTileLayer){adminMap.removeLayer(adminTileLayer);}
-  adminTileLayer=L.tileLayer(TILE_URLS[key],{maxZoom:20}).addTo(adminMap);
-  // Push to selected room
-  const code=document.getElementById('map-room-sel').value;if(!code)return;
-  apiFetch(`/api/admin/rooms/${code}/map`,{method:'POST',body:JSON.stringify({tiles:key})}).then(r=>{if(r.ok)toast(`Map tiles → ${key.toUpperCase()} applied to ${code}`,'ok');});
-}
-
-function selZoneType(el){
-  document.querySelectorAll('.zt-opt').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');
-  selectedZoneType=el.dataset.zt;selectedZoneColor=ZONE_COLORS[selectedZoneType]||'#cc44ff';
-}
-
-function startAdminDraw(shape){
-  if(!adminMap){toast('Map not ready','err');return;}
-  cancelAdminDraw();
-  const opts={color:selectedZoneColor,fillColor:selectedZoneColor,fillOpacity:.15,weight:2};
-  const dc=new L.Control.Draw({
-    draw:{polygon:shape==='polygon'?{shapeOptions:opts,showArea:false}:false,circle:shape==='circle'?{shapeOptions:opts}:false,marker:false,circlemarker:false,rectangle:false,polyline:false},
-    edit:{featureGroup:adminDrawLayer,edit:false,remove:false},
-  });
-  adminMap.addControl(dc);adminMap._dcRef=dc;
-  if(shape==='polygon')new L.Draw.Polygon(adminMap,dc.options.draw.polygon).enable();
-  if(shape==='circle')new L.Draw.Circle(adminMap,dc.options.draw.circle).enable();
-  toast('Click on map to draw · double-click to finish');
-}
-function cancelAdminDraw(){if(adminMap&&adminMap._dcRef){adminMap.removeControl(adminMap._dcRef);adminMap._dcRef=null;}}
-
-async function loadZonesForRoom(){
-  const code=document.getElementById('zone-room-sel').value;if(!code)return;
+async function loadZones(){
+  const code=document.getElementById('ze-room').value;if(!code)return;
   const r=await apiFetch(`/api/admin/rooms/${code}`);if(!r.ok)return;
   const d=await r.json();
-  adminDrawLayer.clearLayers();
+  // Re-draw zones on map
+  zeDrawLayer.clearLayers();
   (d.zones||[]).forEach(zone=>{
-    const col=zone.color||ZONE_COLORS[zone.zoneType]||'#cc44ff';
-    const opts={color:col,fillColor:col,fillOpacity:.15,weight:2,dashArray:'6,4'};
+    const col=zone.color||'#cc44ff';
+    const opts={color:col,fillColor:col,fillOpacity:.15,weight:2,dashArray:'5,4'};
     let layer;
     if(zone.shape==='circle'&&zone.center)layer=L.circle(zone.center,{...opts,radius:zone.radius});
     else if(zone.latlngs&&zone.latlngs.length)layer=L.polygon(zone.latlngs,opts);
-    if(layer){layer.bindTooltip(zone.label);layer.addTo(adminDrawLayer);}
+    if(layer){layer.bindTooltip(zone.label);layer.addTo(zeDrawLayer);}
   });
-  const el=document.getElementById('zone-list-admin');
-  if(!d.zones||!d.zones.length){el.innerHTML='<div class="empty">No zones for this room</div>';return;}
-  el.innerHTML=`<div class="zone-list">`+d.zones.map(z=>`<div class="zone-item">
-    <div class="zone-dot" style="background:${z.color||ZONE_COLORS[z.zoneType]||'#cc44ff'}"></div>
-    <div class="zone-label-txt">${esc(z.label)}</div>
-    <div class="zone-type-badge">${z.zoneType.toUpperCase()}</div>
-    <div style="font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace">${z.shape||'polygon'}</div>
-    <div style="font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace">by ${esc(z.createdBy?.callsign||'?')}</div>
-    <button class="zone-del" onclick="delZone('${code}','${z.id}')">DELETE</button>
-  </div>`).join('')+`</div>`;
+  const el=document.getElementById('ze-list');
+  if(!d.zones||!d.zones.length){el.innerHTML='<div class="empty">No zones</div>';return;}
+  el.innerHTML=`<div class="zl">`+d.zones.map(z=>`<div class="zi"><div class="zdot" style="background:${z.color||'#cc44ff'}"></div><div class="zlbl">${esc(z.label)}</div><div class="ztype">${z.zoneType}</div><div style="font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace">${z.shape||'polygon'}</div><button class="zdel" onclick="delZone('${code}','${z.id}')">DEL</button></div>`).join('')+`</div>`;
 }
+async function delZone(code,id){const r=await apiFetch(`/api/admin/rooms/${code}/zones/${id}`,{method:'DELETE'});if(r.ok){toast('Zone removed','ok');loadZones();}else toast('Error','err');}
+async function clearAllZonesAdmin(){const code=document.getElementById('ze-room').value;if(!code){toast('Select room','err');return;}if(!confirm('Clear all zones?'))return;const r=await apiFetch(`/api/admin/rooms/${code}/zones`,{method:'DELETE'});if(r.ok){toast('Cleared','ok');loadZones();}else toast('Error','err');}
 
-async function delZone(code,id){const r=await apiFetch(`/api/admin/rooms/${code}/zones/${id}`,{method:'DELETE'});if(r.ok){toast('Zone removed','ok');loadZonesForRoom();}else toast('Error','err');}
-async function clearAllZones(){const code=document.getElementById('zone-room-sel').value;if(!code){toast('Select a room','err');return;}if(!confirm('Clear all zones for '+code+'?'))return;const r=await apiFetch(`/api/admin/rooms/${code}/zones`,{method:'DELETE'});if(r.ok){toast('All zones cleared','ok');loadZonesForRoom();}else toast('Error','err');}
+// ── ROOMS ─────────────────────────────────────────────────────
+async function createRoom(){const code=document.getElementById('nrc').value.trim().toUpperCase();if(!code){toast('Enter code','err');return;}const r=await apiFetch('/api/admin/rooms',{method:'POST',body:JSON.stringify({code})});if(r.ok){toast('Room created','ok');document.getElementById('nrc').value='';loadData();}else toast('Error','err');}
+async function pauseRoom(code){const r=await apiFetch(`/api/admin/rooms/${code}/pause`,{method:'POST'});if(r.ok){toast('⏸ Paused','ok');loadData();}else toast('Error','err');}
+async function resumeRoom(code){const r=await apiFetch(`/api/admin/rooms/${code}/resume`,{method:'POST'});if(r.ok){toast('▶ Resumed','ok');loadData();}else toast('Error','err');}
+async function resetRoom(code){if(!confirm('Respawn all?'))return;const r=await apiFetch(`/api/admin/rooms/${code}/reset`,{method:'POST'});if(r.ok){toast('Reset','ok');loadData();}else toast('Error','err');}
+async function deleteRoom(code){if(!confirm('Close room '+code+'?'))return;const r=await apiFetch(`/api/admin/rooms/${code}`,{method:'DELETE'});if(r.ok){toast('Closed','ok');loadData();}else toast('Error','err');}
+function qBcast(code){const msg=prompt('Broadcast to '+code+':');if(!msg)return;apiFetch(`/api/admin/rooms/${code}/broadcast`,{method:'POST',body:JSON.stringify({text:msg,priority:'high'})}).then(r=>{if(r.ok)toast('📢 Sent','ok');});}
+async function kickP(rc,pid,name){if(!confirm('Kick '+name+'?'))return;const r=await apiFetch(`/api/admin/rooms/${rc}/kick/${pid}`,{method:'POST',body:JSON.stringify({reason:'Removed by admin'})});if(r.ok){toast('Kicked '+name,'ok');loadData();}else toast('Error','err');}
 
-// OBJECTIVES
-async function loadObjForRoom(){
-  const code=document.getElementById('obj-room-sel').value;if(!code)return;
-  const r=await apiFetch(`/api/admin/rooms/${code}`);if(!r.ok)return;
-  const d=await r.json();
-  const el=document.getElementById('obj-list-admin');
-  if(!d.objectives.length){el.innerHTML='<div class="empty">No objectives</div>';return;}
-  el.innerHTML=d.objectives.map(o=>`<div class="obj-row"><div class="obj-txt">${esc(o.text)}</div><span class="obj-done-badge ${o.done?'yes':'no'}">${o.done?'✓ DONE':'PENDING'}</span><button class="obj-del" onclick="delObj('${code}','${o.id}')">DELETE</button></div>`).join('');
-}
-async function addObj(){const code=document.getElementById('obj-room-sel').value;if(!code){toast('Select room','err');return;}const txt=document.getElementById('new-obj-txt').value.trim();if(!txt){toast('Enter text','err');return;}const r=await apiFetch(`/api/admin/rooms/${code}/objectives`,{method:'POST',body:JSON.stringify({text:txt})});if(r.ok){toast('✓ Objective added','ok');document.getElementById('new-obj-txt').value='';loadObjForRoom();}else toast('Error','err');}
-async function delObj(code,id){const r=await apiFetch(`/api/admin/rooms/${code}/objectives/${id}`,{method:'DELETE'});if(r.ok){toast('Removed','ok');loadObjForRoom();}else toast('Error','err');}
+// ── BROADCAST ─────────────────────────────────────────────────
+async function broadcastAll2(){const txt=document.getElementById('ba-txt').value.trim();if(!txt){toast('Enter message','err');return;}const r=await apiFetch('/api/admin/broadcast-all',{method:'POST',body:JSON.stringify({text:txt,priority:document.getElementById('ba-prio').value})});if(r.ok){toast('Broadcast sent','ok');document.getElementById('ba-txt').value='';}else toast('Error','err');}
+async function broadcastRoom(){const code=document.getElementById('br-room').value;const txt=document.getElementById('br-txt').value.trim();if(!txt){toast('Enter message','err');return;}const r=await apiFetch(`/api/admin/rooms/${code}/broadcast`,{method:'POST',body:JSON.stringify({text:txt,priority:document.getElementById('br-prio').value})});if(r.ok){toast('Sent to '+code,'ok');document.getElementById('br-txt').value='';}else toast('Error','err');}
+async function pauseAll2(){if(!confirm('Pause ALL?'))return;for(const r of roomsData)await apiFetch(`/api/admin/rooms/${r.code}/pause`,{method:'POST'});toast('All paused','ok');loadData();}
+async function resumeAll2(){for(const r of roomsData)await apiFetch(`/api/admin/rooms/${r.code}/resume`,{method:'POST'});toast('All resumed','ok');loadData();}
+async function resetAll2(){if(!confirm('Respawn all?'))return;for(const r of roomsData)await apiFetch(`/api/admin/rooms/${r.code}/reset`,{method:'POST'});toast('All reset','ok');loadData();}
 
-// EVENT LOG
-async function loadLog(){
-  const r=await apiFetch('/api/admin/events');if(!r.ok)return;
-  const events=await r.json();
-  const el=document.getElementById('log-list');
-  if(!events.length){el.innerHTML='<div class="empty">No events</div>';return;}
-  const typeCol={'admin_login':'var(--gold)','player_joined':'var(--green)','player_left':'var(--dim)','room_created':'var(--blue)','room_deleted':'var(--red)','game_paused':'var(--warn)','game_resumed':'var(--green)','player_kicked':'var(--red)','admin_broadcast':'var(--gold)','admin_broadcast_all':'var(--gold)','admin_login_fail':'var(--red)','status_change':'var(--blue)','perk_used':'#cc44ff','zone_added':'#00cc66'};
-  el.innerHTML=events.map(e=>{const ts=new Date(e.ts).toLocaleTimeString();const col=typeCol[e.type]||'var(--text)';const data=JSON.stringify(e.data).replace(/[{}"]/g,'').replace(/,/g,' · ');return `<div class="log-entry"><span class="log-ts">${ts}</span><span class="log-type" style="color:${col}">${e.type}</span><span class="log-data">${data}</span></div>`;}).join('');
-}
+// ── OBJECTIVES ────────────────────────────────────────────────
+async function loadObjs(){const code=document.getElementById('obj-room').value;if(!code)return;const r=await apiFetch(`/api/admin/rooms/${code}`);if(!r.ok)return;const d=await r.json();const el=document.getElementById('obj-list2');if(!d.objectives.length){el.innerHTML='<div class="empty">No objectives</div>';return;}el.innerHTML=d.objectives.map(o=>`<div class="or"><div class="otx">${esc(o.text)}</div><span class="odb ${o.done?'yes':'no'}">${o.done?'✓ DONE':'PENDING'}</span><button class="odel" onclick="delObj('${code}','${o.id}')">DEL</button></div>`).join('');}
+async function addObj(){const code=document.getElementById('obj-room').value;if(!code){toast('Select room','err');return;}const txt=document.getElementById('obj-new').value.trim();if(!txt){toast('Enter text','err');return;}const r=await apiFetch(`/api/admin/rooms/${code}/objectives`,{method:'POST',body:JSON.stringify({text:txt})});if(r.ok){toast('Added','ok');document.getElementById('obj-new').value='';loadObjs();}else toast('Error','err');}
+async function delObj(code,id){const r=await apiFetch(`/api/admin/rooms/${code}/objectives/${id}`,{method:'DELETE'});if(r.ok){toast('Removed','ok');loadObjs();}else toast('Error','err');}
+
+// ── EVENT LOG ─────────────────────────────────────────────────
+async function loadLog(){const r=await apiFetch('/api/admin/events');if(!r.ok)return;const ev=await r.json();const el=document.getElementById('log-list');if(!ev.length){el.innerHTML='<div class="empty">No events</div>';return;}const tc={'admin_login':'var(--gold)','player_joined':'var(--green)','player_left':'var(--dim)','room_created':'var(--blue)','room_deleted':'var(--red)','game_paused':'var(--warn)','game_resumed':'var(--green)','player_kicked':'var(--red)','admin_broadcast':'var(--gold)','admin_broadcast_all':'var(--gold)','admin_login_fail':'var(--red)','status_change':'var(--blue)','perk_used':'var(--purple)','perk_uav':'#00c4ff','perk_emp':'#ff0','perk_smoke':'#aaa','perk_hack':'var(--green)','perk_medkit':'var(--green)','perk_air':'#ff6600','admin_perk_intel_drop':'var(--gold)','admin_perk_blackout':'var(--red)','admin_perk_flare':'var(--red)','admin_perk_ceasefire':'var(--green)','admin_perk_eliminate':'var(--red)'};el.innerHTML=ev.map(e=>{const ts=new Date(e.ts).toLocaleTimeString();const col=tc[e.type]||'var(--text)';const data=JSON.stringify(e.data).replace(/[{}"]/g,'').replace(/,/g,' · ');return `<div class="le"><span class="lts">${ts}</span><span class="ltype" style="color:${col}">${e.type}</span><span class="ldata">${data}</span></div>`;}).join('');}
 
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'){
-    if(document.activeElement.id==='new-obj-txt')addObj();
-    else if(document.activeElement.id==='bcast-room-txt')broadcastRoom();
-    else if(document.activeElement.id==='bcast-all-txt')broadcastAll();
-    else if(document.activeElement.id==='new-room-code')createRoom();
+    if(document.activeElement.id==='nrc')createRoom();
+    else if(document.activeElement.id==='obj-new')addObj();
+    else if(document.activeElement.id==='br-txt')broadcastRoom();
+    else if(document.activeElement.id==='ba-txt')broadcastAll2();
+    else if(document.activeElement.id==='zlbl'){}
   }
 });
 </script>
