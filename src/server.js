@@ -112,13 +112,14 @@ function getOrCreateRoom(code, name, password) {
   return rooms[code];
 }
 
-// Room cleanup
+// Room cleanup — only removes rooms that are NOT admin-persisted templates
 setInterval(() => {
-  const now = Date.now();
   for (const code of Object.keys(rooms)) {
     const room = rooms[code];
+    // Never auto-delete rooms that have a persisted template (admin created)
+    if (roomTemplates[code]) continue;
     const active = Object.values(room.players).some(p => p.ws && p.ws.readyState === WebSocket.OPEN);
-    if (!active && now - room.createdAt > 3600_000) {
+    if (!active) {
       delete rooms[code];
       logEvent('room_expired', { code });
     }

@@ -470,6 +470,28 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
 // GLOBALS
 // ════════════════════════════════════════════════════════════════
 let ws=null,myId=null,myCallsign='SOLDIER',myTeam='red',myRole='Assault',myStatus='alive';
+
+// ── Service Worker registration ────────────────────────────────
+let swReg=null;
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js').then(reg=>{
+    swReg=reg;
+    console.log('SW registered');
+    // Listen for GPS pings from SW
+    navigator.serviceWorker.addEventListener('message',swMsg=>{
+      const m=swMsg.data;
+      if(!m)return;
+      if(m.type==='SW_PING_GPS'){
+        // SW is asking for a GPS update — resend last known position
+        if(myLat&&ws&&ws.readyState===1)sendWS({type:'location',lat:myLat,lng:myLng,heading:0});
+      }
+      if(m.type==='SW_GPS'){
+        // Another tab/context sent a GPS update via SW
+        if(m.lat&&myId){myLat=m.lat;myLng=m.lng;if(ws&&ws.readyState===1)sendWS({type:'location',lat:m.lat,lng:m.lng,heading:0});}
+      }
+    });
+  }).catch(e=>console.warn('SW registration failed:',e));
+}
 let roomCode='',roomPassword='',selectedMapCode='',selectedMapHasPassword=false;
 let players={},objectives=[],orders=[],zones=[],markers={},zoneLayers={},objMarkers={};
 let map=null,tileLayer=null;
@@ -672,7 +694,22 @@ function showPerkAnim(perk,lat,lng){
 // ════════════════════════════════════════════════════════════════
 function startGPS(){
   if(!navigator.geolocation){toast('GPS not available','warn');return;}
-  navigator.geolocation.watchPosition(onGPS,onGPSErr,{enableHighAccuracy:true,maximumAge:4000,timeout:15000});
+  // maximumAge:0 forces fresh fix every time; timeout:Infinity prevents timeout errors
+  navigator.geolocation.watchPosition(onGPS,onGPSErr,{
+    enableHighAccuracy:true,
+    maximumAge:0,
+    timeout:Infinity
+  });
+  // Also register periodic background sync where supported
+  if(swReg&&'periodicSync' in swReg){
+    swReg.periodicSync.register('gps-keepalive',{minInterval:15000}).catch(()=>{});
+  }
+  // Fallback: send last position every 10s even if GPS hasn't fired
+  setInterval(()=>{
+    if(myLat&&ws&&ws.readyState===1&&document.getElementById('gapp').classList.contains('visible')){
+      sendWS({type:'location',lat:myLat,lng:myLng,heading:0});
+    }
+  },10000);
 }
 function onGPS(pos){
   myLat=pos.coords.latitude;myLng=pos.coords.longitude;myAcc=Math.round(pos.coords.accuracy);
@@ -683,6 +720,10 @@ function onGPS(pos){
   const ts=document.getElementById('gs-ts');if(ts)ts.textContent=new Date().toLocaleTimeString();
   if(map&&myId&&players[myId]){players[myId].lat=myLat;players[myId].lng=myLng;updMarker(players[myId],true);}
   sendWS({type:'location',lat:myLat,lng:myLng,heading:0});
+  // Post to service worker so background tracking continues when screen locks
+  if(navigator.serviceWorker&&navigator.serviceWorker.controller){
+    navigator.serviceWorker.controller.postMessage({type:'GPS_UPDATE',lat:myLat,lng:myLng,heading:0});
+  }
 }
 function onGPSErr(e){toast('GPS: '+(['','Denied','Unavailable','Timeout'][e.code]||'Error'),'warn');}
 
@@ -959,9 +1000,16 @@ function renderSquad(){
     const col=p.status==='dead'?'#555':p.team==='red'?'var(--red)':'var(--blue)';
     const co=p.lat?p.lat.toFixed(4)+', '+p.lng.toFixed(4):'No GPS';
     const isMe=p.id===myId;
+    // Show bleed timer for downed teammates
+    let bleedInfo='';
+    if(p.status==='dead'&&p._bleedEndsAt){
+      const rem=Math.max(0,Math.ceil((p._bleedEndsAt-Date.now())/1000));
+      const m=Math.floor(rem/60),sec=rem%60;
+      bleedInfo=`<span style="font-size:9px;color:var(--red);font-family:'Share Tech Mono',monospace;font-weight:700">⏱ ${m}:${sec<10?'0':''}${sec}</span>`;
+    }
     return `<div class="pc ${p.status==='dead'?'down':''} ${p.status==='medic'?'medic-c':''}" onclick="focusP('${p.id}')">
       <div class="pa" style="border-color:${col}">${ROLE_ICONS[p.role]||'⚔'}</div>
-      <div class="pi"><div class="pcall">${esc(p.callsign)}${isMe?' <span style="font-size:8px;color:var(--gold)">[YOU]</span>':''}</div><div class="prole">${p.role} · ${p.team.toUpperCase()}</div><div class="pco">${co}</div></div>
+      <div class="pi"><div class="pcall">${esc(p.callsign)}${isMe?' <span style="font-size:8px;color:var(--gold)">[YOU]</span>':''}</div><div class="prole">${p.role} · ${p.team.toUpperCase()}</div><div class="pco">${co}</div>${bleedInfo}</div>
       <span class="pbadge ${bc[p.status]||'b-alive'}">${bt[p.status]||'ALIVE'}</span>
     </div>`;
   }).join('');
@@ -1119,6 +1167,13 @@ function startBleedTimer(duration){
 // INIT
 // ════════════════════════════════════════════════════════════════
 setInterval(()=>{if(!document.getElementById('home').classList.contains('hidden'))loadMaps();},15000);
+// Refresh squad list every 5s so bleed timers tick visibly
+setInterval(()=>{
+  if(document.getElementById('gapp').classList.contains('visible')){
+    const anyBleeding=Object.values(players).some(p=>p._bleedEndsAt&&p.status==='dead');
+    if(anyBleeding)renderSquad();
+  }
+},5000);
 
 // ════════════════════════════════════════════════════════════════
 // WAKE LOCK — keep screen on during gameplay
@@ -1132,6 +1187,11 @@ async function requestWakeLock(){
       console.log('Wake lock active');
     }
   }catch(e){console.warn('Wake lock failed:',e.message);}
+  // Tell SW the WS URL for GPS relay
+  if(navigator.serviceWorker&&navigator.serviceWorker.controller){
+    const wsUrl=(location.protocol==='https:'?'wss':'ws')+'://'+location.host;
+    navigator.serviceWorker.controller.postMessage({type:'SET_WS_URL',url:wsUrl});
+  }
 }
 async function releaseWakeLock(){
   if(wakeLock){try{await wakeLock.release();}catch{}wakeLock=null;}
