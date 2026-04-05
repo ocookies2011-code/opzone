@@ -510,6 +510,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
     <div class="gt" data-s="comms" onclick="switchTab(this)"><div class="ico">📡</div>COMMS<div class="nbadge" id="nb-cm"></div></div>
     <div class="gt" data-s="status" onclick="switchTab(this)"><div class="ico">⚡</div>STATUS</div>
     <div class="gt" data-s="kit" onclick="switchTab(this)"><div class="ico">🔫</div>KIT</div>
+    <div class="gt leave-btn" onclick="leaveGame()" style="color:var(--red);flex:0 0 52px"><div class="ico">🚪</div>LEAVE</div>
   </div>
 
   <div class="gmain">
@@ -1049,6 +1050,18 @@ function resizePerkCanvas(){
   if(perkCanvas.width!==mapEl.offsetWidth)perkCanvas.width=mapEl.offsetWidth;
   if(perkCanvas.height!==mapEl.offsetHeight)perkCanvas.height=mapEl.offsetHeight;
 }
+// Convert lat/lng to canvas pixel coords, accounting for Leaflet's mapPane offset
+function latLngToCanvas(lat,lng){
+  if(!map)return null;
+  const layerPt=map.latLngToLayerPoint([lat,lng]);
+  // Leaflet shifts the mapPane via CSS transform — get that offset
+  const pane=map.getPanes().mapPane;
+  const transform=pane?pane.style.transform:'';
+  let ox=0,oy=0;
+  const m=transform.match(/translate3d\(([^,]+)px,\s*([^,]+)px/)||transform.match(/translate\(([^,]+)px,\s*([^,]+)px/);
+  if(m){ox=parseFloat(m[1])||0;oy=parseFloat(m[2])||0;}
+  return {x:layerPt.x+ox, y:layerPt.y+oy};
+}
 
 function startPerkLoop(){
   if(perkAnimId)return;
@@ -1062,7 +1075,7 @@ function startPerkLoop(){
       if(now>a.endAt){delete persistAnim[name];continue;}
       if(!map||a.lat==null||!perkCtx)continue;
       resizePerkCanvas();
-      const pt=map.latLngToLayerPoint([a.lat,a.lng]);
+      const pt=latLngToCanvas(a.lat,a.lng);if(!pt)continue;
       const t=Math.min(1,(now-a.startAt)/(a.endAt-a.startAt));
       drawPersistAnim(name,pt.x,pt.y,t,now);
     }
@@ -1071,7 +1084,7 @@ function startPerkLoop(){
       const sys=perkParticles[i];
       if(now>sys.endAt){perkParticles.splice(i,1);continue;}
       if(!map||sys.lat==null||!perkCtx)continue;
-      const pt=map.latLngToLayerPoint([sys.lat,sys.lng]);
+      const pt=latLngToCanvas(sys.lat,sys.lng);if(!pt)continue;
       const t=Math.min(1,(now-sys.startAt)/(sys.endAt-sys.startAt));
       perkCtx.save();
       drawOneShotAnim(sys.type,pt.x,pt.y,t,now,perkCtx);
@@ -1284,8 +1297,11 @@ function onGPS(pos){
   ['i-acc','gs-acc'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=ac;});
   const ts=document.getElementById('gs-ts');if(ts)ts.textContent=new Date().toLocaleTimeString();
   if(map&&myId&&players[myId]){players[myId].lat=myLat;players[myId].lng=myLng;updMarker(players[myId],true);}
-  sendWS({type:'location',lat:myLat,lng:myLng,heading:0});
-  // Cache in SW so it can relay when page wakes from background
+  // Only broadcast position if not hidden by our own smoke
+  if(!mySmokeActive){
+    sendWS({type:'location',lat:myLat,lng:myLng,heading:0});
+  }
+  // Always cache in SW regardless of smoke
   notifySW({type:'GPS_UPDATE',lat:myLat,lng:myLng,heading:0});
 }
 function onGPSErr(e){toast('GPS: '+(['','Denied','Unavailable','Timeout'][e.code]||'Error'),'warn');}
@@ -1403,7 +1419,14 @@ function handle(msg){
       toast('🗺️ Map loaded: '+msg.mapName);break;
 
     case 'perk_feedback':perkFb(msg.perk.toUpperCase()+': '+msg.message);break;
-    case 'perk_anim':if(map)showPerkAnim(msg.perk,msg.lat,msg.lng);break;
+    case 'perk_anim':
+      if(map){
+        // Use server-provided coordinates (the caster's position), fallback to mine
+        const animLat=msg.lat!=null?msg.lat:myLat;
+        const animLng=msg.lng!=null?msg.lng:myLng;
+        showPerkAnim(msg.perk,animLat,animLng);
+      }
+      break;
 
     case 'uav_reveal':
       uavActive=true;
@@ -1496,26 +1519,47 @@ function handle(msg){
       break;
 
     case 'emp_scramble_enemies':{
-      // MY team scrambles enemy markers on map
       const et2=msg.enemyTeam;
+      const dur2=msg.duration||30000;
       Object.values(players).filter(p=>p.team===et2).forEach(p=>{
-        p._scrambled=true;p._scrambleUntil=Date.now()+(msg.duration||30000);
-        // Show random jitter on their map position
-        if(p.lat){const jLat=p.lat+(Math.random()-.5)*0.002;const jLng=p.lng+(Math.random()-.5)*0.002;updMarkerScrambled(p.id,jLat,jLng);}
+        p._scrambled=true;p._scrambleUntil=Date.now()+dur2;
+        // If we have their last known position, make them visible (scrambled)
+        // Use a fake random initial position so it looks scattered
+        if(p.lat){
+          p._ghost=true; // temporarily visible as ghost
+          const jLat=p.lat+(Math.random()-.5)*0.003;
+          const jLng=p.lng+(Math.random()-.5)*0.003;
+          const fakePl=Object.assign({},p,{lat:jLat,lng:jLng});
+          if(markers[p.id])markers[p.id].setLatLng([jLat,jLng]);
+          else updMarker(fakePl,false);
+        }
       });
-      toast('⚡ EMP — Scrambling enemy positions!','ok');
+      // Start continuous jitter for the duration
+      startScrambleJitter(et2,dur2);
+      toast('⚡ EMP — Enemy GPS scrambled for '+Math.round(dur2/1000)+'s!','ok');
       break;}
 
     case 'emp_scramble_end':
       document.getElementById('uav-banner').classList.remove('show');break;
 
     case 'emp_scramble_done':{
-      Object.values(players).filter(p=>p._scrambled).forEach(p=>{p._scrambled=false;delete p._scrambleUntil;rmMarker(p.id);});
-      toast('EMP expired — enemy positions restored');break;}
+      if(scrambleInterval){clearInterval(scrambleInterval);scrambleInterval=null;}
+      Object.values(players).filter(p=>p._scrambled).forEach(p=>{
+        p._scrambled=false;delete p._scrambleUntil;
+        p._ghost=false; // hide again unless UAV is active
+        if(!uavActive)rmMarker(p.id);
+      });
+      toast('EMP expired — enemy positions cleared','warn');break;}
 
     case 'perk_anim_persist':
-      // Sustained animation for the full perk duration
-      if(map)showPerkAnimPersist(msg.perk,msg.lat,msg.lng,msg.duration);break;
+      if(map)showPerkAnimPersist(msg.perk,msg.lat,msg.lng,msg.duration);
+      // Smoke: suppress GPS broadcast for its duration (hides our team from enemies)
+      if(msg.perk==='smoke'){
+        mySmokeActive=true;
+        toast('💨 Smoke active — your position hidden for '+(msg.duration/1000||30)+'s','ok');
+        setTimeout(()=>{mySmokeActive=false;},msg.duration||30000);
+      }
+      break;
 
     case 'perk_anim_end':
       clearPerkAnimPersist(msg.perk);break;
@@ -1698,6 +1742,8 @@ function startScrambleJitter(enemyTeam,duration){
 
 // teamCooldowns[perk] = endsAt timestamp; set by server via 'team_cooldown' message
 const teamCooldowns={};
+// Smoke: suppress our own GPS broadcast while a friendly smoke is active at our position
+let mySmokeActive=false;
 let bleedTimer=null, bleedEndsAt=0;
 
 function usePerk(id){
@@ -1710,6 +1756,7 @@ function usePerk(id){
 }
 
 function applyTeamCooldown(perk, seconds, endsAt){
+  teamCooldowns[perk]=endsAt; // cache for session save
   const c=document.getElementById('pk-'+perk);
   const bar=document.getElementById('pb-'+perk);
   const cdt=document.getElementById('pct-'+perk);
@@ -1865,7 +1912,21 @@ const SESSION_KEY='sa_player_session';
 
 function saveSession(){
   if(!roomCode||!myCallsign)return;
-  const sess={roomCode,myCallsign,myRole,myTeam,roomPassword,savedAt:Date.now()};
+  // Save cooldown endsAt for each perk so they survive a refresh
+  const cooldownSnapshot={};
+  ['uav','emp','smoke','hack','medkit','air'].forEach(p=>{
+    const cd=document.getElementById('pk-'+p);
+    if(cd&&cd.classList.contains('cd')){
+      // Read the endsAt from our teamCooldowns cache (set when server sends team_cooldown)
+      if(teamCooldowns[p]&&teamCooldowns[p]>Date.now())cooldownSnapshot[p]=teamCooldowns[p];
+    }
+  });
+  const sess={
+    roomCode,myCallsign,myRole,myTeam,roomPassword,
+    myStatus, bleedEndsAt: bleedEndsAt||0,
+    cooldowns: cooldownSnapshot,
+    savedAt:Date.now()
+  };
   try{sessionStorage.setItem(SESSION_KEY,JSON.stringify(sess));}catch{}
 }
 
@@ -1902,7 +1963,22 @@ function tryRestoreSession(){
       document.getElementById('mcs').textContent=myCallsign;
       document.getElementById('mrk').textContent=myRole+' · '+myTeam.toUpperCase()+' TEAM';
       initMap();startGPS();connectWS();
-      myStatus='alive';updateStatusPanel();
+      // Restore status
+      myStatus=sess.myStatus||'alive';
+      updateStatusPanel();
+      // Restore bleed-out timer if still running
+      if(sess.myStatus==='dead'&&sess.bleedEndsAt&&sess.bleedEndsAt>Date.now()){
+        startBleedTimer(sess.bleedEndsAt-Date.now());
+      }
+      // Restore perk cooldowns
+      if(sess.cooldowns){
+        Object.entries(sess.cooldowns).forEach(([perk,endsAt])=>{
+          if(endsAt>Date.now()){
+            teamCooldowns[perk]=endsAt;
+            applyTeamCooldown(perk,Math.ceil((endsAt-Date.now())/1000),endsAt);
+          }
+        });
+      }
       toast('📡 Reconnected to '+found.name,'ok');
     }).catch(()=>clearSession());
     return true;
