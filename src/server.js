@@ -49,6 +49,7 @@ Object.entries(roomTemplates).forEach(([code, tmpl]) => {
   const room = makeRoom(code, tmpl.name, tmpl.password);
   room.zones = tmpl.zones || [];
   room.objectives = tmpl.objectives || [];
+  room.allowedRoles = tmpl.allowedRoles || null;
   rooms[code] = room;
   console.log(`♻ Restored map: ${tmpl.name} (${code})`);
 });
@@ -57,6 +58,7 @@ function persistRoomTemplate(room) {
   roomTemplates[room.code] = {
     name: room.name, password: room.password,
     zones: room.zones, objectives: room.objectives,
+    allowedRoles: room.allowedRoles,
     createdAt: room.createdAt,
   };
   saveJSON('room-templates.json', roomTemplates);
@@ -95,6 +97,7 @@ function makeRoom(code, name, password) {
     objectives: [],
     zones: [],
     mapTiles: 'osm',
+    allowedRoles: null, // null = all roles allowed; array = restricted list
     activeMapId: null,
     createdAt: Date.now(),
     gamePaused: false,
@@ -619,7 +622,89 @@ app.get('/api/maps', (_, res) => {
     playerCount: Object.keys(r.players).length,
     redCount: Object.values(r.players).filter(p=>p.team==='red').length,
     blueCount: Object.values(r.players).filter(p=>p.team==='blue').length,
+    allowedRoles: r.allowedRoles || null,
   })));
+});
+
+// ════════════════════════════════════════════════════════════════════
+// REST — Player Accounts
+// ════════════════════════════════════════════════════════════════════
+const playerAccounts = loadJSON('player-accounts.json', {}); // username → account
+const playerSessions = new Map(); // token → { username, ...profile }
+
+// Simple password hash (XOR + base64 — good enough for local airsoft app)
+function hashPass(p) { return Buffer.from(p.split('').map((c,i)=>c.charCodeAt(0)^(i%7+13)).join(',')).toString('base64'); }
+
+app.post('/api/player/register', (req, res) => {
+  const { username, password, email, phone, address, callsign } = req.body;
+  if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+  if (playerAccounts[username.toLowerCase()]) return res.status(409).json({ error: 'Username already taken' });
+  const account = {
+    username: username.toLowerCase(), displayName: callsign || username,
+    passwordHash: hashPass(password),
+    email: email || '', phone: phone || '', address: address || '',
+    callsign: (callsign || username).toUpperCase().slice(0,12),
+    createdAt: Date.now(), lastLogin: null,
+  };
+  playerAccounts[account.username] = account;
+  saveJSON('player-accounts.json', playerAccounts);
+  logEvent('player_registered', { username: account.username });
+  const token = uuidv4();
+  playerSessions.set(token, { username: account.username, callsign: account.callsign });
+  setTimeout(() => playerSessions.delete(token), 24 * 60 * 60 * 1000);
+  res.json({ token, callsign: account.callsign, username: account.username });
+});
+
+app.post('/api/player/login', (req, res) => {
+  const { username, password } = req.body;
+  const account = playerAccounts[username?.toLowerCase()];
+  if (!account || account.passwordHash !== hashPass(password)) {
+    return res.status(401).json({ error: 'Invalid username or password' });
+  }
+  account.lastLogin = Date.now();
+  saveJSON('player-accounts.json', playerAccounts);
+  const token = uuidv4();
+  playerSessions.set(token, { username: account.username, callsign: account.callsign, email: account.email });
+  setTimeout(() => playerSessions.delete(token), 24 * 60 * 60 * 1000);
+  logEvent('player_login', { username: account.username });
+  res.json({ token, callsign: account.callsign, username: account.username, email: account.email, phone: account.phone });
+});
+
+app.get('/api/player/me', (req, res) => {
+  const token = req.headers['x-player-token'];
+  const sess = token && playerSessions.get(token);
+  if (!sess) return res.status(401).json({ error: 'Not logged in' });
+  const account = playerAccounts[sess.username];
+  if (!account) return res.status(404).json({ error: 'Account not found' });
+  res.json({ username: account.username, callsign: account.callsign, email: account.email, phone: account.phone, address: account.address, createdAt: account.createdAt });
+});
+
+app.put('/api/player/me', (req, res) => {
+  const token = req.headers['x-player-token'];
+  const sess = token && playerSessions.get(token);
+  if (!sess) return res.status(401).json({ error: 'Not logged in' });
+  const account = playerAccounts[sess.username];
+  if (!account) return res.status(404).json({ error: 'Account not found' });
+  const { callsign, email, phone, address, password, newPassword } = req.body;
+  if (password && newPassword) {
+    if (account.passwordHash !== hashPass(password)) return res.status(401).json({ error: 'Wrong current password' });
+    account.passwordHash = hashPass(newPassword);
+  }
+  if (callsign) { account.callsign = callsign.toUpperCase().slice(0,12); sess.callsign = account.callsign; }
+  if (email !== undefined) account.email = email;
+  if (phone !== undefined) account.phone = phone;
+  if (address !== undefined) account.address = address;
+  saveJSON('player-accounts.json', playerAccounts);
+  res.json({ ok: true, callsign: account.callsign });
+});
+
+// Admin: view all player accounts
+app.get('/api/admin/player-accounts', adminAuth, (req, res) => {
+  const accounts = Object.values(playerAccounts).map(a => ({
+    username: a.username, callsign: a.callsign, email: a.email,
+    phone: a.phone, createdAt: a.createdAt, lastLogin: a.lastLogin,
+  }));
+  res.json(accounts);
 });
 
 // ════════════════════════════════════════════════════════════════════
@@ -643,6 +728,28 @@ app.post('/api/admin/login', (req, res) => {
 
 app.post('/api/admin/logout', adminAuth, (req, res) => {
   adminSessions.delete(req.headers['x-admin-token']); res.json({ ok: true });
+});
+
+// Super admin password change
+app.post('/api/admin/change-password', adminAuth, (req, res) => {
+  const sess = req.adminSession;
+  const { currentPassword, newPassword } = req.body;
+  if (!newPassword || newPassword.length < 6) return res.status(400).json({ error: 'New password must be at least 6 characters' });
+  if (sess.role === 'super') {
+    if (currentPassword !== SUPER_ADMIN_PASS) return res.status(401).json({ error: 'Wrong current password' });
+    // Update env override — note: in-memory only, set via env var for persistence
+    process.env.ADMIN_PASS = newPassword;
+    logEvent('super_admin_pw_change', { by: sess.username });
+    return res.json({ ok: true, note: 'Password updated for this session. Set ADMIN_PASS env var to make permanent.' });
+  }
+  // Site admin
+  const sa = siteAdmins[sess.username];
+  if (!sa) return res.status(404).json({ error: 'Admin not found' });
+  if (currentPassword !== sa.password) return res.status(401).json({ error: 'Wrong current password' });
+  sa.password = newPassword;
+  saveJSON('site-admins.json', siteAdmins);
+  logEvent('admin_pw_change', { username: sess.username });
+  res.json({ ok: true });
 });
 
 // ════════════════════════════════════════════════════════════════════
@@ -690,6 +797,7 @@ app.get('/api/admin/rooms', adminAuth, (req, res) => {
     players: Object.values(r.players).map(playerPublic),
     objectives: r.objectives, zones: r.zones, orderCount: r.orders.length,
     createdAt: r.createdAt, gamePaused: r.gamePaused, mapTiles: r.mapTiles, activeMapId: r.activeMapId,
+    allowedRoles: r.allowedRoles,
   })));
 });
 
@@ -716,6 +824,7 @@ app.put('/api/admin/rooms/:code', adminAuth, (req, res) => {
   const { name, password } = req.body;
   if (name !== undefined) { room.name = name; broadcastAll(room, { type: 'room_renamed', name }); }
   if (password !== undefined) room.password = password;
+  if (req.body.allowedRoles !== undefined) room.allowedRoles = req.body.allowedRoles;
   persistRoomTemplate(room);
   res.json({ ok: true });
 });

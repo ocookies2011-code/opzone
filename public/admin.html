@@ -271,6 +271,8 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
       <div class="sbi" data-v="broadcast" onclick="sv(this)"><span class="sico">📢</span>Broadcast</div>
       <div class="sbi super-only" data-v="siteadmins" onclick="sv(this)"><span class="sico">👤</span>Site Admins</div>
       <div class="sbi" data-v="log" onclick="sv(this)"><span class="sico">📋</span>Event Log</div>
+      <div class="sbi" data-v="players" onclick="sv(this)"><span class="sico">👥</span>Player Accounts</div>
+      <div class="sbi" data-v="password" onclick="sv(this)"><span class="sico">🔑</span>Change Password</div>
     </div>
 
     <div class="ac" id="adc">
@@ -478,6 +480,34 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
         <div class="ap"><div class="aph"><div class="apt">◈ Event Log</div><button class="abtn sm" onclick="loadLog()">REFRESH</button></div><div class="apb"><div class="ll" id="log-list"><div class="empty">Loading…</div></div></div></div>
       </div>
 
+      <!-- PLAYER ACCOUNTS -->
+      <div id="view-players" class="sh">
+        <div class="ap">
+          <div class="aph"><div class="apt">◈ Registered Player Accounts</div><button class="abtn sm" onclick="loadPlayerAccounts()">REFRESH</button></div>
+          <div class="apb">
+            <div style="font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-bottom:12px">Players who have registered an account. Guest players (no account) do not appear here.</div>
+            <div id="player-accounts-list"><div class="empty">Loading…</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHANGE PASSWORD -->
+      <div id="view-password" class="sh">
+        <div class="ap">
+          <div class="aph"><div class="apt">◈ Change My Admin Password</div></div>
+          <div class="apb">
+            <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;max-width:600px">
+              <div class="form-field"><div class="form-label">Current Password</div><input class="ai" type="password" id="pw-current" placeholder="Current password"></div>
+              <div class="form-field"><div class="form-label">New Password</div><input class="ai" type="password" id="pw-new" placeholder="New password (min 6 chars)"></div>
+              <div class="form-field"><div class="form-label">Confirm New</div><input class="ai" type="password" id="pw-confirm" placeholder="Confirm new password"></div>
+            </div>
+            <div style="margin-top:12px"><button class="abtn green-b" onclick="changeAdminPassword()">🔑 CHANGE PASSWORD</button></div>
+            <div style="margin-top:10px;font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace" id="pw-result"></div>
+            <div style="margin-top:8px;font-size:10px;color:var(--warn);font-family:'Share Tech Mono',monospace">Note: For Super Admin, set the ADMIN_PASS environment variable on Railway to make the change permanent across restarts.</div>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /ac -->
   </div><!-- /ab -->
 </div><!-- /aa -->
@@ -554,11 +584,19 @@ function sv(el){
   document.querySelectorAll('[id^="view-"]').forEach(x=>x.classList.add('sh'));
   currentView=el.dataset.v;document.getElementById('view-'+currentView).classList.remove('sh');
   if(currentView==='log')loadLog();
-  if(currentView==='livemap'){populateSelects();setTimeout(initLiveMap,100);}
-  if(currentView==='zoneeditor'){populateSelects();setTimeout(initZeMap,100);}
+  if(currentView==='livemap'){populateSelects();setTimeout(()=>{initLiveMap();if(liveMap)liveMap.invalidateSize();},150);}
+  if(currentView==='zoneeditor'){
+    populateSelects();
+    // Give the DOM time to show the container before Leaflet measures it
+    setTimeout(()=>{
+      if(!zeMap){initZeMap();}
+      else{zeMap.invalidateSize();}
+    },200);
+  }
   if(currentView==='savedmaps'){populateSelects();loadSavedMaps();}
   if(currentView==='siteadmins')loadSiteAdmins();
   if(['objectives','broadcast','adminperks','maps'].includes(currentView))populateSelects();
+  if(currentView==='players')loadPlayerAccounts();
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -602,6 +640,11 @@ function renderRooms(){
     </div>
     <div class="rct"><span class="tp red">🔴 ${r.redCount}</span><span class="tp blue">🔵 ${r.blueCount}</span></div>
     <div class="rpl">${r.players.length?r.players.map(p=>`<div class="pr"><div class="prd" style="background:${p.team==='red'?'var(--red)':'var(--blue)'}"></div><div class="prc">${esc(p.callsign)}</div><div class="prt ${p.team}">${p.team.toUpperCase()}</div><span class="prs ${p.status}">${p.status.toUpperCase()}</span><button class="pkbtn" onclick="kickP('${r.code}','${p.id}','${esc(p.callsign)}')">KICK</button></div>`).join(''):'<div style="font-size:10px;color:var(--dim);padding:4px 0;font-family:\'Share Tech Mono\',monospace">No players</div>'}</div>
+    <div style="padding:4px 13px;font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+      <span>ROLES:</span>
+      ${r.allowedRoles?r.allowedRoles.map(function(role){return '<span style="background:rgba(232,200,74,.1);border:1px solid var(--gold2);border-radius:2px;padding:1px 5px;color:var(--gold)">'+role+'</span>';}).join(''):'<span style="color:var(--dim)">All roles allowed</span>'}
+      <button onclick="editRoles('${r.code}')" style="margin-left:auto;background:transparent;border:1px solid var(--border);color:var(--dim);border-radius:2px;padding:1px 5px;font-size:8px;cursor:pointer;font-family:'Share Tech Mono',monospace">EDIT ROLES</button>
+    </div>
     <div class="rca">
       <button class="ra ${r.gamePaused?'resume':'pause'}" onclick="${r.gamePaused?`resumeRoom('${r.code}')`:`pauseRoom('${r.code}')`}">${r.gamePaused?'▶ RESUME':'⏸ PAUSE'}</button>
       <button class="ra reset" onclick="resetRoom('${r.code}')">🔄</button>
@@ -804,10 +847,15 @@ async function broadcastRoom(){const code=document.getElementById('br-room').val
 // ZONE EDITOR
 // ════════════════════════════════════════════════════════════════
 function initZeMap(){
-  if(zeMap)return;
-  zeMap=L.map('ze-map',{center:[51.56,-1.78],zoom:14,attributionControl:false});
+  const container=document.getElementById('ze-map');
+  if(!container)return;
+  // If already initialised, just fix size
+  if(zeMap){zeMap.invalidateSize();return;}
+  zeMap=L.map('ze-map',{center:[51.56,-1.78],zoom:14,attributionControl:false,preferCanvas:true});
   zeMapTile=L.tileLayer(TILES.osm,{maxZoom:20}).addTo(zeMap);
   zeDrawLayer=new L.FeatureGroup().addTo(zeMap);
+  setTimeout(()=>zeMap.invalidateSize(),80);
+
   zeMap.on(L.Draw.Event.CREATED,e=>{
     const code=document.getElementById('ze-room').value;if(!code){toast('Select a map','err');return;}
     const lbl=(document.getElementById('zlbl').value.trim()||selectedZT);
@@ -1040,8 +1088,77 @@ document.addEventListener('keydown',e=>{
     else if(id==='ba-txt')broadcastAll2();
     else if(id==='save-map-name')saveMap();
     else if(id==='sa-sites'||id==='sa-pass')createSiteAdmin();
+    else if(id==='pw-confirm')changeAdminPassword();
   }
 });
+
+// ════════════════════════════════════════════════════════════════
+// ALLOWED ROLES PER MAP
+// ════════════════════════════════════════════════════════════════
+const ALL_ROLES=['Assault','Sniper','Support','Medic','Scout','Commander'];
+
+function editRoles(code){
+  const room=roomsData.find(r=>r.code===code);if(!room)return;
+  const current=(room.allowedRoles||ALL_ROLES).join(', ');
+  const input=prompt('Roles for '+code+' (comma-sep): Assault, Sniper, Support, Medic, Scout, Commander. Blank=all:',current);
+  if(input===null)return;
+  const roles=input.split(',').map(r=>r.trim()).filter(r=>ALL_ROLES.includes(r));
+  const finalRoles=roles.length===ALL_ROLES.length||roles.length===0?null:roles;
+  apiFetch('/api/admin/rooms/'+code,{method:'PUT',body:JSON.stringify({allowedRoles:finalRoles})}).then(r=>{
+    if(r.ok){toast(finalRoles?'Roles restricted to: '+finalRoles.join(', '):'All roles allowed','ok');loadData();}
+    else toast('Error','err');
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+// PLAYER ACCOUNTS
+// ════════════════════════════════════════════════════════════════
+async function loadPlayerAccounts(){
+  const r=await apiFetch('/api/admin/player-accounts');if(!r.ok)return;
+  const accounts=await r.json();
+  const el=document.getElementById('player-accounts-list');
+  if(!accounts.length){el.innerHTML='<div class="empty">No registered players yet</div>';return;}
+  el.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:11px;font-family:'Share Tech Mono',monospace">
+    <thead><tr style="border-bottom:2px solid var(--border);color:var(--dim);font-size:9px;letter-spacing:1px">
+      <th style="text-align:left;padding:6px 8px">CALLSIGN</th>
+      <th style="text-align:left;padding:6px 8px">USERNAME</th>
+      <th style="text-align:left;padding:6px 8px">EMAIL</th>
+      <th style="text-align:left;padding:6px 8px">PHONE</th>
+      <th style="text-align:left;padding:6px 8px">REGISTERED</th>
+      <th style="text-align:left;padding:6px 8px">LAST LOGIN</th>
+    </tr></thead>
+    <tbody>${accounts.map(a=>`<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:7px 8px;color:var(--gold);font-weight:700">${esc(a.callsign)}</td>
+      <td style="padding:7px 8px;color:var(--text)">@${esc(a.username)}</td>
+      <td style="padding:7px 8px;color:var(--dim)">${esc(a.email||'—')}</td>
+      <td style="padding:7px 8px;color:var(--dim)">${esc(a.phone||'—')}</td>
+      <td style="padding:7px 8px;color:var(--dim)">${a.createdAt?new Date(a.createdAt).toLocaleDateString():''}</td>
+      <td style="padding:7px 8px;color:var(--dim)">${a.lastLogin?new Date(a.lastLogin).toLocaleDateString():'Never'}</td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// CHANGE ADMIN PASSWORD
+// ════════════════════════════════════════════════════════════════
+async function changeAdminPassword(){
+  const current=document.getElementById('pw-current').value;
+  const newPw=document.getElementById('pw-new').value;
+  const confirm2=document.getElementById('pw-confirm').value;
+  const result=document.getElementById('pw-result');
+  result.style.color='var(--red)';
+  if(!current||!newPw){result.textContent='⚠ Fill in all fields';return;}
+  if(newPw!==confirm2){result.textContent='⚠ New passwords do not match';return;}
+  if(newPw.length<6){result.textContent='⚠ Password must be at least 6 characters';return;}
+  const r=await apiFetch('/api/admin/change-password',{method:'POST',body:JSON.stringify({currentPassword:current,newPassword:newPw})});
+  const d=await r.json();
+  if(r.ok){
+    result.style.color='var(--green)';
+    result.textContent='✓ Password changed successfully!'+(d.note?' ('+d.note+')':'');
+    document.getElementById('pw-current').value='';document.getElementById('pw-new').value='';document.getElementById('pw-confirm').value='';
+    toast('Password updated','ok');
+  } else {result.textContent='⚠ '+d.error||'Error';}
+}
 </script>
 </body>
 </html>
