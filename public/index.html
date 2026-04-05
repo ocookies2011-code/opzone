@@ -81,6 +81,16 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
 .b-hud{color:var(--blue);font-weight:700}
 .hp-preview-bar{background:rgba(0,196,255,.08);border-top:1px solid rgba(0,196,255,.2);padding:6px 14px;font-family:'Share Tech Mono',monospace;font-size:8px;color:#00c4ff;text-align:center;letter-spacing:1px}
 
+/* ─── HELP/GUIDE SECTION ─── */
+.help-section{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 18px}
+.help-title{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:8px}
+.help-body{font-size:13px;color:var(--text);line-height:1.65}
+.perk-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px}
+.pc-icon{font-size:28px;margin-bottom:6px}
+.pc-name{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pc-cd{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);background:var(--panel2);border:1px solid var(--border);border-radius:3px;padding:1px 6px;letter-spacing:0}
+.pc-desc{font-size:12px;color:var(--dim);line-height:1.55}
+
 /* ─── ACCOUNT TABS ─── */
 .acct-tabs{display:flex;gap:4px;max-width:700px;margin:0 auto 20px;border-bottom:2px solid var(--border)}
 .acct-tab{flex:1;text-align:center;padding:11px 6px;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--dim);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;text-transform:uppercase}
@@ -337,9 +347,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
 
     <!-- Account tabs -->
     <div class="acct-tabs" id="acct-tabs">
-      <div class="acct-tab active" onclick="showAcctTab('join')">🎯 Join as Guest</div>
+      <div class="acct-tab active" onclick="showAcctTab('join')">🎯 Join</div>
       <div class="acct-tab" onclick="showAcctTab('login')">🔑 Login</div>
       <div class="acct-tab" onclick="showAcctTab('register')">✚ Register</div>
+      <div class="acct-tab" onclick="showAcctTab('help')">📖 Guide</div>
     </div>
 
     <!-- GUEST JOIN TAB -->
@@ -422,6 +433,62 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
         <button class="jbtn" onclick="doRegister()">CREATE ACCOUNT</button>
         <div class="hp-err" id="reg-err"></div>
         <div style="font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace;text-align:center;line-height:1.5">Your details are stored securely and only used for game management. Never shared with third parties.</div>
+      </div>
+    </div>
+
+    <!-- HELP/GUIDE TAB -->
+    <div id="acct-help" class="acct-panel" style="display:none;max-width:900px">
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <div class="help-section">
+          <div class="help-title">📡 How do I get started?</div>
+          <div class="help-body">Register an account or tap "Join as Guest". Select a map from the cards above, enter your callsign, choose your role and team, then tap <b>DEPLOY TO BATTLEFIELD</b>. When your browser asks for location permission — tap Allow. That's it.</div>
+        </div>
+
+        <div class="help-section">
+          <div class="help-title">🗺️ What am I looking at on the map?</div>
+          <div class="help-body">Your position is marked with a <b>★ star</b>. Teammates show their role icon (⚔🎯🛡✚👁⭐). Enemy positions are hidden unless your team uses a UAV or Intel Hack perk. Coloured zones on the map are drawn by your admin — hover/tap a zone to see its label.</div>
+        </div>
+
+        <div class="help-section">
+          <div class="help-title">⚡ What are Perks?</div>
+          <div class="help-body">Perks are found in the <b>STATUS tab → Tactical Perks</b>. They are team-shared abilities with cooldown timers. Once your team uses a perk, everyone on your team must wait for the cooldown before using it again (except Hack, which is personal).</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">
+          <div class="perk-card"><div class="pc-icon">📡</div><div class="pc-name">UAV SCAN <span class="pc-cd">60s team</span></div><div class="pc-desc">Scans 30m around you. Reveals nearby enemy positions to your team for 20 seconds. Enemy team gets a warning.</div></div>
+          <div class="perk-card"><div class="pc-icon">⚡</div><div class="pc-name">EMP BLAST <span class="pc-cd">4m30s team</span></div><div class="pc-desc">Scrambles enemy GPS within 100m for 30s. Their positions show incorrectly on your team's map.</div></div>
+          <div class="perk-card"><div class="pc-icon">💨</div><div class="pc-name">SMOKE SCREEN <span class="pc-cd">3min team</span></div><div class="pc-desc">Drops a smoke zone at your position for 30 seconds. Visible on all maps as a grey area.</div></div>
+          <div class="perk-card"><div class="pc-icon">💻</div><div class="pc-name">INTEL HACK <span class="pc-cd">2m30s personal</span></div><div class="pc-desc">Reveals one random enemy's exact position to you only for 10 seconds. Personal cooldown — others can still hack.</div></div>
+          <div class="perk-card"><div class="pc-icon">🩹</div><div class="pc-name">MEDKIT <span class="pc-cd">2min team</span></div><div class="pc-desc">Instantly revives all downed teammates within 10 metres of you. You must be standing next to them.</div></div>
+          <div class="perk-card"><div class="pc-icon">🚁</div><div class="pc-name">AIR SUPPORT <span class="pc-cd">4min team</span></div><div class="pc-desc">Marks a 10m danger zone at your position for 60s and broadcasts an alert to all players.</div></div>
+        </div>
+
+        <div class="help-section">
+          <div class="help-title">🚨 What happens when I'm hit?</div>
+          <div class="help-body">Tap <b>"🚨 I AM DOWN — MEDIC NEEDED"</b> on the Status tab. This starts a <b>2-minute bleed-out countdown</b>. Your position shows a flashing 🆘 on your teammates' maps. You can be saved by: (1) a Medic role player walking within 5 metres of you, (2) a teammate using the Medkit perk within 10m, or (3) surviving the 2-minute timer and auto-respawning.</div>
+        </div>
+
+        <div class="help-section">
+          <div class="help-title">🏃 What are Roles?</div>
+          <div class="help-body"><b>⚔ Assault</b> — Standard infantry. <b>🎯 Sniper</b> — Long-range support. <b>🛡 Support</b> — Heavy weapon/suppression. <b>✚ Medic</b> — Automatically revives downed teammates within 5m. <b>👁 Scout</b> — Recon and flanking. <b>⭐ Commander</b> — Team leader. Admins can restrict which roles are available per map.</div>
+        </div>
+
+        <div class="help-section">
+          <div class="help-title">📱 How do I keep GPS tracking when my screen locks?</div>
+          <div class="help-body">The app requests a <b>screen wake lock</b> to keep your display on during gameplay — this is the most reliable method. For better background performance: on iOS, use <b>Safari → Share → Add to Home Screen</b>, then open from there. On Android, allow background activity for your browser. The app sends your position every 8 seconds as a heartbeat regardless.</div>
+        </div>
+
+        <div class="help-section">
+          <div class="help-title">❓ Common problems</div>
+          <div class="help-body">
+            <b>Map won't show my position:</b> Check browser location permission. Move outdoors for better GPS signal.<br>
+            <b>Perk button is greyed out:</b> Either you're bleeding out (perks disabled) or your team's cooldown is active.<br>
+            <b>Can't see teammates:</b> They may not have GPS yet — check the Squad tab for their status.<br>
+            <b>Disconnected:</b> The app auto-reconnects. Your session is saved — refresh the page if needed.
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -626,21 +693,27 @@ let swReg=null;
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('/sw.js').then(reg=>{
     swReg=reg;
-    console.log('SW registered');
-    // Listen for GPS pings from SW
+    // Listen for messages from SW
     navigator.serviceWorker.addEventListener('message',swMsg=>{
-      const m=swMsg.data;
-      if(!m)return;
-      if(m.type==='SW_PING_GPS'){
-        // SW is asking for a GPS update — resend last known position
+      const m=swMsg.data;if(!m)return;
+      // SW is asking for GPS — send it
+      if(m.type==='SW_REQUEST_GPS'||m.type==='SW_PING_GPS'){
         if(myLat&&ws&&ws.readyState===1)sendWS({type:'location',lat:myLat,lng:myLng,heading:0});
       }
-      if(m.type==='SW_GPS'){
-        // Another tab/context sent a GPS update via SW
-        if(m.lat&&myId){myLat=m.lat;myLng=m.lng;if(ws&&ws.readyState===1)sendWS({type:'location',lat:m.lat,lng:m.lng,heading:0});}
+      // SW cached GPS position — use it on page wake
+      if(m.type==='SW_CACHED_GPS'||m.type==='SW_RELAY_GPS'){
+        if(m.lat){
+          myLat=m.lat;myLng=m.lng;
+          if(ws&&ws.readyState===1)sendWS({type:'location',lat:m.lat,lng:m.lng,heading:0});
+        }
       }
     });
-  }).catch(e=>console.warn('SW registration failed:',e));
+  }).catch(()=>{});
+}
+
+function notifySW(msg){
+  if(navigator.serviceWorker&&navigator.serviceWorker.controller)
+    navigator.serviceWorker.controller.postMessage(msg);
 }
 let roomCode='',roomPassword='',selectedMapCode='',selectedMapHasPassword=false;
 let players={},objectives=[],orders=[],zones=[],markers={},zoneLayers={},objMarkers={};
@@ -678,6 +751,7 @@ function showAcctTab(tab){
   document.getElementById('acct-join').style.display=tab==='join'?'block':'none';
   document.getElementById('acct-login').style.display=tab==='login'?'block':'none';
   document.getElementById('acct-register').style.display=tab==='register'?'block':'none';
+  document.getElementById('acct-help').style.display=tab==='help'?'block':'none';
   if(tab==='login'||tab==='join') loadMaps();
 }
 
@@ -1173,24 +1247,34 @@ function showPerkAnim(perk,lat,lng){
 // ════════════════════════════════════════════════════════════════
 // GPS
 // ════════════════════════════════════════════════════════════════
+let _gpsWatchId=null;
 function startGPS(){
   if(!navigator.geolocation){toast('GPS not available','warn');return;}
-  // maximumAge:0 forces fresh fix every time; timeout:Infinity prevents timeout errors
-  navigator.geolocation.watchPosition(onGPS,onGPSErr,{
-    enableHighAccuracy:true,
-    maximumAge:0,
-    timeout:Infinity
+  // Clear any previous watch
+  if(_gpsWatchId!=null)navigator.geolocation.clearWatch(_gpsWatchId);
+  // maximumAge:0 = always fresh; timeout:Infinity = never time out
+  // This is the most aggressive setting to keep GPS alive
+  _gpsWatchId=navigator.geolocation.watchPosition(onGPS,onGPSErr,{
+    enableHighAccuracy:true, maximumAge:0, timeout:Infinity
   });
-  // Also register periodic background sync where supported
-  if(swReg&&'periodicSync' in swReg){
-    swReg.periodicSync.register('gps-keepalive',{minInterval:15000}).catch(()=>{});
+  // ── Multi-layer keepalive strategy ──────────────────────────
+  // Layer 1: periodic sync (Android Chrome — fires even with screen locked)
+  if(swReg){
+    swReg.periodicSync&&swReg.periodicSync.register('gps-keepalive',{minInterval:15000}).catch(()=>{});
   }
-  // Fallback: send last position every 10s even if GPS hasn't fired
+  // Layer 2: setInterval heartbeat — keeps WS alive and sends last GPS every 8s
+  // This works while tab is visible or backgrounded (not screen-locked on iOS)
   setInterval(()=>{
-    if(myLat&&ws&&ws.readyState===1&&document.getElementById('gapp').classList.contains('visible')){
+    if(!document.getElementById('gapp').classList.contains('visible'))return;
+    if(myLat&&ws&&ws.readyState===1){
       sendWS({type:'location',lat:myLat,lng:myLng,heading:0});
     }
-  },10000);
+    // Refresh the SW's cached position
+    if(myLat)notifySW({type:'GPS_UPDATE',lat:myLat,lng:myLng,heading:0,
+      roomCode,wsEndpoint:(location.protocol==='https:'?'wss':'ws')+'://'+location.host});
+  },8000);
+  // Layer 3: WS ping every 20s to keep connection alive through NAT/proxies
+  setInterval(()=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify({type:'ping'}));},20000);
 }
 function onGPS(pos){
   myLat=pos.coords.latitude;myLng=pos.coords.longitude;myAcc=Math.round(pos.coords.accuracy);
@@ -1201,10 +1285,8 @@ function onGPS(pos){
   const ts=document.getElementById('gs-ts');if(ts)ts.textContent=new Date().toLocaleTimeString();
   if(map&&myId&&players[myId]){players[myId].lat=myLat;players[myId].lng=myLng;updMarker(players[myId],true);}
   sendWS({type:'location',lat:myLat,lng:myLng,heading:0});
-  // Post to service worker so background tracking continues when screen locks
-  if(navigator.serviceWorker&&navigator.serviceWorker.controller){
-    navigator.serviceWorker.controller.postMessage({type:'GPS_UPDATE',lat:myLat,lng:myLng,heading:0});
-  }
+  // Cache in SW so it can relay when page wakes from background
+  notifySW({type:'GPS_UPDATE',lat:myLat,lng:myLng,heading:0});
 }
 function onGPSErr(e){toast('GPS: '+(['','Denied','Unavailable','Timeout'][e.code]||'Error'),'warn');}
 
@@ -1741,26 +1823,38 @@ let wakeLock=null;
 async function requestWakeLock(){
   try{
     if('wakeLock' in navigator){
+      if(wakeLock)try{await wakeLock.release();}catch{}
       wakeLock=await navigator.wakeLock.request('screen');
-      wakeLock.addEventListener('release',()=>{wakeLock=null;});
-      console.log('Wake lock active');
+      wakeLock.addEventListener('release',()=>{
+        wakeLock=null;
+        // Re-acquire if still in game and tab is visible
+        if(document.visibilityState==='visible'&&document.getElementById('gapp').classList.contains('visible')){
+          setTimeout(requestWakeLock,2000);
+        }
+      });
     }
-  }catch(e){console.warn('Wake lock failed:',e.message);}
-  // Tell SW the WS URL for GPS relay
-  if(navigator.serviceWorker&&navigator.serviceWorker.controller){
-    const wsUrl=(location.protocol==='https:'?'wss':'ws')+'://'+location.host;
-    navigator.serviceWorker.controller.postMessage({type:'SET_WS_URL',url:wsUrl});
-  }
+  }catch(e){/* wake lock not supported or denied — silent fail */}
+  // Send player context to SW
+  notifySW({
+    type:'PLAYER_CONTEXT',
+    roomCode, playerToken,
+    wsEndpoint:(location.protocol==='https:'?'wss':'ws')+'://'+location.host,
+    lastGPS:myLat?{lat:myLat,lng:myLng,ts:Date.now()}:null
+  });
 }
 async function releaseWakeLock(){
   if(wakeLock){try{await wakeLock.release();}catch{}wakeLock=null;}
 }
-// Re-acquire on visibility change (phone unlock, tab refocus)
+// Visibility change — screen unlock / tab switch back
 document.addEventListener('visibilitychange',async()=>{
   if(document.visibilityState==='visible'&&document.getElementById('gapp').classList.contains('visible')){
     await requestWakeLock();
-    // Also re-send GPS position immediately on resume
+    // Ask SW for cached GPS position accumulated while screen was locked
+    notifySW({type:'PAGE_WAKE'});
+    // Re-send last known position immediately
     if(ws&&ws.readyState===1&&myLat)sendWS({type:'location',lat:myLat,lng:myLng,heading:0});
+    // Restart GPS watch in case OS killed it during lock
+    if(_gpsWatchId==null)startGPS();
   }
 });
 

@@ -1119,6 +1119,82 @@ app.post('/api/admin/rooms/:code/ceasefire-end', adminAuth, (req, res) => {
 app.get('/api/admin/events', adminAuth, (_, res) => res.json(eventLog.slice(-100).reverse()));
 
 // ════════════════════════════════════════════════════════════════════
+// REST — Data Export / Import (super admin only — for backup/restore)
+// ════════════════════════════════════════════════════════════════════
+app.get('/api/admin/export', superAdminAuth, (_, res) => {
+  // Export everything in one JSON blob for backup
+  const exportData = {
+    exportedAt: new Date().toISOString(),
+    version: 2,
+    roomTemplates,
+    savedMaps,
+    siteAdmins: Object.fromEntries(Object.entries(siteAdmins).map(([k,v]) => [k, {...v, password: '[REDACTED]'}])),
+    playerAccounts: Object.fromEntries(
+      Object.entries(playerAccounts || {}).map(([k,v]) => [k, { ...v, passwordHash: '[REDACTED]' }])
+    ),
+    stats: {
+      rooms: Object.keys(roomTemplates).length,
+      maps: Object.keys(savedMaps).length,
+      siteAdmins: Object.keys(siteAdmins).length,
+      players: Object.keys(playerAccounts || {}).length,
+    }
+  };
+  res.setHeader('Content-Disposition', 'attachment; filename="zgt-backup-' + Date.now() + '.json"');
+  res.json(exportData);
+});
+
+// Full backup including passwords (for migration between servers)
+app.get('/api/admin/export-full', superAdminAuth, (_, res) => {
+  const exportData = {
+    exportedAt: new Date().toISOString(),
+    version: 2,
+    roomTemplates, savedMaps, siteAdmins,
+    playerAccounts: playerAccounts || {},
+  };
+  res.setHeader('Content-Disposition', 'attachment; filename="zgt-full-backup-' + Date.now() + '.json"');
+  res.json(exportData);
+  logEvent('data_exported', { by: 'super', at: new Date().toISOString() });
+});
+
+app.post('/api/admin/import', superAdminAuth, (req, res) => {
+  const data = req.body;
+  if (!data || data.version !== 2) return res.status(400).json({ error: 'Invalid backup file. Must be a ZGT v2 export.' });
+  let imported = { rooms: 0, maps: 0, siteAdmins: 0, players: 0 };
+  
+  if (data.roomTemplates) {
+    Object.assign(roomTemplates, data.roomTemplates);
+    saveJSON('room-templates.json', roomTemplates);
+    // Restore rooms in memory
+    Object.entries(data.roomTemplates).forEach(([code, tmpl]) => {
+      if (!rooms[code]) {
+        const room = makeRoom(code, tmpl.name, tmpl.password);
+        room.zones = tmpl.zones || []; room.objectives = tmpl.objectives || [];
+        room.allowedRoles = tmpl.allowedRoles || null;
+        rooms[code] = room;
+      }
+    });
+    imported.rooms = Object.keys(data.roomTemplates).length;
+  }
+  if (data.savedMaps) {
+    Object.assign(savedMaps, data.savedMaps);
+    saveJSON('saved-maps.json', savedMaps);
+    imported.maps = Object.keys(data.savedMaps).length;
+  }
+  if (data.siteAdmins) {
+    Object.assign(siteAdmins, data.siteAdmins);
+    saveJSON('site-admins.json', siteAdmins);
+    imported.siteAdmins = Object.keys(data.siteAdmins).length;
+  }
+  if (data.playerAccounts && playerAccounts) {
+    Object.assign(playerAccounts, data.playerAccounts);
+    saveJSON('player-accounts.json', playerAccounts);
+    imported.players = Object.keys(data.playerAccounts).length;
+  }
+  logEvent('data_imported', { imported, by: 'super' });
+  res.json({ ok: true, imported });
+});
+
+// ════════════════════════════════════════════════════════════════════
 // Serve
 // ════════════════════════════════════════════════════════════════════
 app.get('/admin*', (_, res) => res.sendFile(path.join(__dirname, '../public/admin.html')));

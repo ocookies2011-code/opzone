@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Swindon Airsoft — Tactical Tracker</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+:root{
+  --bg:#080b0f;--bg2:#0d1117;--panel:#111720;--panel2:#192030;--border:#1e2d3d;
+  --red:#ff2a2a;--red-d:rgba(255,42,42,.15);--blue:#2a7fff;--blue-d:rgba(42,127,255,.15);
+  --gold:#e8c84a;--gold2:#c8a820;--text:#c8d8e8;--dim:#4a6070;--green:#00cc66;--warn:#ffaa00;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{height:100%}
+body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif}
+
+/* ═══════════════════════════════ HOME PAGE ═══════════════════════════════ */
+#home{display:block}
+#home.hidden{display:none!important}
+
+.hp-hero{background:linear-gradient(180deg,#060a0e 0%,#0a1520 60%,var(--bg) 100%);padding:60px 20px 40px;text-align:center;position:relative;overflow:hidden}
+.hp-hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(232,200,74,.008) 2px,rgba(232,200,74,.008) 4px);pointer-events:none}
+.hp-logo{font-family:'Orbitron',monospace;font-size:clamp(24px,6vw,48px);font-weight:900;color:var(--gold);letter-spacing:6px;text-shadow:0 0 40px rgba(232,200,74,.4);line-height:1.1}
+.hp-logo span{color:var(--text);opacity:.7}
+.hp-tagline{font-size:clamp(12px,3vw,18px);letter-spacing:3px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace;margin-top:8px}
+.hp-by{font-size:11px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-top:6px;opacity:.6}
+
+.hp-features{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;padding:40px 20px;max-width:960px;margin:0 auto}
+.hp-feat{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:20px;text-align:center}
+.hp-feat-icon{font-size:32px;margin-bottom:10px}
+.hp-feat-title{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:8px}
+.hp-feat-desc{font-size:13px;color:var(--dim);line-height:1.5}
+
+.hp-join{background:var(--panel);border-top:1px solid var(--border);padding:40px 20px;text-align:center}
+.hp-join-title{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;color:var(--text);letter-spacing:3px;margin-bottom:24px}
+
+.map-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;max-width:960px;margin:0 auto 28px;text-align:left}
+.map-card{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:14px 16px;cursor:pointer;transition:all .2s}
+.map-card:hover{border-color:var(--gold);transform:translateY(-2px)}
+.mc-name{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:6px}
+.mc-meta{font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace;display:flex;gap:10px;flex-wrap:wrap}
+.mc-badge{padding:2px 7px;border-radius:2px;font-size:8px;font-weight:700;letter-spacing:1px}
+.mc-badge.red{background:var(--red-d);color:var(--red);border:1px solid rgba(255,42,42,.3)}
+.mc-badge.blue{background:var(--blue-d);color:var(--blue);border:1px solid rgba(42,127,255,.3)}
+.mc-lock{color:var(--warn);font-size:10px}
+.map-empty{text-align:center;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:12px;padding:20px;max-width:960px;margin:0 auto}
+
+/* Join form */
+.join-form{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:24px;max-width:400px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.jf-title{font-family:'Orbitron',monospace;font-size:13px;letter-spacing:2px;color:var(--gold);text-align:center;border-bottom:1px solid var(--border);padding-bottom:12px}
+.jf-selected-map{background:var(--bg2);border:1px solid var(--gold);border-radius:4px;padding:8px 12px;font-size:12px;font-family:'Share Tech Mono',monospace;color:var(--gold);text-align:center}
+.fl{font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace;margin-bottom:4px}
+.fi{background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;padding:10px 12px;outline:none;width:100%;transition:border-color .2s;text-transform:uppercase}
+.fi:focus{border-color:var(--gold)}
+.fi-lower{text-transform:none}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.team-pick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tb{padding:12px;border-radius:5px;border:2px solid;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .2s;background:transparent;text-transform:uppercase}
+.tb.red{border-color:var(--red);color:var(--red)}.tb.red.sel{background:var(--red-d);box-shadow:0 0 12px rgba(255,42,42,.3)}
+.tb.blue{border-color:var(--blue);color:var(--blue)}.tb.blue.sel{background:var(--blue-d);box-shadow:0 0 12px rgba(42,127,255,.3)}
+.jbtn{background:var(--gold);color:#000;border:none;border-radius:4px;padding:14px;font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:2px;cursor:pointer;width:100%;transition:all .2s;text-transform:uppercase}
+.jbtn:hover{background:#f0d060;box-shadow:0 0 20px rgba(232,200,74,.4)}
+.jbtn:disabled{opacity:.5;cursor:not-allowed}
+.hp-err{color:var(--red);font-size:11px;font-family:'Share Tech Mono',monospace;text-align:center;display:none}
+.hp-err.show{display:block}
+.hp-footer{text-align:center;padding:20px;font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace;border-top:1px solid var(--border)}
+.hp-footer a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:1px}
+.hp-footer a:hover{color:var(--text)}
+
+/* ═══════════════════════════════ GAME APP ═══════════════════════════════ */
+#gapp{display:none;flex-direction:column;height:100vh;overflow:hidden}
+#gapp.visible{display:flex}
+
+.hdr{height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:var(--panel);border-bottom:2px solid var(--gold2);flex-shrink:0;z-index:100}
+.hlogo{font-family:'Orbitron',monospace;font-size:13px;font-weight:900;color:var(--gold);letter-spacing:2px;text-shadow:0 0 10px rgba(232,200,74,.4);line-height:1;cursor:pointer}
+.hsub{font-size:7px;color:var(--dim);letter-spacing:1px;font-family:'Share Tech Mono',monospace;margin-top:1px}
+.hright{display:flex;align-items:center;gap:8px}
+.cpill{font-family:'Share Tech Mono',monospace;font-size:8px;padding:2px 7px;border-radius:2px;border:1px solid var(--green);color:var(--green);animation:blink 2s infinite}
+.cpill.off{border-color:var(--red);color:var(--red)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+.gclk{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--gold)}
+.tbnr{height:22px;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:3px;flex-shrink:0}
+.tbnr.red{background:linear-gradient(90deg,rgba(255,42,42,.25),rgba(255,42,42,.08),rgba(255,42,42,.25));color:var(--red);border-bottom:1px solid rgba(255,42,42,.3)}
+.tbnr.blue{background:linear-gradient(90deg,rgba(42,127,255,.25),rgba(42,127,255,.08),rgba(42,127,255,.25));color:var(--blue);border-bottom:1px solid rgba(42,127,255,.3)}
+
+.gnav{height:54px;display:flex;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
+.gt{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;color:var(--dim);border-bottom:2px solid transparent;transition:all .2s;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;position:relative;user-select:none;-webkit-user-select:none}
+.gt .ico{font-size:16px;line-height:1}
+.gt.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(232,200,74,.05)}
+.gt:not(.active):hover{color:var(--text)}
+.nbadge{position:absolute;top:5px;right:calc(50% - 18px);background:var(--red);color:#fff;border-radius:8px;font-size:7px;padding:1px 4px;font-family:'Share Tech Mono',monospace;display:none}
+.nbadge.on{display:block}
+
+.gmain{flex:1;overflow:hidden;position:relative;min-height:0}
+.gscreen{display:none;height:100%;flex-direction:column;overflow:hidden}
+.gscreen.active{display:flex}
+.gscreen.scrollable{overflow-y:auto}
+
+/* HUD on map */
+.team-hud{position:absolute;top:12px;right:68px;z-index:500;display:flex;gap:6px;pointer-events:none}
+.thud{padding:3px 8px;border-radius:3px;font-family:'Share Tech Mono',monospace;font-size:10px;font-weight:bold}
+.thud.r{background:rgba(255,42,42,.2);border:1px solid rgba(255,42,42,.4);color:var(--red)}
+.thud.b{background:rgba(42,127,255,.2);border:1px solid rgba(42,127,255,.4);color:var(--blue)}
+
+/* EMP overlay */
+#emp-ov{position:absolute;inset:0;z-index:700;background:rgba(0,0,0,.93);display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;pointer-events:none}
+#emp-ov.show{display:flex}
+.emp-txt{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:var(--red);letter-spacing:4px;text-shadow:0 0 20px var(--red);animation:blink .5s infinite}
+.emp-sub{font-size:14px;color:var(--text);font-family:'Share Tech Mono',monospace;letter-spacing:2px}
+.emp-timer{font-family:'Orbitron',monospace;font-size:48px;font-weight:900;color:var(--warn)}
+
+/* UAV / Hack banners */
+.map-banner{position:absolute;top:56px;left:50%;transform:translateX(-50%);z-index:650;border-radius:4px;padding:5px 14px;font-family:'Share Tech Mono',monospace;font-size:10px;display:none;white-space:nowrap;animation:blink 1.5s infinite}
+.map-banner.show{display:block}
+#uav-banner{background:rgba(0,196,255,.15);border:1px solid #00c4ff;color:#00c4ff}
+#hack-banner{background:rgba(0,255,136,.12);border:1px solid #00ff88;color:#00ff88;top:80px}
+#revived-banner{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:680;background:rgba(0,204,102,.2);border:2px solid var(--green);border-radius:8px;padding:14px 22px;font-family:'Orbitron',monospace;font-size:16px;color:var(--green);display:none;text-align:center;letter-spacing:2px}
+#ceasefire-ov{position:absolute;inset:0;z-index:710;background:rgba(255,255,255,.06);display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:none;border:4px solid rgba(255,255,255,.4);animation:ceasefireFlash 1s infinite}
+#ceasefire-ov.show{display:flex}
+@keyframes ceasefireFlash{0%,100%{border-color:rgba(255,255,255,.3)}50%{border-color:rgba(255,255,255,.8)}}
+.cf-txt{font-family:'Orbitron',monospace;font-size:24px;font-weight:900;color:#fff;letter-spacing:4px;text-shadow:0 0 20px #fff}
+#perk-fb{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);z-index:660;background:var(--panel2);border:1px solid var(--gold);border-radius:4px;padding:6px 14px;font-size:10px;font-family:'Share Tech Mono',monospace;color:var(--gold);display:none;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
+#perk-fb.show{display:block}
+
+/* Tile switcher */
+.tile-sw{position:absolute;bottom:78px;left:10px;z-index:500;background:rgba(8,11,15,.9);border:1px solid var(--border);border-radius:4px;padding:5px 7px;display:flex;gap:5px;pointer-events:all}
+.tsb{padding:3px 7px;border-radius:2px;border:1px solid var(--border);cursor:pointer;font-size:8px;font-family:'Share Tech Mono',monospace;transition:all .2s;background:transparent;color:var(--dim)}
+.tsb:hover,.tsb.on{border-color:var(--gold);color:var(--gold);background:rgba(232,200,74,.08)}
+.gps-box{position:absolute;bottom:78px;right:10px;z-index:500;background:rgba(8,11,15,.88);border:1px solid var(--border);border-radius:4px;padding:6px 9px;font-family:'Share Tech Mono',monospace;font-size:8px;line-height:1.8;text-align:right;pointer-events:none}
+.gv{color:var(--gold)}
+.compass-box{position:absolute;top:12px;right:10px;z-index:500;width:44px;height:44px;background:rgba(8,11,15,.9);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;pointer-events:none}
+
+/* Obj bar */
+.obj-bar{background:var(--panel);border-top:1px solid var(--border);padding:6px 10px;flex-shrink:0}
+.obj-bar-lbl{font-size:8px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace;margin-bottom:4px}
+.obj-list{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.obj-chip{flex-shrink:0;background:var(--panel2);border:1px solid var(--warn);border-radius:3px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .2s}
+.obj-chip.done{border-color:var(--green);opacity:.6}
+.obj-chip.enemy-only{border-color:var(--blue);display:none}
+.obj-chip.my-team{display:flex}
+.oc-dot{width:6px;height:6px;border-radius:50%;background:var(--warn);flex-shrink:0}
+.obj-chip.done .oc-dot{background:var(--green)}
+
+/* Perk animations on map */
+@keyframes uavSpin{0%{transform:rotate(0) scale(1);opacity:.8}100%{transform:rotate(360deg) scale(3);opacity:0}}
+@keyframes empRing{0%{transform:scale(.1);opacity:1}100%{transform:scale(5);opacity:0}}
+@keyframes smokeGrow{0%{transform:scale(.4);opacity:.9}100%{transform:scale(3.5);opacity:0}}
+@keyframes airDrop{0%{transform:translateY(-80px) scale(.5);opacity:1}60%{transform:translateY(0) scale(1)}100%{transform:scale(4);opacity:0}}
+@keyframes hackGlitch{0%{transform:scale(1);opacity:.9}50%{transform:scale(1.1) rotate(-3deg);opacity:.6}100%{transform:scale(2.5);opacity:0}}
+@keyframes healPulse{0%{transform:scale(.5);opacity:1}100%{transform:scale(2.5);opacity:0}}
+@keyframes flareBurn{0%{transform:scale(.5);opacity:1}50%{transform:scale(1.2)}100%{transform:scale(2);opacity:.7}}
+.pm-anim{position:absolute;border-radius:50%;pointer-events:none;z-index:600;transform-origin:center;display:flex;align-items:center;justify-content:center;font-size:26px}
+.pm-anim.uav{width:70px;height:70px;border:2px solid #00c4ff;background:rgba(0,196,255,.1);animation:uavSpin 1.8s ease-out forwards}
+.pm-anim.emp{width:50px;height:50px;border:3px solid #ffff00;background:rgba(255,255,0,.12);animation:empRing 1.2s ease-out forwards}
+.pm-anim.smoke{width:60px;height:60px;background:rgba(170,170,170,.3);border:2px solid #aaa;animation:smokeGrow 2s ease-out forwards}
+.pm-anim.air{width:44px;height:44px;border:3px solid #ff6600;background:rgba(255,102,0,.2);animation:airDrop 1.5s ease-out forwards}
+.pm-anim.hack{width:52px;height:52px;border:2px dashed #00ff88;background:rgba(0,255,136,.08);animation:hackGlitch 1.5s ease-out forwards}
+.pm-anim.medkit{width:48px;height:48px;border:2px solid #00cc66;background:rgba(0,204,102,.18);animation:healPulse 1.2s ease-out forwards}
+.pm-anim.flare{width:28px;height:28px;border:2px solid #ff0000;background:rgba(255,0,0,.3);animation:flareBurn 3s ease-out forwards}
+
+/* Player markers */
+.pmw{position:relative;display:flex;flex-direction:column;align-items:center}
+.pm{border-radius:50%;border:2.5px solid;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;position:relative;transition:all .2s}
+.pm.me{border-width:3px}
+.pm.red{border-color:var(--red);background:rgba(255,42,42,.18);color:var(--red);box-shadow:0 0 10px rgba(255,42,42,.4)}
+.pm.blue{border-color:var(--blue);background:rgba(42,127,255,.18);color:var(--blue);box-shadow:0 0 10px rgba(42,127,255,.4)}
+.pm.dead{border-color:#555!important;background:rgba(20,20,20,.8)!important;color:#555!important;box-shadow:none!important}
+.pm.ghost{border-style:dashed!important;opacity:.8}
+.pm-sb{position:absolute;top:-5px;right:-5px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;border:1.5px solid var(--bg);z-index:2}
+.pm-lbl{font-family:'Share Tech Mono',monospace;font-size:7px;background:rgba(0,0,0,.85);padding:1px 4px;border-radius:2px;white-space:nowrap;margin-top:2px;pointer-events:none}
+.pm-pulse{position:absolute;inset:-5px;border-radius:50%;border:1.5px solid;opacity:0;animation:ping 2s ease-out infinite;pointer-events:none}
+.pm-pulse.red{border-color:var(--red)}.pm-pulse.blue{border-color:var(--blue)}
+@keyframes ping{0%{transform:scale(1);opacity:.5}70%{transform:scale(2);opacity:0}100%{opacity:0}}
+@keyframes wpulse{0%,100%{border-color:var(--warn)}50%{border-color:var(--warn);box-shadow:0 0 8px rgba(255,170,0,.4)}}
+
+/* Leaflet dark */
+.leaflet-container{background:#080f08!important}
+.leaflet-tile{filter:brightness(.72) saturate(.55) hue-rotate(5deg)}
+.leaflet-control-zoom a{background:var(--panel)!important;color:var(--text)!important;border-color:var(--border)!important}
+.zone-tip{background:rgba(8,11,15,.9)!important;border:1px solid rgba(255,255,255,.15)!important;color:#c8d8e8!important;font-family:'Share Tech Mono',monospace!important;font-size:10px!important;padding:3px 8px!important;border-radius:3px!important;box-shadow:none!important;white-space:nowrap}
+.zone-tip::before{display:none!important}
+
+/* Objective markers on map */
+.obj-marker{background:var(--warn);border:2px solid #000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;color:#000;font-family:'Share Tech Mono',monospace;cursor:pointer}
+.obj-marker.red-obj{background:var(--red);color:#fff}
+.obj-marker.blue-obj{background:var(--blue);color:#fff}
+.obj-marker.done-obj{background:var(--green);color:#000;opacity:.7}
+
+/* ═══ SQUAD ═══ */
+.squad-wrap{padding:10px;display:flex;flex-direction:column;gap:8px}
+.sec-t{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:2px}
+.sq-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.sq-stat{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:8px 4px;text-align:center}
+.sq-num{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;line-height:1}
+.sq-lbl{font-size:8px;letter-spacing:1px;color:var(--dim);text-transform:uppercase;margin-top:2px}
+.pc{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .2s}
+.pc:hover{border-color:var(--gold)}
+.pc.down{border-color:rgba(80,40,40,.5);background:rgba(40,10,10,.4)}
+.pc.medic-c{animation:wpulse 1.5s infinite}
+.pa{width:36px;height:36px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.pi{flex:1;min-width:0}
+.pcall{font-size:14px;font-weight:700;letter-spacing:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prole{font-size:9px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;font-family:'Share Tech Mono',monospace}
+.pco{font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-top:1px}
+.pbadge{font-size:7px;padding:2px 6px;border-radius:2px;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:'Share Tech Mono',monospace;flex-shrink:0}
+.b-alive{background:rgba(0,204,102,.12);color:var(--green);border:1px solid var(--green)}
+.b-dead{background:rgba(255,42,42,.12);color:var(--red);border:1px solid var(--red)}
+.b-medic{background:rgba(255,170,0,.12);color:var(--warn);border:1px solid var(--warn)}
+.b-support{background:rgba(42,127,255,.12);color:var(--blue);border:1px solid var(--blue)}
+.enemy-intel{margin-top:8px;background:var(--panel);border:1px dashed var(--border);border-radius:4px;padding:10px 12px}
+.ei-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center;margin-top:8px}
+.ei-num{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;color:var(--dim)}
+.ei-lbl{font-size:8px;color:var(--dim);letter-spacing:1px;text-transform:uppercase}
+
+/* ═══ COMMS ═══ */
+.feed{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;min-height:0}
+.oc{background:var(--panel);border:1px solid var(--border);border-left:3px solid;border-radius:4px;padding:9px 12px}
+.oc.high{border-left-color:var(--red)}.oc.normal{border-left-color:var(--blue)}.oc.low{border-left-color:var(--dim)}
+.oh{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.of{font-size:9px;font-family:'Share Tech Mono',monospace;letter-spacing:1px}
+.of.r{color:var(--red)}.of.b{color:var(--blue)}.of.sys{color:var(--dim)}.of.adm{color:var(--gold)}
+.ots{font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace}
+.otx{font-size:13px;line-height:1.4;font-weight:500}
+.pp{font-size:8px;padding:1px 5px;border-radius:2px;font-weight:700;letter-spacing:1px;margin-right:5px}
+.pp.h{background:rgba(255,42,42,.2);color:var(--red)}.pp.n{background:rgba(42,127,255,.15);color:var(--blue)}.pp.l{background:rgba(74,96,112,.2);color:var(--dim)}
+.cbar{padding:10px;background:var(--panel);border-top:1px solid var(--border);display:flex;gap:7px;flex-shrink:0}
+.ci{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;padding:9px 11px;outline:none;transition:border-color .2s}
+.ci:focus{border-color:var(--gold)}
+.psel{background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--dim);font-size:10px;padding:0 6px;outline:none;cursor:pointer;font-family:'Share Tech Mono',monospace}
+.txbtn{background:var(--gold);color:#000;border:none;border-radius:4px;padding:9px 14px;font-family:'Orbitron',monospace;font-weight:700;font-size:10px;letter-spacing:1px;cursor:pointer}
+
+/* ═══ STATUS ═══ */
+.status-wrap{padding:10px;display:flex;flex-direction:column;gap:10px}
+.mycard{background:var(--panel);border-radius:6px;padding:16px;text-align:center}
+.mycard.rc{border:1px solid var(--red);box-shadow:0 0 16px rgba(255,42,42,.08)}
+.mycard.bc{border:1px solid var(--blue);box-shadow:0 0 16px rgba(42,127,255,.08)}
+.mavt{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px}
+.mavt.ra{border:3px solid var(--red);background:var(--red-d)}
+.mavt.ba{border:3px solid var(--blue);background:var(--blue-d)}
+.mcs{font-family:'Orbitron',monospace;font-size:19px;font-weight:700;letter-spacing:2px}
+.mcs.r{color:var(--red)}.mcs.b{color:var(--blue)}
+.mrk{font-size:10px;color:var(--dim);letter-spacing:2px;margin:2px 0 10px;text-transform:uppercase}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.sb2{padding:11px;border-radius:4px;border:1px solid;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;background:transparent;transition:all .2s;position:relative}
+.sb2.alive{border-color:var(--green);color:var(--green)}.sb2.alive.on,.sb2.alive:hover{background:rgba(0,204,102,.15)}
+.sb2.dead{border-color:var(--red);color:var(--red)}.sb2.dead.on,.sb2.dead:hover{background:rgba(255,42,42,.15)}
+.sb2.medic{border-color:var(--warn);color:var(--warn)}.sb2.medic.on,.sb2.medic:hover{background:rgba(255,170,0,.15)}
+.sb2.support{border-color:var(--blue);color:var(--blue)}.sb2.support.on,.sb2.support:hover{background:rgba(42,127,255,.15)}
+.sb2.on::after{content:'';position:absolute;inset:-3px;border-radius:6px;border:1px solid;opacity:.4;animation:blink 1.5s infinite;border-color:inherit}
+.gps-panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px;font-family:'Share Tech Mono',monospace;font-size:10px;line-height:2}
+.gps-r{display:flex;justify-content:space-between}
+.gps-k{color:var(--dim)}.gps-v2{color:var(--gold)}
+.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.pkc{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 6px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.pkc:hover{border-color:var(--gold);background:rgba(232,200,74,.05)}
+.pkc.cd{opacity:.45;cursor:not-allowed}
+.pki{font-size:22px;margin-bottom:3px}
+.pkn{font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:'Share Tech Mono',monospace}
+.pko{font-size:7px;color:var(--dim);line-height:1.3;margin-top:2px;padding:0 2px}
+.pkct{font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-top:2px}
+.pkbar{position:absolute;bottom:0;left:0;height:2px;background:var(--gold);transition:width .1s}
+
+/* ═══ KIT ═══ */
+.kit-wrap{padding:10px;display:flex;flex-direction:column;gap:8px}
+.gc{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px}
+.gh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.gn2{font-size:15px;font-weight:700;letter-spacing:1px}
+.gt2{font-size:8px;color:var(--gold);font-family:'Share Tech Mono',monospace;letter-spacing:1px;background:rgba(232,200,74,.1);padding:2px 8px;border-radius:2px;border:1px solid rgba(232,200,74,.3)}
+.ge{text-align:center;font-size:32px;margin:5px 0}
+.gst{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.gsi{text-align:center}
+.gsn{font-size:13px;font-weight:700}
+.gsb{height:3px;background:var(--border);border-radius:2px;margin:3px 0;overflow:hidden}
+.gsf{height:100%;border-radius:2px}
+.gsl{font-size:7px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
+.abtn2{background:transparent;border:1px dashed var(--border);border-radius:6px;padding:14px;width:100%;color:var(--dim);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.abtn2:hover{border-color:var(--gold);color:var(--gold)}
+
+.gftr{background:var(--panel);border-top:1px solid var(--border);padding:4px;text-align:center;font-size:7px;color:var(--dim);font-family:'Share Tech Mono',monospace;flex-shrink:0;letter-spacing:1px}
+.gftr a{color:var(--dim);text-decoration:none}
+
+/* Toast */
+.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%) translateY(-10px);background:var(--panel2);border:1px solid var(--gold);border-radius:4px;padding:8px 16px;font-size:11px;font-family:'Share Tech Mono',monospace;color:var(--gold);z-index:9500;opacity:0;transition:all .3s;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.warn{border-color:var(--warn);color:var(--warn)}.toast.err{border-color:var(--red);color:var(--red)}.toast.ok{border-color:var(--green);color:var(--green)}
+
+/* Paused overlay */
+#pausedOv{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:6000;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+#pausedOv.show{display:flex}
+.pov-txt{font-family:'Orbitron',monospace;font-size:26px;font-weight:900;color:var(--warn);letter-spacing:4px;text-shadow:0 0 30px rgba(255,170,0,.5);animation:blink 1s infinite}
+.pov-sub{font-size:12px;color:var(--text);letter-spacing:2px;font-family:'Share Tech Mono',monospace}
+
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- ═════════════════════ HOME PAGE ═════════════════════ -->
+<div id="home">
+  <div class="hp-hero">
+    <div class="hp-logo">SWINDON<span> </span>AIRSOFT</div>
+    <div class="hp-tagline">Tactical Field Tracker</div>
+    <div class="hp-by">by Chris Zulu · Est. Swindon</div>
+  </div>
+
+  <div class="hp-features">
+    <div class="hp-feat"><div class="hp-feat-icon">📡</div><div class="hp-feat-title">Live GPS Tracking</div><div class="hp-feat-desc">Real-time position tracking of your entire squad on an interactive battlefield map.</div></div>
+    <div class="hp-feat"><div class="hp-feat-icon">🔴🔵</div><div class="hp-feat-title">Team Play</div><div class="hp-feat-desc">Red vs Blue team separation — enemy positions hidden unless revealed by UAV or Intel perks.</div></div>
+    <div class="hp-feat"><div class="hp-feat-icon">⚡</div><div class="hp-feat-title">Tactical Perks</div><div class="hp-feat-desc">UAV scans, EMP blasts, smoke screens, medkits and more — all with real tactical effects.</div></div>
+    <div class="hp-feat"><div class="hp-feat-icon">🗺️</div><div class="hp-feat-title">Named Maps</div><div class="hp-feat-desc">Admin-drawn zones, respawn areas, objectives and game boundaries saved per site.</div></div>
+    <div class="hp-feat"><div class="hp-feat-icon">📢</div><div class="hp-feat-title">Comms</div><div class="hp-feat-desc">In-game messaging, team orders, and priority alerts direct to your squad.</div></div>
+    <div class="hp-feat"><div class="hp-feat-icon">🛡️</div><div class="hp-feat-title">Admin Control</div><div class="hp-feat-desc">Full game control — pause, respawn, perks, objectives — managed from a dedicated panel.</div></div>
+  </div>
+
+  <div class="hp-join">
+    <div class="hp-join-title">JOIN THE FIELD</div>
+
+    <div class="map-cards" id="map-cards">
+      <div class="map-empty" id="map-loading">Loading active maps…</div>
+    </div>
+
+    <div class="join-form" id="join-form">
+      <div class="jf-title">🎯 DEPLOY TO FIELD</div>
+      <div class="jf-selected-map" id="selected-map-display">No map selected — tap a map above</div>
+      <div><div class="fl">Callsign</div><input class="fi" id="inp-cs" maxlength="12" placeholder="GHOST"></div>
+      <div class="frow">
+        <div><div class="fl">Role</div><select class="fi fi-lower" id="inp-role"><option>Assault</option><option>Sniper</option><option>Support</option><option>Medic</option><option>Scout</option><option>Commander</option></select></div>
+        <div id="pw-field" style="display:none"><div class="fl">Map Password</div><input class="fi fi-lower" type="password" id="inp-pw" placeholder="Password"></div>
+      </div>
+      <div><div class="fl">Select Team</div>
+        <div class="team-pick">
+          <button class="tb red sel" id="tbr" onclick="pickTeam('red')">🔴 RED TEAM</button>
+          <button class="tb blue" id="tbb" onclick="pickTeam('blue')">🔵 BLUE TEAM</button>
+        </div>
+      </div>
+      <button class="jbtn" id="join-btn" onclick="joinGame()" disabled>SELECT A MAP ABOVE</button>
+      <div class="hp-err" id="join-err"></div>
+    </div>
+  </div>
+
+  <div class="hp-footer">
+    SWINDON AIRSOFT TACTICAL TRACKER · Built by Chris Zulu ·
+    <a href="/admin">Admin Panel</a>
+  </div>
+</div>
+
+<!-- ═════════════════════ GAME APP ═════════════════════ -->
+<div id="gapp">
+  <div class="hdr">
+    <div onclick="leaveGame()" style="cursor:pointer">
+      <div class="hlogo">SWINDON AIRSOFT</div>
+      <div class="hsub">Tactical Tracker · by Chris Zulu</div>
+    </div>
+    <div class="hright">
+      <div class="cpill off" id="cpill">● OFF</div>
+      <div class="gclk" id="gclk">00:00:00</div>
+    </div>
+  </div>
+
+  <div class="tbnr" id="tbnr">● RED TEAM</div>
+
+  <div class="gnav">
+    <div class="gt active" data-s="map" onclick="switchTab(this)"><div class="ico">🗺️</div>MAP</div>
+    <div class="gt" data-s="squad" onclick="switchTab(this)"><div class="ico">👥</div>SQUAD<div class="nbadge" id="nb-sq"></div></div>
+    <div class="gt" data-s="comms" onclick="switchTab(this)"><div class="ico">📡</div>COMMS<div class="nbadge" id="nb-cm"></div></div>
+    <div class="gt" data-s="status" onclick="switchTab(this)"><div class="ico">⚡</div>STATUS</div>
+    <div class="gt" data-s="kit" onclick="switchTab(this)"><div class="ico">🔫</div>KIT</div>
+  </div>
+
+  <div class="gmain">
+
+    <!-- MAP -->
+    <div class="gscreen active" id="gscreen-map">
+      <div id="leaflet-map" style="flex:1;min-height:0"></div>
+      <div id="emp-ov"><div class="emp-txt">⚡ EMP ACTIVE</div><div class="emp-sub">GPS MAP SCRAMBLED</div><div class="emp-timer" id="emp-timer">15</div></div>
+      <div id="ceasefire-ov"><div class="cf-txt">🕊 CEASEFIRE</div></div>
+      <div class="map-banner" id="uav-banner">📡 UAV ACTIVE</div>
+      <div class="map-banner" id="hack-banner">💻 HACKED — Position tracked!</div>
+      <div id="revived-banner">🩹 REVIVED!</div>
+      <div id="perk-fb"></div>
+      <div class="team-hud"><div class="thud r">🔴 <span id="hud-red">0</span></div><div class="thud b">🔵 <span id="hud-blue">0</span></div></div>
+      <div class="compass-box">🧭</div>
+      <div class="gps-box"><div>LAT <span class="gv" id="i-lat">—</span></div><div>LNG <span class="gv" id="i-lng">—</span></div><div>ACC <span class="gv" id="i-acc">—</span></div></div>
+      <div class="tile-sw">
+        <div class="tsb on" data-tile="osm" onclick="switchTile('osm',this)">OSM</div>
+        <div class="tsb" data-tile="sat" onclick="switchTile('sat',this)">SAT</div>
+        <div class="tsb" data-tile="topo" onclick="switchTile('topo',this)">TOPO</div>
+        <div class="tsb" data-tile="dark" onclick="switchTile('dark',this)">DARK</div>
+      </div>
+      <div class="obj-bar">
+        <div class="obj-bar-lbl">◈ OBJECTIVES</div>
+        <div class="obj-list" id="obj-list"></div>
+      </div>
+    </div>
+
+    <!-- SQUAD -->
+    <div class="gscreen scrollable" id="gscreen-squad">
+      <div class="squad-wrap">
+        <div class="sec-t">◈ MY SQUAD</div>
+        <div class="sq-stats">
+          <div class="sq-stat"><div class="sq-num" id="sq-alive" style="color:var(--green)">0</div><div class="sq-lbl">Alive</div></div>
+          <div class="sq-stat"><div class="sq-num" id="sq-dead" style="color:var(--red)">0</div><div class="sq-lbl">Down</div></div>
+          <div class="sq-stat"><div class="sq-num" id="sq-medic" style="color:var(--warn)">0</div><div class="sq-lbl">Medic</div></div>
+          <div class="sq-stat"><div class="sq-num" id="sq-total" style="color:var(--gold)">0</div><div class="sq-lbl">Total</div></div>
+        </div>
+        <div id="squad-list" style="display:flex;flex-direction:column;gap:6px"></div>
+        <div class="enemy-intel">
+          <div class="sec-t">◈ ENEMY INTEL</div>
+          <div class="ei-grid">
+            <div><div class="ei-num" id="ei-total">?</div><div class="ei-lbl">Known</div></div>
+            <div><div class="ei-num" id="ei-alive">?</div><div class="ei-lbl">Alive</div></div>
+            <div><div class="ei-num" id="ei-pos">?</div><div class="ei-lbl">Located</div></div>
+          </div>
+          <div id="ei-uav" style="font-size:9px;color:#00c4ff;font-family:'Share Tech Mono',monospace;text-align:center;margin-top:6px;display:none">📡 UAV ACTIVE — positions on map</div>
+          <div id="ei-hint" style="font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace;text-align:center;margin-top:6px">Use UAV perk to reveal enemy locations</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMMS -->
+    <div class="gscreen" id="gscreen-comms" style="flex-direction:column">
+      <div class="feed" id="feed"></div>
+      <div class="cbar">
+        <input class="ci" id="ctxt" type="text" placeholder="Send sitrep or order…" maxlength="200">
+        <select class="psel" id="cprio"><option value="normal">NRM</option><option value="high">HIGH</option><option value="low">LOW</option></select>
+        <button class="txbtn" onclick="sendOrder()">TX</button>
+      </div>
+    </div>
+
+    <!-- STATUS -->
+    <div class="gscreen scrollable" id="gscreen-status">
+      <div class="status-wrap">
+        <div class="mycard" id="mycard">
+          <div class="mavt" id="mavt">🪖</div>
+          <div class="mcs" id="mcs">—</div>
+          <div class="mrk" id="mrk">—</div>
+          <div class="sgrid">
+            <button class="sb2 alive on" id="btn-alive" onclick="setStatus('alive')">✓ Alive</button>
+            <button class="sb2 dead" id="btn-dead" onclick="setStatus('dead')">✕ Down</button>
+            <button class="sb2 medic" id="btn-medic" onclick="setStatus('medic')">+ Medic Needed</button>
+            <button class="sb2 support" id="btn-support" onclick="setStatus('support')">◈ Need Support</button>
+          </div>
+        </div>
+        <div class="gps-panel">
+          <div class="sec-t" style="margin-bottom:4px">◈ GPS STATUS</div>
+          <div class="gps-r"><span class="gps-k">LATITUDE</span><span class="gps-v2" id="gs-lat">Acquiring…</span></div>
+          <div class="gps-r"><span class="gps-k">LONGITUDE</span><span class="gps-v2" id="gs-lng">—</span></div>
+          <div class="gps-r"><span class="gps-k">ACCURACY</span><span class="gps-v2" id="gs-acc">—</span></div>
+          <div class="gps-r"><span class="gps-k">LAST FIX</span><span class="gps-v2" id="gs-ts">—</span></div>
+          <div class="gps-r"><span class="gps-k">CONNECTION</span><span class="gps-v2" id="gs-ws">Connecting…</span></div>
+        </div>
+        <div>
+          <div class="sec-t">◈ TACTICAL PERKS</div>
+          <div class="pg">
+            <div class="pkc" id="pk-uav" onclick="usePerk('uav',60)"><div class="pki">📡</div><div class="pkn">UAV</div><div class="pko">Reveals enemies 20s</div><div class="pkct" id="pct-uav">READY</div><div class="pkbar" id="pb-uav" style="width:0"></div></div>
+            <div class="pkc" id="pk-emp" onclick="usePerk('emp',90)"><div class="pki">⚡</div><div class="pkn">EMP</div><div class="pko">Blinds GPS 100m 15s</div><div class="pkct" id="pct-emp">READY</div><div class="pkbar" id="pb-emp" style="width:0"></div></div>
+            <div class="pkc" id="pk-smoke" onclick="usePerk('smoke',30)"><div class="pki">💨</div><div class="pkn">SMOKE</div><div class="pko">Smoke zone 30s</div><div class="pkct" id="pct-smoke">READY</div><div class="pkbar" id="pb-smoke" style="width:0"></div></div>
+            <div class="pkc" id="pk-hack" onclick="usePerk('hack',120)"><div class="pki">💻</div><div class="pkn">HACK</div><div class="pko">1 enemy pos 10s</div><div class="pkct" id="pct-hack">READY</div><div class="pkbar" id="pb-hack" style="width:0"></div></div>
+            <div class="pkc" id="pk-medkit" onclick="usePerk('medkit',45)"><div class="pki">🩹</div><div class="pkn">MEDKIT</div><div class="pko">Revive 30m allies</div><div class="pkct" id="pct-medkit">READY</div><div class="pkbar" id="pb-medkit" style="width:0"></div></div>
+            <div class="pkc" id="pk-air" onclick="usePerk('air',180)"><div class="pki">🚁</div><div class="pkn">AIR SUP</div><div class="pko">Danger zone 60s</div><div class="pkct" id="pct-air">READY</div><div class="pkbar" id="pb-air" style="width:0"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KIT -->
+    <div class="gscreen scrollable" id="gscreen-kit">
+      <div class="kit-wrap">
+        <div class="sec-t">◈ MY KIT</div>
+        <div class="gc"><div class="gh"><div class="gn2">M4A1 CQBR</div><div class="gt2">ASSAULT RIFLE</div></div><div class="ge">🔫</div><div class="gst"><div class="gsi"><div class="gsn">350</div><div class="gsb"><div class="gsf" style="width:85%;background:var(--green)"></div></div><div class="gsl">FPS</div></div><div class="gsi"><div class="gsn">40m</div><div class="gsb"><div class="gsf" style="width:70%;background:var(--gold)"></div></div><div class="gsl">Range</div></div><div class="gsi"><div class="gsn">0.2g</div><div class="gsb"><div class="gsf" style="width:60%;background:var(--warn)"></div></div><div class="gsl">BB</div></div></div></div>
+        <div class="gc"><div class="gh"><div class="gn2">Glock 17</div><div class="gt2">SIDEARM</div></div><div class="ge">🔫</div><div class="gst"><div class="gsi"><div class="gsn">280</div><div class="gsb"><div class="gsf" style="width:55%;background:var(--green)"></div></div><div class="gsl">FPS</div></div><div class="gsi"><div class="gsn">15m</div><div class="gsb"><div class="gsf" style="width:30%;background:var(--gold)"></div></div><div class="gsl">Range</div></div><div class="gsi"><div class="gsn">0.2g</div><div class="gsb"><div class="gsf" style="width:60%;background:var(--warn)"></div></div><div class="gsl">BB</div></div></div></div>
+        <button class="abtn2" onclick="toast('Replica management coming soon')">+ ADD REPLICA</button>
+      </div>
+    </div>
+
+  </div><!-- /gmain -->
+
+  <div class="gftr">SWINDON AIRSOFT · by Chris Zulu · <a href="/admin">Admin</a></div>
+</div>
+
+<div id="pausedOv"><div class="pov-txt">⏸ GAME PAUSED</div><div class="pov-sub">Hold positions — await admin</div></div>
+<div class="toast" id="toast-el"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// GLOBALS
+// ════════════════════════════════════════════════════════════════
+let ws=null, myId=null, myCallsign='SOLDIER', myTeam='red', myRole='Assault', myStatus='alive';
+let roomCode='', roomPassword='', selectedMapCode='', selectedMapHasPassword=false;
+let players={}, objectives=[], orders=[], zones=[], markers={}, zoneLayers={}, objMarkers={};
+let map=null, tileLayer=null;
+let myLat=null, myLng=null, myAcc=null;
+let myMarkerSet=false, uavActive=false, uavTimeout=null, empTimerIv=null;
+let unread=0, activeTab='map';
+const ROLE_ICONS={Assault:'⚔',Sniper:'🎯',Support:'🛡',Medic:'✚',Scout:'👁',Commander:'⭐'};
+const TILES={osm:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',sat:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',topo:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',dark:'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'};
+
+// ── Clock ──────────────────────────────────────────────────────
+setInterval(()=>{const n=new Date();document.getElementById('gclk').textContent=[n.getHours(),n.getMinutes(),n.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');},1000);
+
+// ── Toast ──────────────────────────────────────────────────────
+let toastT;
+function toast(msg,type=''){const t=document.getElementById('toast-el');t.textContent=msg;t.className='toast '+(type?' '+type:'')+' show';clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── Perk feedback banner ───────────────────────────────────────
+let fbT;
+function perkFb(msg){const t=document.getElementById('perk-fb');t.textContent=msg;t.classList.add('show');clearTimeout(fbT);fbT=setTimeout(()=>t.classList.remove('show'),4000);}
+
+// ════════════════════════════════════════════════════════════════
+// HOME PAGE — Map listing
+// ════════════════════════════════════════════════════════════════
+async function loadMaps(){
+  try{
+    const r=await fetch('/api/maps');const maps=await r.json();
+    const el=document.getElementById('map-cards');
+    if(!maps.length){el.innerHTML='<div class="map-empty">No active maps right now. Ask your admin to create one.</div>';return;}
+    el.innerHTML=maps.map(m=>`
+      <div class="map-card" onclick="selectMap('${m.code}','${esc(m.name)}',${m.hasPassword})">
+        <div class="mc-name">${esc(m.name)}</div>
+        <div class="mc-meta">
+          <span class="mc-badge red">🔴 ${m.redCount}</span>
+          <span class="mc-badge blue">🔵 ${m.blueCount}</span>
+          <span>${m.playerCount} player${m.playerCount!==1?'s':''}</span>
+          ${m.hasPassword?'<span class="mc-lock">🔒 Password</span>':''}
+        </div>
+      </div>`).join('');
+  }catch(e){document.getElementById('map-cards').innerHTML='<div class="map-empty">Could not load maps.</div>';}
+}
+
+function selectMap(code, name, hasPassword){
+  selectedMapCode=code;selectedMapHasPassword=hasPassword;
+  document.getElementById('selected-map-display').textContent=`Selected: ${name} (${code})`;
+  document.getElementById('pw-field').style.display=hasPassword?'block':'none';
+  document.getElementById('join-btn').disabled=false;
+  document.getElementById('join-btn').textContent='⚡ DEPLOY TO BATTLEFIELD';
+  document.getElementById('join-err').classList.remove('show');
+  // Highlight selected card
+  document.querySelectorAll('.map-card').forEach(c=>c.style.borderColor='');
+  event&&event.currentTarget&&(event.currentTarget.style.borderColor='var(--gold)');
+  document.getElementById('join-btn').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function pickTeam(t){myTeam=t;document.getElementById('tbr').classList.toggle('sel',t==='red');document.getElementById('tbb').classList.toggle('sel',t==='blue');}
+
+// ── Join game ──────────────────────────────────────────────────
+function joinGame(){
+  if(!selectedMapCode){toast('Select a map first','warn');return;}
+  myCallsign=(document.getElementById('inp-cs').value.trim().toUpperCase()||'SOLDIER').slice(0,12);
+  myRole=document.getElementById('inp-role').value;
+  roomPassword=document.getElementById('inp-pw').value||'';
+
+  document.getElementById('home').classList.add('hidden');
+  document.getElementById('gapp').classList.add('visible');
+  roomCode=selectedMapCode;
+
+  // Setup UI
+  const b=document.getElementById('tbnr');b.className='tbnr '+myTeam;b.textContent=myTeam==='red'?'● RED TEAM':'● BLUE TEAM';
+  document.getElementById('mycard').className='mycard '+(myTeam==='red'?'rc':'bc');
+  document.getElementById('mavt').className='mavt '+(myTeam==='red'?'ra':'ba');
+  document.getElementById('mcs').className='mcs '+(myTeam==='red'?'r':'b');
+  document.getElementById('mcs').textContent=myCallsign;
+  document.getElementById('mrk').textContent=myRole+' · '+myTeam.toUpperCase()+' TEAM';
+
+  initMap();startGPS();connectWS();
+}
+
+function leaveGame(){
+  if(!confirm('Leave the battlefield and return to home?'))return;
+  if(ws){ws.close();ws=null;}
+  if(map){map.remove();map=null;tileLayer=null;markers={};zoneLayers={};objMarkers={};}
+  players={};objectives=[];orders=[];zones=[];
+  myId=null;myLat=null;myLng=null;myMarkerSet=false;uavActive=false;
+  clearTimeout(uavTimeout);clearInterval(empTimerIv);
+  document.getElementById('gapp').classList.remove('visible');
+  document.getElementById('home').classList.remove('hidden');
+  document.getElementById('pausedOv').classList.remove('show');
+  loadMaps();
+}
+
+// ════════════════════════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════════════════════════
+function switchTab(el){
+  document.querySelectorAll('.gt').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.gscreen').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');activeTab=el.dataset.s;
+  document.getElementById('gscreen-'+activeTab).classList.add('active');
+  if(activeTab==='comms'){unread=0;updBadge();}
+  if(activeTab==='map'&&map)setTimeout(()=>map.invalidateSize(),80);
+}
+
+// ════════════════════════════════════════════════════════════════
+// MAP
+// ════════════════════════════════════════════════════════════════
+function initMap(){
+  map=L.map('leaflet-map',{center:[51.56,-1.78],zoom:16,zoomControl:true,attributionControl:false});
+  tileLayer=L.tileLayer(TILES.osm,{maxZoom:20}).addTo(map);
+}
+
+function switchTile(key,el){
+  document.querySelectorAll('.tsb').forEach(b=>b.classList.remove('on'));el.classList.add('on');
+  if(tileLayer)map.removeLayer(tileLayer);
+  tileLayer=L.tileLayer(TILES[key],{maxZoom:20}).addTo(map);
+}
+
+// ── Zone rendering ────────────────────────────────────────────
+function renderZone(zone){
+  if(zoneLayers[zone.id])return;
+  const col=zone.color||'#cc44ff';
+  const opts={color:col,fillColor:col,fillOpacity:.15,weight:2,dashArray:'6,4'};
+  let layer;
+  if(zone.shape==='circle'&&zone.center)layer=L.circle(zone.center,{...opts,radius:zone.radius});
+  else if(zone.latlngs&&zone.latlngs.length)layer=L.polygon(zone.latlngs,opts);
+  if(!layer)return;
+  layer.bindTooltip(zone.label,{permanent:true,direction:'center',className:'zone-tip'});
+  layer.addTo(map);
+  zoneLayers[zone.id]=layer;
+}
+function removeZoneLayer(id){if(zoneLayers[id]){map.removeLayer(zoneLayers[id]);delete zoneLayers[id];}}
+function clearZoneLayers(){Object.keys(zoneLayers).forEach(removeZoneLayer);}
+
+// ── Objective markers on map ───────────────────────────────────
+function renderObjMarker(obj){
+  if(!obj.lat||!obj.lng){if(objMarkers[obj.id])removeObjMarker(obj.id);return;}
+  if(objMarkers[obj.id])return;
+  let cls='obj-marker';
+  if(obj.team==='red')cls+=' red-obj';
+  else if(obj.team==='blue')cls+=' blue-obj';
+  if(obj.done)cls+=' done-obj';
+  const icon=L.divIcon({html:`<div class="${cls}">${obj.done?'✓':'!'}</div>`,className:'',iconSize:[22,22],iconAnchor:[11,11]});
+  const m=L.marker([obj.lat,obj.lng],{icon}).addTo(map).bindPopup(`<div style="font-family:'Share Tech Mono',monospace;font-size:11px"><b>${esc(obj.text)}</b><br>Team: ${obj.team.toUpperCase()}<br>Status: ${obj.done?'COMPLETE':'ACTIVE'}</div>`);
+  objMarkers[obj.id]=m;
+}
+function removeObjMarker(id){if(objMarkers[id]){map.removeLayer(objMarkers[id]);delete objMarkers[id];}}
+function refreshObjMarkers(){objectives.forEach(o=>renderObjMarker(o));}
+
+// ── Player markers ────────────────────────────────────────────
+function makeMarkerIcon(p,isMe,isGhost=false){
+  const team=p.status==='dead'?'dead':p.team;
+  const sz=isMe?36:28;
+  const urgent=p.status==='medic'||p.status==='support';
+  const glow=urgent?(p.status==='medic'?'0 0 14px rgba(255,170,0,.7)':'0 0 14px rgba(42,127,255,.7)'):'';
+  const ghostCls=isGhost?' ghost':'';
+  const badge=p.status!=='alive'?`<div class="pm-sb" style="background:${p.status==='medic'?'#ffaa00':p.status==='dead'?'#333':'#2a7fff'}">${p.status==='medic'?'🚑':p.status==='dead'?'💀':'🆘'}</div>`:'';
+  const pulse=(team!=='dead'&&!isGhost)?`<div class="pm-pulse ${team}" style="width:${sz+10}px;height:${sz+10}px;top:-5px;left:-5px"></div>`:'';
+  const ri=ROLE_ICONS[p.role]||'⚔';
+  const html=`<div class="pmw">${pulse}<div class="pm ${team}${isMe?' me':''}${ghostCls}" style="width:${sz}px;height:${sz}px;${glow?`box-shadow:${glow}`:''}">
+    ${badge}<span style="font-size:${isMe?14:11}px">${isMe?'★':ri}</span></div>
+    <div class="pm-lbl" style="color:${team==='red'?'var(--red)':team==='blue'?'var(--blue)':'#555'}">${esc(p.callsign)}${urgent?' · '+p.status.toUpperCase():''}</div></div>`;
+  return L.divIcon({html,className:'',iconSize:[sz+10,sz+22],iconAnchor:[(sz+10)/2,(sz+10)/2]});
+}
+
+function updMarker(p,isMe=false){
+  if(!map)return;
+  const isEnemy=p.team!==myTeam;
+  if(isEnemy&&uavActive&&!p._ghost)p._ghost=true;
+  const show=isMe||!isEnemy||(isEnemy&&p._ghost);
+  if(!show||p.lat==null){rmMarker(p.id);return;}
+  const isGhost=isEnemy&&p._ghost;
+  const icon=makeMarkerIcon(p,isMe,isGhost);
+  const col=p.team==='red'?'#ff5555':'#5599ff';
+  const popup=`<div style="font-family:'Share Tech Mono',monospace;font-size:11px"><b style="color:${col}">${isGhost?'⚠ ENEMY — ':''}${esc(p.callsign)}</b><br>${isGhost?'Position Intel':''+p.role+' · '+p.team.toUpperCase()}<br>Status: <b>${p.status.toUpperCase()}</b>${p.lat&&!isGhost?`<br>${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}`:''}`;
+  if(markers[p.id]){markers[p.id].setLatLng([p.lat,p.lng]);markers[p.id].setIcon(icon);markers[p.id].setPopupContent(popup);}
+  else{const m=L.marker([p.lat,p.lng],{icon,zIndexOffset:isMe?1000:0}).addTo(map).bindPopup(popup);markers[p.id]=m;if(isMe&&!myMarkerSet){map.setView([p.lat,p.lng],17);myMarkerSet=true;}}
+}
+function rmMarker(id){if(markers[id]){markers[id].remove();delete markers[id];}}
+
+// ── Perk animations on map ────────────────────────────────────
+function showPerkAnim(perk,lat,lng){
+  if(!map||lat==null)return;
+  const mapEl=document.getElementById('leaflet-map');
+  const pt=map.latLngToLayerPoint([lat,lng]);
+  const emojis={uav:'📡',emp:'⚡',smoke:'💨',air:'🚁',hack:'💻',medkit:'🩹',flare:'🔴'};
+  const el=document.createElement('div');
+  el.className=`pm-anim ${perk}`;
+  el.style.left=(pt.x-35)+'px';el.style.top=(pt.y-35)+'px';
+  el.textContent=emojis[perk]||'💥';
+  mapEl.appendChild(el);
+  if(perk==='emp'){for(let i=0;i<3;i++){const r=document.createElement('div');const s=40+i*35;r.style.cssText=`position:absolute;width:${s}px;height:${s}px;border-radius:50%;border:2.5px solid #ffff00;left:${pt.x-s/2}px;top:${pt.y-s/2}px;animation:empRing ${.9+i*.3}s ${i*220}ms ease-out forwards;pointer-events:none;z-index:599`;mapEl.appendChild(r);setTimeout(()=>r.remove(),1800+i*300);}}
+  const onMove=()=>{const np=map.latLngToLayerPoint([lat,lng]);el.style.left=(np.x-35)+'px';el.style.top=(np.y-35)+'px';};
+  map.on('move',onMove);
+  const dur=perk==='flare'?3500:2200;
+  setTimeout(()=>{el.remove();map.off('move',onMove);},dur);
+}
+
+// ════════════════════════════════════════════════════════════════
+// GPS
+// ════════════════════════════════════════════════════════════════
+function startGPS(){
+  if(!navigator.geolocation){toast('GPS not available','warn');return;}
+  navigator.geolocation.watchPosition(onGPS,onGPSErr,{enableHighAccuracy:true,maximumAge:4000,timeout:15000});
+}
+function onGPS(pos){
+  myLat=pos.coords.latitude;myLng=pos.coords.longitude;myAcc=Math.round(pos.coords.accuracy);
+  const ls=myLat.toFixed(6),lo=myLng.toFixed(6),ac=myAcc+'m';
+  ['i-lat','gs-lat'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=ls;});
+  ['i-lng','gs-lng'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=lo;});
+  ['i-acc','gs-acc'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=ac;});
+  document.getElementById('gs-ts').textContent=new Date().toLocaleTimeString();
+  if(map&&myId&&players[myId]){players[myId].lat=myLat;players[myId].lng=myLng;updMarker(players[myId],true);}
+  sendWS({type:'location',lat:myLat,lng:myLng,heading:0});
+}
+function onGPSErr(e){toast('GPS: '+(['','Denied','Unavailable','Timeout'][e.code]||'Error'),'warn');}
+
+// ════════════════════════════════════════════════════════════════
+// WEBSOCKET
+// ════════════════════════════════════════════════════════════════
+function wsUrl(){const p=location.protocol==='https:'?'wss':'ws';return`${p}://${location.host}`;}
+function connectWS(){
+  try{ws=new WebSocket(wsUrl());}catch{setTimeout(connectWS,4000);return;}
+  ws.onopen=()=>{
+    setConn(true);
+    sendWS({type:'join',callsign:myCallsign,team:myTeam,role:myRole,room:roomCode,password:roomPassword});
+    setInterval(()=>sendWS({type:'ping'}),25000);
+  };
+  ws.onmessage=e=>{let m;try{m=JSON.parse(e.data);}catch{return;}handle(m);};
+  ws.onclose=()=>{setConn(false);document.getElementById('gs-ws').textContent='RECONNECTING…';setTimeout(connectWS,4000);};
+  ws.onerror=()=>{};
+}
+function setConn(ok){document.getElementById('cpill').textContent=ok?'● LIVE':'● OFF';document.getElementById('cpill').className='cpill'+(ok?'':' off');document.getElementById('gs-ws').textContent=ok?'CONNECTED':'OFFLINE';}
+function sendWS(m){if(ws&&ws.readyState===1)ws.send(JSON.stringify(m));}
+
+// ════════════════════════════════════════════════════════════════
+// MESSAGE HANDLER
+// ════════════════════════════════════════════════════════════════
+function handle(msg){
+  switch(msg.type){
+    case 'error':
+      if(msg.code==='WRONG_PASSWORD'){const e=document.getElementById('join-err');e.textContent='⚠ Incorrect password';e.classList.add('show');leaveGame();}
+      else if(msg.code==='ROOM_NOT_FOUND'){const e=document.getElementById('join-err');e.textContent='⚠ Map not found';e.classList.add('show');leaveGame();}
+      else toast('Error: '+msg.message,'err');
+      break;
+
+    case 'init':
+      myId=msg.playerId;
+      Object.keys(markers).forEach(rmMarker);clearZoneLayers();objectives.forEach(o=>removeObjMarker(o.id));
+      players={};msg.room.players.forEach(p=>players[p.id]=p);
+      objectives=msg.room.objectives||[];orders=msg.room.orders||[];zones=msg.room.zones||[];
+      if(map){zones.forEach(renderZone);Object.values(players).forEach(p=>{if(p.id===myId||p.team===myTeam)updMarker(p,p.id===myId);});refreshObjMarkers();}
+      if(msg.room.gamePaused)document.getElementById('pausedOv').classList.add('show');
+      renderAll();
+      if(myLat)sendWS({type:'location',lat:myLat,lng:myLng,heading:0});
+      break;
+
+    case 'player_joined':
+      players[msg.player.id]=msg.player;
+      if(msg.player.team===myTeam&&map)updMarker(msg.player,false);
+      renderSquad();updHud();break;
+
+    case 'player_left':
+      delete players[msg.playerId];rmMarker(msg.playerId);renderSquad();updHud();break;
+
+    case 'location_update':{
+      const p=players[msg.playerId];if(!p)break;
+      p.lat=msg.lat;p.lng=msg.lng;p.heading=msg.heading;p.lastSeen=msg.lastSeen;
+      const isEnemy=p.team!==myTeam;
+      if(isEnemy&&uavActive&&!p._ghost)p._ghost=true;
+      if(!isEnemy||p._ghost)updMarker(p,msg.playerId===myId);
+      else rmMarker(p.id);
+      break;}
+
+    case 'enemy_count_update':
+      document.getElementById('hud-red').textContent=msg.redCount;
+      document.getElementById('hud-blue').textContent=msg.blueCount;
+      document.getElementById('ei-total').textContent=msg.redCount+msg.blueCount-Object.values(players).filter(p=>p.team===myTeam).length;
+      break;
+
+    case 'status_update':{
+      const p=players[msg.playerId];if(!p)break;
+      p.status=msg.status;if(msg.playerId===myId)myStatus=msg.status;
+      renderSquad();if(p.team===myTeam||p._ghost)updMarker(p,msg.playerId===myId);break;}
+
+    case 'new_order':
+      orders.push(msg.order);if(orders.length>200)orders.shift();
+      renderOrders();if(activeTab!=='comms'){unread++;updBadge();}break;
+
+    case 'objective_update':{const o=objectives.find(x=>x.id===msg.id);if(o){o.done=msg.done;renderObj();if(map)refreshObjMarkers();}break;}
+    case 'objective_added':objectives.push(msg.objective);renderObj();if(map)renderObjMarker(msg.objective);break;
+    case 'objective_updated':{const i=objectives.findIndex(o=>o.id===msg.objective.id);if(i>=0){objectives[i]=msg.objective;renderObj();removeObjMarker(msg.objective.id);renderObjMarker(msg.objective);}break;}
+    case 'objective_removed':objectives=objectives.filter(o=>o.id!==msg.id);renderObj();removeObjMarker(msg.id);break;
+
+    case 'zone_added':zones.push(msg.zone);if(map)renderZone(msg.zone);break;
+    case 'zone_removed':zones=zones.filter(z=>z.id!==msg.id);removeZoneLayer(msg.id);break;
+    case 'zones_cleared':clearZoneLayers();zones=[];break;
+    case 'map_loaded':
+      clearZoneLayers();objectives.forEach(o=>removeObjMarker(o.id));
+      zones=msg.zones||[];objectives=msg.objectives||[];
+      if(map){zones.forEach(renderZone);refreshObjMarkers();}
+      renderObj();toast(`🗺️ Map loaded: ${msg.mapName||''}`),'ok';break;
+
+    case 'perk_anim':if(map)showPerkAnim(msg.perk,msg.lat,msg.lng);break;
+    case 'perk_feedback':perkFb(`${msg.perk.toUpperCase()}: ${msg.message}`);break;
+
+    case 'uav_reveal':
+      uavActive=true;
+      msg.reveals.forEach(p=>{p._ghost=true;players[p.id]=p;if(map)updMarker(p,false);});
+      document.getElementById('uav-banner').textContent=`📡 UAV ACTIVE — ${msg.reveals.length} contact(s) — ${msg.callsign}`;
+      document.getElementById('uav-banner').classList.add('show');
+      toast(`📡 UAV: ${msg.reveals.length} enemies revealed by ${msg.callsign}!`,'ok');
+      clearTimeout(uavTimeout);
+      uavTimeout=setTimeout(()=>{
+        uavActive=false;
+        Object.values(players).filter(p=>p._ghost&&p.team!==myTeam).forEach(p=>{p._ghost=false;rmMarker(p.id);});
+        document.getElementById('uav-banner').classList.remove('show');
+        document.getElementById('ei-uav').style.display='none';
+        document.getElementById('ei-hint').style.display='block';
+        renderSquad();
+      },msg.duration||20000);
+      document.getElementById('ei-uav').style.display='block';
+      document.getElementById('ei-hint').style.display='none';
+      renderSquad();break;
+
+    case 'uav_expired':
+      uavActive=false;clearTimeout(uavTimeout);
+      Object.values(players).filter(p=>p._ghost&&p.team!==myTeam).forEach(p=>{p._ghost=false;rmMarker(p.id);});
+      document.getElementById('uav-banner').classList.remove('show');
+      document.getElementById('ei-uav').style.display='none';
+      document.getElementById('ei-hint').style.display='block';
+      renderSquad();break;
+
+    case 'hack_reveal':
+      msg.target._ghost=true;players[msg.target.id]=msg.target;if(map)updMarker(msg.target,false);
+      document.getElementById('hack-banner').textContent=`💻 HACKED: ${msg.target.callsign} @ ${msg.target.lat?.toFixed(4)||'?'},${msg.target.lng?.toFixed(4)||'?'}`;
+      document.getElementById('hack-banner').classList.add('show');
+      toast(`💻 ${msg.target.callsign} position revealed for 10s`,'ok');
+      setTimeout(()=>{const p=players[msg.target.id];if(p){p._ghost=false;rmMarker(p.id);}document.getElementById('hack-banner').classList.remove('show');},msg.duration||10000);break;
+    case 'hack_detected':toast(`⚠ HACKED — ${msg.from} has your location!`,'err');break;
+
+    case 'emp_hit':
+      document.getElementById('emp-ov').classList.add('show');
+      let rem=Math.floor((msg.duration||15000)/1000);
+      document.getElementById('emp-timer').textContent=rem;
+      clearInterval(empTimerIv);empTimerIv=setInterval(()=>{rem--;document.getElementById('emp-timer').textContent=rem;if(rem<=0)clearInterval(empTimerIv);},1000);
+      toast(`⚡ EMP from ${msg.from} — map offline ${Math.floor((msg.duration||15000)/1000)}s`,'err');break;
+    case 'emp_cleared':
+      document.getElementById('emp-ov').classList.remove('show');clearInterval(empTimerIv);toast('📡 GPS restored');break;
+
+    case 'revived':
+      myStatus='alive';['alive','dead','medic','support'].forEach(x=>document.getElementById('btn-'+x)?.classList.remove('on'));
+      document.getElementById('btn-alive')?.classList.add('on');
+      const rb=document.getElementById('revived-banner');rb.textContent=`🩹 REVIVED by ${msg.by}!`;rb.style.display='flex';setTimeout(()=>rb.style.display='none',3000);
+      if(myId&&players[myId]){players[myId].status='alive';updMarker(players[myId],true);}
+      toast(`🩹 Revived by ${msg.by}!`,'ok');break;
+
+    case 'blackout':document.getElementById('emp-ov').classList.add('show');toast('⚫ BLACKOUT — GPS offline!','err');break;
+    case 'blackout_end':document.getElementById('emp-ov').classList.remove('show');toast('GPS restored');break;
+    case 'ceasefire_signal':
+      const co=document.getElementById('ceasefire-ov');co.classList.add('show');toast('🕊 CEASEFIRE SIGNAL');
+      setTimeout(()=>co.classList.remove('show'),8000);break;
+    case 'game_paused':document.getElementById('pausedOv').classList.add('show');break;
+    case 'game_resumed':document.getElementById('pausedOv').classList.remove('show');break;
+    case 'game_reset':Object.values(players).forEach(p=>p.status='alive');renderSquad();Object.values(players).filter(p=>p.team===myTeam).forEach(p=>updMarker(p,p.id===myId));break;
+    case 'room_renamed':document.getElementById('hlogo')&&(document.getElementById('hlogo').title=msg.name);break;
+    case 'map_tiles_changed':{const btn=document.querySelector(`[data-tile="${msg.tiles}"]`);if(btn)switchTile(msg.tiles,btn);break;}
+    case 'kicked':alert('Removed: '+(msg.reason||'Kicked'));leaveGame();break;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════════════════════════════
+function renderAll(){renderSquad();renderOrders();renderObj();updHud();}
+
+function renderSquad(){
+  const all=Object.values(players);
+  const mine=all.filter(p=>p.team===myTeam);
+  const enemies=all.filter(p=>p.team!==myTeam);
+  document.getElementById('sq-total').textContent=mine.length;
+  document.getElementById('sq-alive').textContent=mine.filter(p=>p.status==='alive').length;
+  document.getElementById('sq-dead').textContent=mine.filter(p=>p.status==='dead').length;
+  document.getElementById('sq-medic').textContent=mine.filter(p=>p.status==='medic'||p.status==='support').length;
+  // Enemy intel
+  document.getElementById('ei-total').textContent=enemies.length||'?';
+  if(uavActive){
+    document.getElementById('ei-alive').textContent=enemies.filter(p=>p.status==='alive').length;
+    document.getElementById('ei-pos').textContent=enemies.filter(p=>p._ghost&&p.lat).length;
+  } else {document.getElementById('ei-alive').textContent='?';document.getElementById('ei-pos').textContent='?';}
+  const bc={alive:'b-alive',dead:'b-dead',medic:'b-medic',support:'b-support'};
+  const bt={alive:'ALIVE',dead:'DOWN',medic:'MEDIC REQ',support:'SUPPORT'};
+  const sorted=[...mine].sort((a,b)=>{const r=s=>s==='alive'?0:s==='medic'?1:s==='support'?2:3;return r(a.status)-r(b.status);});
+  document.getElementById('squad-list').innerHTML=sorted.map(p=>{
+    const col=p.status==='dead'?'#555':p.team==='red'?'var(--red)':'var(--blue)';
+    const co=p.lat?`${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}`:'No GPS';
+    const isMe=p.id===myId;
+    return `<div class="pc ${p.status==='dead'?'down':''} ${p.status==='medic'?'medic-c':''}" onclick="focusP('${p.id}')">
+      <div class="pa" style="border-color:${col}">${ROLE_ICONS[p.role]||'⚔'}</div>
+      <div class="pi"><div class="pcall">${esc(p.callsign)}${isMe?' <span style="font-size:8px;color:var(--gold)">[YOU]</span>':''}</div><div class="prole">${p.role} · ${p.team.toUpperCase()}</div><div class="pco">${co}</div></div>
+      <span class="pbadge ${bc[p.status]||'b-alive'}">${bt[p.status]||'ALIVE'}</span>
+    </div>`;
+  }).join('');
+}
+
+function focusP(id){const p=players[id];if(p&&p.lat&&p.team===myTeam&&map){switchTab(document.querySelector('[data-s="map"]'));map.setView([p.lat,p.lng],18);if(markers[id])markers[id].openPopup();}else toast('⚠ Position unavailable','warn');}
+
+function renderOrders(){
+  const feed=document.getElementById('feed');
+  const atBot=feed.scrollHeight-feed.scrollTop<=feed.clientHeight+60;
+  const tc=t=>t==='red'?'r':t==='blue'?'b':(t&&(t.includes('ADMIN')||t.includes('⭐')))?'adm':'sys';
+  const pc=p=>p==='high'?'h':p==='low'?'l':'n';
+  feed.innerHTML=orders.map(o=>{const t=new Date(o.ts);const ts=[t.getHours(),t.getMinutes()].map(x=>String(x).padStart(2,'0')).join(':');return `<div class="oc ${o.priority}"><div class="oh"><div><span class="pp ${pc(o.priority)}">${o.priority.toUpperCase()}</span><span class="of ${tc(o.team||o.from)}">${esc(o.from)}</span></div><div class="ots">${ts}</div></div><div class="otx">${esc(o.text)}</div></div>`;}).join('');
+  if(atBot)feed.scrollTop=feed.scrollHeight;
+}
+
+function renderObj(){
+  document.getElementById('obj-list').innerHTML=objectives.filter(o=>o.team==='all'||o.team===myTeam).map(o=>`<div class="obj-chip ${o.done?'done':''}" onclick="toggleObj('${o.id}',${!o.done})"><div class="oc-dot"></div>${esc(o.text)}</div>`).join('');
+}
+
+function updHud(){
+  const all=Object.values(players);
+  document.getElementById('hud-red').textContent=all.filter(p=>p.team==='red').length;
+  document.getElementById('hud-blue').textContent=all.filter(p=>p.team==='blue').length;
+}
+function updBadge(){const b=document.getElementById('nb-cm');if(unread>0){b.textContent=unread>9?'9+':unread;b.classList.add('on');}else b.classList.remove('on');}
+
+// ════════════════════════════════════════════════════════════════
+// ACTIONS
+// ════════════════════════════════════════════════════════════════
+function setStatus(s){
+  myStatus=s;['alive','dead','medic','support'].forEach(x=>document.getElementById('btn-'+x)?.classList.remove('on'));
+  document.getElementById('btn-'+s)?.classList.add('on');
+  sendWS({type:'status',status:s});toast('Status → '+s.toUpperCase());
+  if(myId&&players[myId]){players[myId].status=s;updMarker(players[myId],true);}
+}
+function sendOrder(){const txt=document.getElementById('ctxt').value.trim();if(!txt)return;sendWS({type:'order',text:txt,priority:document.getElementById('cprio').value});document.getElementById('ctxt').value='';}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.activeElement.id==='ctxt')sendOrder();});
+function toggleObj(id,done){sendWS({type:'objective',id,done});}
+
+// ════════════════════════════════════════════════════════════════
+// PERKS
+// ════════════════════════════════════════════════════════════════
+function usePerk(id,cd){
+  const c=document.getElementById('pk-'+id);if(c.classList.contains('cd'))return;
+  c.classList.add('cd');
+  sendWS({type:'perk',perk:id});
+  if(myLat&&map)showPerkAnim(id,myLat,myLng);
+  const bar=document.getElementById('pb-'+id),cdt=document.getElementById('pct-'+id);
+  let elapsed=0;const iv=setInterval(()=>{elapsed++;bar.style.width=(elapsed/cd*100)+'%';cdt.textContent=(cd-elapsed)+'s';if(elapsed>=cd){clearInterval(iv);c.classList.remove('cd');bar.style.width='0';cdt.textContent='READY';}},1000);
+}
+
+// ════════════════════════════════════════════════════════════════
+// INIT — load maps on page load
+// ════════════════════════════════════════════════════════════════
+window.addEventListener('load', loadMaps);
+// Refresh map list every 15s while on home
+setInterval(()=>{if(!document.getElementById('home').classList.contains('hidden'))loadMaps();},15000);
+</script>
+</body>
+</html>
