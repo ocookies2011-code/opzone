@@ -72,6 +72,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
 .cpill{font-family:'Share Tech Mono',monospace;font-size:8px;padding:2px 7px;border-radius:2px;border:1px solid var(--green);color:var(--green);animation:blink 2s infinite}
 .cpill.off{border-color:var(--red);color:var(--red)}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes bleedPulse{0%,100%{background:rgba(255,42,42,.08)}50%{background:rgba(255,42,42,.22)}}
+.bleeding-body{animation:bleedPulse 1s infinite}
 .gclk{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--gold)}
 .tbnr{height:22px;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:3px;flex-shrink:0}
 .tbnr.red{background:linear-gradient(90deg,rgba(255,42,42,.25),rgba(255,42,42,.08),rgba(255,42,42,.25));color:var(--red);border-bottom:1px solid rgba(255,42,42,.3)}
@@ -345,7 +347,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
     <div class="gscreen active" id="gscreen-map">
       <div id="leaflet-map" style="flex:1;min-height:0"></div>
       <div id="emp-ov"><div class="emp-txt">⚡ EMP ACTIVE</div><div class="emp-sub">GPS MAP SCRAMBLED</div><div class="emp-timer" id="emp-timer">15</div></div>
-      <div id="ceasefire-ov"><div class="cf-txt">🕊 CEASEFIRE</div></div>
+      <div id="ceasefire-ov">
+        <div class="cf-txt">🕊 CEASEFIRE</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:rgba(255,255,255,.7);letter-spacing:2px;margin-top:8px">HOLD POSITIONS — AWAIT ADMIN</div>
+      </div>
       <div class="map-banner" id="uav-banner">📡 UAV ACTIVE</div>
       <div class="map-banner" id="hack-banner">💻 ENEMY LOCATED</div>
       <div id="revived-banner">🩹 REVIVED!</div>
@@ -406,11 +411,19 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
           <div class="mavt" id="mavt">🪖</div>
           <div class="mcs" id="mcs">—</div>
           <div class="mrk" id="mrk">—</div>
-          <div class="sgrid">
-            <button class="sb2 alive on" id="btn-alive" onclick="setStatus('alive')">✓ Alive</button>
-            <button class="sb2 dead" id="btn-dead" onclick="setStatus('dead')">✕ Down</button>
-            <button class="sb2 medic" id="btn-medic" onclick="setStatus('medic')">+ Medic Needed</button>
-            <button class="sb2 support" id="btn-support" onclick="setStatus('support')">◈ Need Support</button>
+          <!-- Alive is automated — only manual statuses are below -->
+          <div id="status-alive-indicator" style="background:rgba(0,204,102,.1);border:1px solid var(--green);border-radius:4px;padding:8px;text-align:center;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);margin-bottom:6px;display:none">✓ ALIVE — STATUS OK</div>
+          <div id="status-dead-panel" style="display:none">
+            <div style="background:rgba(255,42,42,.1);border:1px solid var(--red);border-radius:4px;padding:10px;text-align:center;margin-bottom:8px">
+              <div style="font-family:'Orbitron',monospace;font-size:14px;color:var(--red);font-weight:700;letter-spacing:2px;animation:blink .8s infinite">☠ BLEEDING OUT</div>
+              <div style="font-family:'Share Tech Mono',monospace;font-size:28px;color:var(--red);font-weight:700;margin:4px 0" id="bleed-timer">2:00</div>
+              <div style="font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace">Call Medic or reach Respawn Zone</div>
+            </div>
+          </div>
+          <div class="sgrid" style="grid-template-columns:1fr 1fr;gap:6px">
+            <button class="sb2 dead" id="btn-dead" onclick="setStatus('dead')">✕ I AM DOWN</button>
+            <button class="sb2 medic" id="btn-medic" onclick="setStatus('medic')">+ MEDIC NEEDED</button>
+            <button class="sb2 support" id="btn-support" onclick="setStatus('support')" style="grid-column:span 2">◈ NEED SUPPORT</button>
           </div>
         </div>
         <div class="gps-panel">
@@ -424,12 +437,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
         <div>
           <div class="sec-t">◈ TACTICAL PERKS</div>
           <div class="pg">
-            <div class="pkc" id="pk-uav" onclick="usePerk('uav',60)"><div class="pki">📡</div><div class="pkn">UAV</div><div class="pko">Reveals enemies 20s</div><div class="pkct" id="pct-uav">READY</div><div class="pkbar" id="pb-uav" style="width:0"></div></div>
-            <div class="pkc" id="pk-emp" onclick="usePerk('emp',90)"><div class="pki">⚡</div><div class="pkn">EMP</div><div class="pko">Blinds GPS 100m 15s</div><div class="pkct" id="pct-emp">READY</div><div class="pkbar" id="pb-emp" style="width:0"></div></div>
-            <div class="pkc" id="pk-smoke" onclick="usePerk('smoke',30)"><div class="pki">💨</div><div class="pkn">SMOKE</div><div class="pko">Smoke zone 30s</div><div class="pkct" id="pct-smoke">READY</div><div class="pkbar" id="pb-smoke" style="width:0"></div></div>
-            <div class="pkc" id="pk-hack" onclick="usePerk('hack',120)"><div class="pki">💻</div><div class="pkn">HACK</div><div class="pko">1 enemy pos 10s</div><div class="pkct" id="pct-hack">READY</div><div class="pkbar" id="pb-hack" style="width:0"></div></div>
-            <div class="pkc" id="pk-medkit" onclick="usePerk('medkit',45)"><div class="pki">🩹</div><div class="pkn">MEDKIT</div><div class="pko">Revive 30m allies</div><div class="pkct" id="pct-medkit">READY</div><div class="pkbar" id="pb-medkit" style="width:0"></div></div>
-            <div class="pkc" id="pk-air" onclick="usePerk('air',180)"><div class="pki">🚁</div><div class="pkn">AIR SUP</div><div class="pko">Danger zone 60s</div><div class="pkct" id="pct-air">READY</div><div class="pkbar" id="pb-air" style="width:0"></div></div>
+            <div class="pkc" id="pk-uav" onclick="usePerk('uav')"><div class="pki">📡</div><div class="pkn">UAV</div><div class="pko">30m scan · team 60s</div><div class="pkct" id="pct-uav">TEAM READY</div><div class="pkbar" id="pb-uav" style="width:0"></div></div>
+            <div class="pkc" id="pk-emp" onclick="usePerk('emp')"><div class="pki">⚡</div><div class="pkn">EMP</div><div class="pko">Scramble 100m · team 4m30s</div><div class="pkct" id="pct-emp">TEAM READY</div><div class="pkbar" id="pb-emp" style="width:0"></div></div>
+            <div class="pkc" id="pk-smoke" onclick="usePerk('smoke')"><div class="pki">💨</div><div class="pkn">SMOKE</div><div class="pko">Smoke zone · team 3min</div><div class="pkct" id="pct-smoke">TEAM READY</div><div class="pkbar" id="pb-smoke" style="width:0"></div></div>
+            <div class="pkc" id="pk-hack" onclick="usePerk('hack')"><div class="pki">💻</div><div class="pkn">HACK</div><div class="pko">1 enemy 10s · personal 2m30s</div><div class="pkct" id="pct-hack">READY</div><div class="pkbar" id="pb-hack" style="width:0"></div></div>
+            <div class="pkc" id="pk-medkit" onclick="usePerk('medkit')"><div class="pki">🩹</div><div class="pkn">MEDKIT</div><div class="pko">Revive 10m · team 2min</div><div class="pkct" id="pct-medkit">TEAM READY</div><div class="pkbar" id="pb-medkit" style="width:0"></div></div>
+            <div class="pkc" id="pk-air" onclick="usePerk('air')"><div class="pki">🚁</div><div class="pkn">AIR SUP</div><div class="pko">10m zone · team 4min</div><div class="pkct" id="pct-air">TEAM READY</div><div class="pkbar" id="pb-air" style="width:0"></div></div>
           </div>
         </div>
       </div>
@@ -530,6 +543,7 @@ function joinGame(){
   document.getElementById('mrk').textContent=myRole+' · '+myTeam.toUpperCase()+' TEAM';
 
   initMap();startGPS();connectWS();
+  myStatus='alive';updateStatusPanel();
 }
 
 function leaveGame(){
@@ -752,7 +766,12 @@ function handle(msg){
 
     case 'status_update':{
       const p=players[msg.playerId];
-      if(p){p.status=msg.status;if(msg.playerId===myId)myStatus=msg.status;renderSquad();if(p.team===myTeam||p._ghost)updMarker(p,msg.playerId===myId);}break;}
+      if(p){
+        p.status=msg.status;
+        if(msg.playerId===myId){myStatus=msg.status;updateStatusPanel();}
+        renderSquad();
+        if(p.team===myTeam||p._ghost)updMarker(p,msg.playerId===myId);
+      }break;}
 
     case 'new_order':
       orders.push(msg.order);if(orders.length>200)orders.shift();renderOrders();
@@ -824,17 +843,89 @@ function handle(msg){
       toast('⚡ EMP from '+msg.from+' — map offline '+Math.floor((msg.duration||15000)/1000)+'s','err');break;
     case 'emp_cleared':document.getElementById('emp-ov').classList.remove('show');clearInterval(empTimerIv);toast('📡 GPS restored');break;
 
+    case 'team_cooldown':
+      // Server tells ALL team members this perk is now on cooldown
+      applyTeamCooldown(msg.perk, msg.seconds, msg.endsAt);
+      break;
+
+    case 'player_cooldown':
+      // Personal cooldown (hack only)
+      applyTeamCooldown(msg.perk, msg.seconds, msg.endsAt);
+      break;
+
+    case 'you_are_bleeding':
+      // I was just downed — start bleed-out countdown
+      myStatus='dead';updateStatusPanel();
+      startBleedTimer(msg.duration||120000);
+      toast('☠ BLEEDING OUT — call medic or reach respawn!','err');
+      break;
+
+    case 'bleed_start':{
+      // A teammate is bleeding out — show on squad list
+      const bp=players[msg.playerId];if(bp)bp._bleedEndsAt=Date.now()+msg.duration;
+      renderSquad();break;}
+
+    case 'auto_respawned':
+      // I survived bleed-out — auto-respawned
+      myStatus='alive';
+      if(bleedTimer){clearInterval(bleedTimer);bleedTimer=null;}
+      updateStatusPanel();
+      const rb2=document.getElementById('revived-banner');if(rb2){rb2.textContent='🔄 AUTO-RESPAWNED — return to base!';rb2.style.display='flex';setTimeout(()=>rb2.style.display='none',4000);}
+      if(myId&&players[myId]){players[myId].status='alive';updMarker(players[myId],true);}
+      toast('🔄 Respawned — return to spawn zone','ok');break;
+
+    case 'emp_scramble_start':
+      // My GPS positions are being scrambled on enemy maps — I see a warning
+      toast('⚡ EMP BLAST — Enemy is scrambling your position!','err');
+      document.getElementById('uav-banner').textContent='⚡ EMP ACTIVE — Your position is scrambled';
+      document.getElementById('uav-banner').classList.add('show');
+      setTimeout(()=>document.getElementById('uav-banner').classList.remove('show'),(msg.duration||30000));
+      break;
+
+    case 'emp_scramble_enemies':{
+      // MY team scrambles enemy markers on map
+      const et2=msg.enemyTeam;
+      Object.values(players).filter(p=>p.team===et2).forEach(p=>{
+        p._scrambled=true;p._scrambleUntil=Date.now()+(msg.duration||30000);
+        // Show random jitter on their map position
+        if(p.lat){const jLat=p.lat+(Math.random()-.5)*0.002;const jLng=p.lng+(Math.random()-.5)*0.002;updMarkerScrambled(p.id,jLat,jLng);}
+      });
+      toast('⚡ EMP — Scrambling enemy positions!','ok');
+      break;}
+
+    case 'emp_scramble_end':
+      document.getElementById('uav-banner').classList.remove('show');break;
+
+    case 'emp_scramble_done':{
+      Object.values(players).filter(p=>p._scrambled).forEach(p=>{p._scrambled=false;delete p._scrambleUntil;rmMarker(p.id);});
+      toast('EMP expired — enemy positions restored');break;}
+
+    case 'perk_anim_persist':
+      // Sustained animation for the full perk duration
+      if(map)showPerkAnimPersist(msg.perk,msg.lat,msg.lng,msg.duration);break;
+
+    case 'perk_anim_end':
+      clearPerkAnimPersist(msg.perk);break;
+
+    case 'ceasefire_end':
+      document.getElementById('ceasefire-ov').classList.remove('show');
+      toast('⚔ Ceasefire ended — game resumes!','warn');break;
+
     case 'revived':
-      myStatus='alive';['alive','dead','medic','support'].forEach(x=>document.getElementById('btn-'+x)?.classList.remove('on'));
-      document.getElementById('btn-alive')?.classList.add('on');
-      const rb=document.getElementById('revived-banner');rb.textContent='🩹 REVIVED by '+msg.by+'!';rb.style.display='flex';setTimeout(()=>rb.style.display='none',3000);
+      myStatus='alive';
+      if(bleedTimer){clearInterval(bleedTimer);bleedTimer=null;}
+      updateStatusPanel();
+      const rb=document.getElementById('revived-banner');if(rb){rb.textContent='🩹 REVIVED by '+msg.by+'!';rb.style.display='flex';setTimeout(()=>rb.style.display='none',3000);}
       if(myId&&players[myId]){players[myId].status='alive';updMarker(players[myId],true);}
       toast('🩹 Revived by '+msg.by+'!','ok');break;
 
     case 'blackout':document.getElementById('emp-ov').classList.add('show');toast('⚫ BLACKOUT — GPS offline!','err');break;
     case 'blackout_end':document.getElementById('emp-ov').classList.remove('show');toast('GPS restored');break;
     case 'ceasefire_signal':
-      const ceo=document.getElementById('ceasefire-ov');ceo.classList.add('show');toast('🕊 CEASEFIRE SIGNAL');setTimeout(()=>ceo.classList.remove('show'),8000);break;
+      document.getElementById('ceasefire-ov').classList.add('show');
+      toast('🕊 CEASEFIRE — hold all positions!','warn');
+      // Does NOT auto-dismiss — admin sends ceasefire_end to clear it
+      break;
     case 'game_paused':document.getElementById('pausedOv').classList.add('show');break;
     case 'game_resumed':document.getElementById('pausedOv').classList.remove('show');break;
     case 'game_reset':Object.values(players).forEach(p=>p.status='alive');renderSquad();Object.values(players).filter(p=>p.team===myTeam).forEach(p=>updMarker(p,p.id===myId));break;
@@ -909,10 +1000,25 @@ function updBadge(){const b=document.getElementById('nb-cm');if(!b)return;if(unr
 // ACTIONS
 // ════════════════════════════════════════════════════════════════
 function setStatus(s){
-  myStatus=s;['alive','dead','medic','support'].forEach(x=>document.getElementById('btn-'+x)?.classList.remove('on'));
-  document.getElementById('btn-'+s)?.classList.add('on');
-  sendWS({type:'status',status:s});toast('Status → '+s.toUpperCase());
+  // Only allow: dead, medic, support — alive is server-automated
+  if(!['dead','medic','support'].includes(s))return;
+  if(s==='dead'&&myStatus==='dead')return; // already dead
+  myStatus=s;
+  sendWS({type:'status',status:s});
+  toast('Status → '+s.toUpperCase());
   if(myId&&players[myId]){players[myId].status=s;updMarker(players[myId],true);}
+  updateStatusPanel();
+}
+
+function updateStatusPanel(){
+  const aliveInd=document.getElementById('status-alive-indicator');
+  const deadPanel=document.getElementById('status-dead-panel');
+  const isDown=myStatus==='dead'||myStatus==='medic';
+  if(aliveInd)aliveInd.style.display=myStatus==='alive'?'block':'none';
+  if(deadPanel)deadPanel.style.display=isDown?'block':'none';
+  // Pulse the screen red when bleeding out
+  const body=document.getElementById('gapp');
+  if(body)body.classList.toggle('bleeding-body',myStatus==='dead');
 }
 function sendOrder(){const txt=document.getElementById('ctxt').value.trim();if(!txt)return;sendWS({type:'order',text:txt,priority:document.getElementById('cprio').value});document.getElementById('ctxt').value='';}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.activeElement&&document.activeElement.id==='ctxt')sendOrder();});
@@ -921,13 +1027,92 @@ function toggleObj(id,done){sendWS({type:'objective',id,done});}
 // ════════════════════════════════════════════════════════════════
 // PERKS
 // ════════════════════════════════════════════════════════════════
-function usePerk(id,cd){
+// ── Persistent perk animations ────────────────────────────────
+const persistAnims={};
+function showPerkAnimPersist(perk,lat,lng,duration){
+  clearPerkAnimPersist(perk);
+  if(!map||lat==null)return;
+  const mapEl=document.getElementById('leaflet-map');
+  const configs={
+    uav:{emoji:'📡',color:'#00c4ff',css:'position:absolute;font-size:32px;animation:uavSpin 2s linear infinite;pointer-events:none;z-index:598;transform-origin:center'},
+    smoke:{emoji:'💨',color:'#888',css:'position:absolute;font-size:40px;opacity:.8;pointer-events:none;z-index:598;animation:smokeGrow 3s ease-out infinite'},
+  };
+  const cfg=configs[perk];if(!cfg)return;
+  const el=document.createElement('div');
+  el.id='persist-anim-'+perk;
+  const pt=map.latLngToLayerPoint([lat,lng]);
+  el.style.cssText=cfg.css+';left:'+(pt.x-20)+'px;top:'+(pt.y-20)+'px';
+  el.textContent=cfg.emoji;mapEl.appendChild(el);
+  const moveH=()=>{const np=map.latLngToLayerPoint([lat,lng]);el.style.left=(np.x-20)+'px';el.style.top=(np.y-20)+'px';};
+  map.on('move',moveH);
+  const t=setTimeout(()=>clearPerkAnimPersist(perk),duration||20000);
+  persistAnims[perk]={el,moveH,t};
+}
+function clearPerkAnimPersist(perk){
+  const a=persistAnims[perk];if(!a)return;
+  if(a.el&&a.el.parentNode)a.el.parentNode.removeChild(a.el);
+  if(a.moveH)map&&map.off('move',a.moveH);
+  if(a.t)clearTimeout(a.t);
+  delete persistAnims[perk];
+}
+
+// ── EMP scramble — jitter enemy markers ──────────────────────
+let scrambleInterval=null;
+function updMarkerScrambled(id,lat,lng){
+  if(!map||!markers[id])return;
+  markers[id].setLatLng([lat,lng]);
+}
+function startScrambleJitter(enemyTeam,duration){
+  if(scrambleInterval)clearInterval(scrambleInterval);
+  const end=Date.now()+duration;
+  scrambleInterval=setInterval(()=>{
+    if(Date.now()>=end){clearInterval(scrambleInterval);scrambleInterval=null;return;}
+    Object.values(players).filter(p=>p.team===enemyTeam&&p._scrambled&&p.lat).forEach(p=>{
+      const jLat=p.lat+(Math.random()-.5)*0.001;
+      const jLng=p.lng+(Math.random()-.5)*0.001;
+      updMarkerScrambled(p.id,jLat,jLng);
+    });
+  },800);
+}
+
+// teamCooldowns[perk] = endsAt timestamp; set by server via 'team_cooldown' message
+const teamCooldowns={};
+let bleedTimer=null, bleedEndsAt=0;
+
+function usePerk(id){
   const c=document.getElementById('pk-'+id);if(!c||c.classList.contains('cd'))return;
-  c.classList.add('cd');
+  if(myStatus==='dead'){toast('Cannot use perks while down','err');return;}
   sendWS({type:'perk',perk:id});
+  // Optimistic: show local animation immediately (server confirms or rejects)
   if(myLat&&map)showPerkAnim(id,myLat,myLng);
-  const bar=document.getElementById('pb-'+id),cdt=document.getElementById('pct-'+id);
-  let elapsed=0;const iv=setInterval(()=>{elapsed++;if(bar)bar.style.width=(elapsed/cd*100)+'%';if(cdt)cdt.textContent=(cd-elapsed)+'s';if(elapsed>=cd){clearInterval(iv);c.classList.remove('cd');if(bar)bar.style.width='0';if(cdt)cdt.textContent='READY';}},1000);
+}
+
+function applyTeamCooldown(perk, seconds, endsAt){
+  const c=document.getElementById('pk-'+perk);
+  const bar=document.getElementById('pb-'+perk);
+  const cdt=document.getElementById('pct-'+perk);
+  if(!c)return;
+  c.classList.add('cd');
+  const total=seconds;
+  const iv=setInterval(()=>{
+    const rem=Math.max(0,Math.ceil((endsAt-Date.now())/1000));
+    const pct=((total-rem)/total*100);
+    if(bar)bar.style.width=pct+'%';
+    if(cdt)cdt.textContent=rem>0?rem+'s':'READY';
+    if(rem<=0){clearInterval(iv);c.classList.remove('cd');if(bar)bar.style.width='0';if(cdt)cdt.textContent=perk==='hack'?'READY':'TEAM READY';}
+  },500);
+}
+
+function startBleedTimer(duration){
+  bleedEndsAt=Date.now()+duration;
+  if(bleedTimer)clearInterval(bleedTimer);
+  bleedTimer=setInterval(()=>{
+    const rem=Math.max(0,Math.ceil((bleedEndsAt-Date.now())/1000));
+    const m=Math.floor(rem/60), sec=rem%60;
+    const el=document.getElementById('bleed-timer');
+    if(el)el.textContent=m+':'+(sec<10?'0':'')+sec;
+    if(rem<=0){clearInterval(bleedTimer);bleedTimer=null;}
+  },500);
 }
 
 // ════════════════════════════════════════════════════════════════

@@ -56,6 +56,8 @@ function makeRoom(code, name, password) {
     createdAt: Date.now(),
     gamePaused: false,
     uavActive: {},
+    teamCooldowns: { red: {}, blue: {} },  // perk → expiry timestamp
+    empScramble: {},                         // team → { active, timeout }
   };
 }
 
@@ -156,81 +158,265 @@ function haversine(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
+// ── Team cooldown check ───────────────────────────────────────────
+// hackCd is per-player; all others are team-wide
+function checkTeamCooldown(room, team, perk) {
+  const cd = room.teamCooldowns[team][perk];
+  if (cd && Date.now() < cd) {
+    const rem = Math.ceil((cd - Date.now()) / 1000);
+    return rem; // seconds remaining
+  }
+  return 0;
+}
+function setTeamCooldown(room, team, perk, seconds) {
+  room.teamCooldowns[team][perk] = Date.now() + seconds * 1000;
+  // Broadcast cooldown start so all team members lock the button
+  broadcastTeam(room, team, { type: 'team_cooldown', perk, seconds, endsAt: room.teamCooldowns[team][perk] });
+}
+
+// ── Revive helper (used by medic proximity + medkit) ──────────────
+function revivePlayer(room, target, byCallsign) {
+  if (target.status === 'alive') return;
+  // Cancel bleed-out timer if running
+  if (target._bleedTimer) { clearTimeout(target._bleedTimer); target._bleedTimer = null; }
+  target.status = 'alive';
+  target.bleedingOut = false;
+  broadcastAll(room, { type: 'status_update', playerId: target.id, status: 'alive', team: target.team });
+  sendTo(target.ws, { type: 'revived', by: byCallsign });
+  const ord = { id: uuidv4(), from: byCallsign, team: target.team, text: `🩹 ${byCallsign} revived ${target.callsign}!`, priority: 'normal', ts: Date.now() };
+  room.orders.push(ord); broadcastAll(room, { type: 'new_order', order: ord });
+}
+
+// ── Bleed-out: called when a player is set to 'dead' ─────────────
+const BLEED_OUT_MS = 120000; // 2 minutes
+
+function startBleedOut(room, player) {
+  if (player._bleedTimer) clearTimeout(player._bleedTimer);
+  player.bleedingOut = true;
+  broadcastAll(room, { type: 'bleed_start', playerId: player.id, duration: BLEED_OUT_MS });
+  sendTo(player.ws, { type: 'you_are_bleeding', duration: BLEED_OUT_MS });
+  player._bleedTimer = setTimeout(() => {
+    player._bleedTimer = null;
+    player.bleedingOut = false;
+    if (player.status !== 'alive') {
+      // Auto-respawn: find nearest respawn zone for their team
+      const respawnType = player.team === 'red' ? 'respawn_red' : 'respawn_blue';
+      const respawns = room.zones.filter(z => z.zoneType === respawnType);
+      player.status = 'alive';
+      broadcastAll(room, { type: 'status_update', playerId: player.id, status: 'alive', team: player.team });
+      sendTo(player.ws, { type: 'auto_respawned', respawnZones: respawns });
+      const ord = { id: uuidv4(), from: 'SYSTEM', team: player.team, text: `🔄 ${player.callsign} bled out — returning to respawn.`, priority: 'low', ts: Date.now() };
+      room.orders.push(ord); broadcastAll(room, { type: 'new_order', order: ord });
+    }
+  }, BLEED_OUT_MS);
+}
+
+// ── Medic proximity scanner (runs every 3s per room) ─────────────
+function startMedicScanner(room) {
+  if (room._medicScanInterval) return;
+  room._medicScanInterval = setInterval(() => {
+    const players = Object.values(room.players);
+    const MEDIC_RADIUS = 5; // metres
+    players.forEach(medic => {
+      if (medic.role !== 'Medic' || !medic.lat || medic.status !== 'alive') return;
+      players.forEach(downed => {
+        if (downed.team !== medic.team || downed.id === medic.id) return;
+        if (downed.status === 'alive' || !downed.lat) return;
+        const dist = haversine(medic.lat, medic.lng, downed.lat, downed.lng);
+        if (dist <= MEDIC_RADIUS) {
+          revivePlayer(room, downed, medic.callsign);
+        }
+      });
+    });
+  }, 3000);
+}
+
 const PERK_CONFIGS = {
+  // COOLDOWNS (team-wide seconds): uav=60, emp=270, smoke=180, hack=150(per-player), medkit=120, air=240
   uav: {
+    teamCd: 60,
     effect(room, caster) {
       const team = caster.team;
-      const enemies = Object.values(room.players).filter(p => p.team !== team);
-      if (!enemies.length) return { feedback: 'No enemy targets in range.' };
+      const rem = checkTeamCooldown(room, team, 'uav');
+      if (rem) return { feedback: `UAV on cooldown — ${rem}s remaining.`, cooldown: true };
+      if (!caster.lat) return { feedback: 'No GPS — UAV needs your location.' };
+
+      // Find enemies within 30m radius of caster
+      const enemies = Object.values(room.players).filter(p =>
+        p.team !== team && p.lat && haversine(caster.lat, caster.lng, p.lat, p.lng) <= 30
+      );
+      setTeamCooldown(room, team, 'uav', 60);
       if (!room.uavActive) room.uavActive = {};
       room.uavActive[team] = true;
-      broadcastTeam(room, team, { type: 'uav_reveal', reveals: enemies.map(playerPublic), duration: 20000, callsign: caster.callsign });
-      broadcastTeam(room, team, { type: 'perk_anim', perk: 'uav', lat: caster.lat, lng: caster.lng, callsign: caster.callsign, team });
-      const et = team === 'red' ? 'blue' : 'red';
-      broadcastTeam(room, et, { type: 'perk_anim', perk: 'uav', lat: caster.lat, lng: caster.lng, callsign: caster.callsign, team });
-      const warn = { id: uuidv4(), from: 'INTEL', team: et, text: `📡 UAV SCAN DETECTED — Change position immediately!`, priority: 'high', ts: Date.now() };
-      room.orders.push(warn); broadcastTeam(room, et, { type: 'new_order', order: warn });
-      setTimeout(() => { if (room.uavActive) room.uavActive[team] = false; broadcastTeam(room, team, { type: 'uav_expired' }); }, 20000);
-      logEvent('perk_uav', { room: room.code, caster: caster.callsign });
-      return { feedback: `UAV active — ${enemies.length} enemy contact(s) revealed for 20s.` };
-    }
-  },
-  emp: {
-    effect(room, caster) {
-      if (!caster.lat) return { feedback: 'No GPS — EMP requires location.' };
-      const enemies = Object.values(room.players).filter(p => p.team !== caster.team && p.lat && haversine(caster.lat, caster.lng, p.lat, p.lng) <= 100);
-      enemies.forEach(e => {
-        e.empBlocked = true;
-        sendTo(e.ws, { type: 'emp_hit', duration: 15000, from: caster.callsign });
-        setTimeout(() => { e.empBlocked = false; sendTo(e.ws, { type: 'emp_cleared' }); }, 15000);
+
+      const UAV_DUR = 20000;
+      broadcastTeam(room, team, {
+        type: 'uav_reveal', reveals: enemies.map(playerPublic),
+        duration: UAV_DUR, callsign: caster.callsign,
+        casterLat: caster.lat, casterLng: caster.lng
       });
-      broadcastAll(room, { type: 'perk_anim', perk: 'emp', lat: caster.lat, lng: caster.lng, callsign: caster.callsign, team: caster.team });
-      return { feedback: enemies.length ? `EMP hit ${enemies.length} enemies within 100m for 15s.` : 'EMP deployed — no enemies in range.' };
+      // Send continuous UAV animation to own team only
+      broadcastTeam(room, team, { type: 'perk_anim_persist', perk: 'uav', lat: caster.lat, lng: caster.lng, duration: UAV_DUR, callsign: caster.callsign, team });
+
+      // Alert enemy team (no position info)
+      const et = team === 'red' ? 'blue' : 'red';
+      const warn = { id: uuidv4(), from: 'INTEL', team: et, text: '📡 UAV SCAN DETECTED — Enemy surveillance active! Move now!', priority: 'high', ts: Date.now() };
+      room.orders.push(warn); broadcastTeam(room, et, { type: 'new_order', order: warn });
+
+      setTimeout(() => {
+        if (room.uavActive) room.uavActive[team] = false;
+        broadcastTeam(room, team, { type: 'uav_expired' });
+      }, UAV_DUR);
+
+      logEvent('perk_uav', { room: room.code, caster: caster.callsign, hits: enemies.length });
+      return { feedback: `UAV scanning 30m — ${enemies.length} contact(s) revealed for 20s.` };
     }
   },
-  smoke: {
+
+  emp: {
+    teamCd: 270, // 4m30s
     effect(room, caster) {
+      const team = caster.team;
+      const rem = checkTeamCooldown(room, team, 'emp');
+      if (rem) return { feedback: `EMP on cooldown — ${rem}s remaining.`, cooldown: true };
+      if (!caster.lat) return { feedback: 'No GPS — EMP requires location.' };
+
+      const EMP_DUR = 30000; // 30s scramble
+      const enemies = Object.values(room.players).filter(p =>
+        p.team !== team && p.lat && haversine(caster.lat, caster.lng, p.lat, p.lng) <= 100
+      );
+      setTeamCooldown(room, team, 'emp', 270);
+
+      if (!room.empScramble) room.empScramble = {};
+      const et = team === 'red' ? 'blue' : 'red';
+
+      // Scramble enemy locations on maps — send fake randomised positions
+      enemies.forEach(e => {
+        sendTo(e.ws, { type: 'emp_scramble_start', duration: EMP_DUR, from: caster.callsign });
+      });
+      // Tell the caster's team to show scrambled enemy markers
+      broadcastTeam(room, team, { type: 'emp_scramble_enemies', duration: EMP_DUR, enemyTeam: et });
+      // Visual animation to own team only
+      broadcastTeam(room, team, { type: 'perk_anim', perk: 'emp', lat: caster.lat, lng: caster.lng, callsign: caster.callsign, team });
+
+      setTimeout(() => {
+        enemies.forEach(e => sendTo(e.ws, { type: 'emp_scramble_end' }));
+        broadcastTeam(room, team, { type: 'emp_scramble_done', enemyTeam: et });
+      }, EMP_DUR);
+
+      logEvent('perk_emp', { room: room.code, caster: caster.callsign, hit: enemies.length });
+      return { feedback: enemies.length ? `EMP hit ${enemies.length} enemies — scrambling their positions for 30s.` : 'EMP deployed — no enemies in range.' };
+    }
+  },
+
+  smoke: {
+    teamCd: 180, // 3 minutes
+    effect(room, caster) {
+      const team = caster.team;
+      const rem = checkTeamCooldown(room, team, 'smoke');
+      if (rem) return { feedback: `Smoke on cooldown — ${rem}s remaining.`, cooldown: true };
       if (!caster.lat) return { feedback: 'No GPS for smoke.' };
-      const zone = { id: uuidv4(), zoneType: 'custom', label: `💨 SMOKE — ${caster.callsign}`, shape: 'circle', center: [caster.lat, caster.lng], radius: 25, color: '#aaaaaa', latlngs: [], createdBy: { callsign: caster.callsign }, ts: Date.now() };
+      setTeamCooldown(room, team, 'smoke', 180);
+
+      const SMOKE_DUR = 30000;
+      const zone = {
+        id: uuidv4(), zoneType: 'custom', label: `💨 SMOKE — ${caster.callsign}`,
+        shape: 'circle', center: [caster.lat, caster.lng], radius: 15,
+        color: '#888888', fillOpacity: 0.6, latlngs: [],
+        createdBy: { callsign: caster.callsign }, ts: Date.now(), isSmoke: true,
+      };
       room.zones.push(zone);
       broadcastAll(room, { type: 'zone_added', zone });
-      broadcastAll(room, { type: 'perk_anim', perk: 'smoke', lat: caster.lat, lng: caster.lng, callsign: caster.callsign, team: caster.team });
-      setTimeout(() => { room.zones = room.zones.filter(z => z.id !== zone.id); broadcastAll(room, { type: 'zone_removed', id: zone.id }); }, 30000);
-      return { feedback: 'Smoke screen for 30s.' };
+      // Persistent smoke animation to own team only
+      broadcastTeam(room, team, { type: 'perk_anim_persist', perk: 'smoke', lat: caster.lat, lng: caster.lng, duration: SMOKE_DUR, callsign: caster.callsign, team });
+
+      setTimeout(() => {
+        room.zones = room.zones.filter(z => z.id !== zone.id);
+        broadcastAll(room, { type: 'zone_removed', id: zone.id });
+        broadcastTeam(room, team, { type: 'perk_anim_end', perk: 'smoke' });
+      }, SMOKE_DUR);
+
+      return { feedback: 'Smoke screen deployed for 30s.' };
     }
   },
+
   hack: {
+    // PER-PLAYER cooldown (150s = 2m30s) — handled client-side, enforced here via player flag
+    playerCd: 150,
     effect(room, caster) {
+      const now = Date.now();
+      if (caster._hackCooldownUntil && now < caster._hackCooldownUntil) {
+        const rem = Math.ceil((caster._hackCooldownUntil - now) / 1000);
+        return { feedback: `Hack on cooldown — ${rem}s remaining.`, cooldown: true };
+      }
       const enemies = Object.values(room.players).filter(p => p.team !== caster.team && p.lat);
       if (!enemies.length) return { feedback: 'No targets with GPS signal.' };
+
+      caster._hackCooldownUntil = now + 150000;
+      // Notify only caster of their personal cooldown
+      sendTo(caster.ws, { type: 'player_cooldown', perk: 'hack', seconds: 150, endsAt: caster._hackCooldownUntil });
+
       const target = enemies[Math.floor(Math.random() * enemies.length)];
       sendTo(caster.ws, { type: 'hack_reveal', target: playerPublic(target), duration: 10000 });
+      // Only tell the target they were hacked — NOT the caster's team
       sendTo(target.ws, { type: 'hack_detected', from: caster.callsign });
-      broadcastTeam(room, caster.team, { type: 'perk_anim', perk: 'hack', lat: caster.lat, lng: caster.lng, callsign: caster.callsign, team: caster.team });
+      // Animation to caster only
+      sendTo(caster.ws, { type: 'perk_anim', perk: 'hack', lat: caster.lat, lng: caster.lng, callsign: caster.callsign, team: caster.team });
+
+      logEvent('perk_hack', { room: room.code, caster: caster.callsign, target: target.callsign });
       return { feedback: `Hacked: ${target.callsign} revealed for 10s.` };
     }
   },
+
   medkit: {
+    teamCd: 120, // 2 minutes
     effect(room, caster) {
+      const team = caster.team;
+      const rem = checkTeamCooldown(room, team, 'medkit');
+      if (rem) return { feedback: `Medkit on cooldown — ${rem}s remaining.`, cooldown: true };
       if (!caster.lat) return { feedback: 'No GPS — cannot locate teammates.' };
-      const downed = Object.values(room.players).filter(p => p.team === caster.team && p.id !== caster.id && p.status !== 'alive' && p.lat && haversine(caster.lat, caster.lng, p.lat, p.lng) <= 30);
-      downed.forEach(p => { p.status = 'alive'; broadcastAll(room, { type: 'status_update', playerId: p.id, status: 'alive', team: p.team }); sendTo(p.ws, { type: 'revived', by: caster.callsign }); });
-      broadcastAll(room, { type: 'perk_anim', perk: 'medkit', lat: caster.lat, lng: caster.lng, callsign: caster.callsign, team: caster.team });
-      if (downed.length) { const ord = { id: uuidv4(), from: caster.callsign, team: caster.team, text: `🩹 ${caster.callsign} revived ${downed.map(p=>p.callsign).join(', ')}!`, priority: 'normal', ts: Date.now() }; room.orders.push(ord); broadcastAll(room, { type: 'new_order', order: ord }); }
-      return { feedback: downed.length ? `Revived ${downed.length} teammate(s).` : 'No downed teammates within 30m.' };
+      setTeamCooldown(room, team, 'medkit', 120);
+
+      const MEDKIT_RADIUS = 10; // metres
+      const downed = Object.values(room.players).filter(p =>
+        p.team === team && p.id !== caster.id && p.status !== 'alive' && p.lat &&
+        haversine(caster.lat, caster.lng, p.lat, p.lng) <= MEDKIT_RADIUS
+      );
+      downed.forEach(p => revivePlayer(room, p, caster.callsign + ' (MEDKIT)'));
+      // Animation to own team only
+      broadcastTeam(room, team, { type: 'perk_anim', perk: 'medkit', lat: caster.lat, lng: caster.lng, callsign: caster.callsign, team });
+
+      logEvent('perk_medkit', { room: room.code, caster: caster.callsign, revived: downed.length });
+      return { feedback: downed.length ? `Medkit revived ${downed.length} teammate(s) within ${MEDKIT_RADIUS}m.` : `No downed teammates within ${MEDKIT_RADIUS}m.` };
     }
   },
+
   air: {
+    teamCd: 240, // 4 minutes
     effect(room, caster) {
+      const team = caster.team;
+      const rem = checkTeamCooldown(room, team, 'air');
+      if (rem) return { feedback: `Air support on cooldown — ${rem}s remaining.`, cooldown: true };
       if (!caster.lat) return { feedback: 'No GPS for air support.' };
-      const zone = { id: uuidv4(), zoneType: 'hazard', label: `🚁 AIR STRIKE — ${caster.callsign}`, shape: 'circle', center: [caster.lat, caster.lng], radius: 60, color: '#ff6600', latlngs: [], createdBy: { callsign: caster.callsign }, ts: Date.now() };
+      setTeamCooldown(room, team, 'air', 240);
+
+      const zone = {
+        id: uuidv4(), zoneType: 'hazard', label: `🚁 AIR STRIKE — ${caster.callsign}`,
+        shape: 'circle', center: [caster.lat, caster.lng], radius: 10, // 10m radius
+        color: '#ff6600', latlngs: [], createdBy: { callsign: caster.callsign }, ts: Date.now(),
+      };
       room.zones.push(zone);
       broadcastAll(room, { type: 'zone_added', zone });
-      broadcastAll(room, { type: 'perk_anim', perk: 'air', lat: caster.lat, lng: caster.lng, callsign: caster.callsign, team: caster.team });
-      const ord = { id: uuidv4(), from: '⭐ AIR CMD', team: caster.team, text: `🚁 AIR SUPPORT inbound at ${caster.callsign}'s position! ALL UNITS CLEAR!`, priority: 'high', ts: Date.now() };
+      broadcastTeam(room, team, { type: 'perk_anim', perk: 'air', lat: caster.lat, lng: caster.lng, callsign: caster.callsign, team });
+      const ord = { id: uuidv4(), from: '⭐ AIR CMD', team, text: `🚁 AIR SUPPORT inbound at ${caster.callsign}'s position! ALL UNITS CLEAR!`, priority: 'high', ts: Date.now() };
       room.orders.push(ord); broadcastAll(room, { type: 'new_order', order: ord });
-      setTimeout(() => { room.zones = room.zones.filter(z => z.id !== zone.id); broadcastAll(room, { type: 'zone_removed', id: zone.id }); }, 60000);
-      return { feedback: 'Air support called — danger zone marked for 60s.' };
+      setTimeout(() => {
+        room.zones = room.zones.filter(z => z.id !== zone.id);
+        broadcastAll(room, { type: 'zone_removed', id: zone.id });
+      }, 60000);
+
+      logEvent('perk_air', { room: room.code, caster: caster.callsign });
+      return { feedback: 'Air support called — 10m danger zone marked for 60s.' };
     }
   },
 };
@@ -286,11 +472,23 @@ wss.on('connection', (ws) => {
         if (!playerId || !roomCode) break;
         const room = rooms[roomCode]; if (!room) break;
         const player = room.players[playerId]; if (!player) break;
+        // Block setting 'alive' directly from client — must go through revive/bleed-out
+        const allowedStatuses = ['dead', 'medic', 'support'];
+        if (!allowedStatuses.includes(msg.status)) break;
+        const prev = player.status;
         player.status = msg.status;
         broadcastAll(room, { type: 'status_update', playerId, status: msg.status, team: player.team });
-        if (msg.status === 'medic' || msg.status === 'support') {
-          const txt = msg.status === 'medic' ? `🚨 MEDIC NEEDED — ${player.callsign} (${player.team.toUpperCase()}) requires assistance!` : `⚡ SUPPORT NEEDED — ${player.callsign} (${player.team.toUpperCase()}) needs backup!`;
-          const alert = { id: uuidv4(), from: player.callsign, team: player.team, text: txt, priority: 'high', ts: Date.now() };
+        // Start bleed-out timer when player dies
+        if (msg.status === 'dead' && prev !== 'dead') {
+          startBleedOut(room, player);
+          startMedicScanner(room);
+        }
+        if (msg.status === 'medic') {
+          const alert = { id: uuidv4(), from: player.callsign, team: player.team, text: `🚨 MEDIC NEEDED — ${player.callsign} (${player.team.toUpperCase()}) requires assistance!`, priority: 'high', ts: Date.now() };
+          room.orders.push(alert); broadcastAll(room, { type: 'new_order', order: alert });
+        }
+        if (msg.status === 'support') {
+          const alert = { id: uuidv4(), from: player.callsign, team: player.team, text: `⚡ SUPPORT NEEDED — ${player.callsign} (${player.team.toUpperCase()}) needs backup!`, priority: 'high', ts: Date.now() };
           room.orders.push(alert); broadcastAll(room, { type: 'new_order', order: alert });
         }
         break;
@@ -310,10 +508,11 @@ wss.on('connection', (ws) => {
         if (!playerId || !roomCode) break;
         const room = rooms[roomCode]; if (!room) break;
         const player = room.players[playerId]; if (!player) break;
+        if (player.status === 'dead') { sendTo(ws, { type: 'perk_feedback', perk: msg.perk, message: 'Cannot use perks while down.' }); break; }
         const cfg = PERK_CONFIGS[msg.perk]; if (!cfg) break;
         const result = cfg.effect(room, player);
         sendTo(ws, { type: 'perk_feedback', perk: msg.perk, message: result.feedback });
-        logEvent('perk_used', { roomCode, callsign: player.callsign, perk: msg.perk });
+        if (!result.cooldown) logEvent('perk_used', { roomCode, callsign: player.callsign, perk: msg.perk });
         break;
       }
 
@@ -720,6 +919,17 @@ app.post('/api/admin/rooms/:code/perk', adminAuth, (req, res) => {
     }
     default: return res.status(400).json({ error: 'Unknown perk' });
   }
+});
+
+// Ceasefire end — admin clicks Continue
+app.post('/api/admin/rooms/:code/ceasefire-end', adminAuth, (req, res) => {
+  const room = rooms[req.params.code.toUpperCase()];
+  if (!room) return res.status(404).json({ error: 'Not found' });
+  if (!canAccessRoom(req.adminSession, room.code)) return res.status(403).json({ error: 'No access' });
+  broadcastAll(room, { type: 'ceasefire_end' });
+  const msg = { id: uuidv4(), from: '⭐ ADMIN', text: '⚔ CEASEFIRE ENDED — Hostilities may resume!', priority: 'high', ts: Date.now() };
+  room.orders.push(msg); broadcastAll(room, { type: 'new_order', order: msg });
+  res.json({ ok: true });
 });
 
 app.get('/api/admin/events', adminAuth, (_, res) => res.json(eventLog.slice(-100).reverse()));

@@ -337,7 +337,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
               <div class="aperk-card"><div class="aperk-head"><div class="aperk-icon">📦</div><div class="aperk-name">INTEL DROP</div></div><div class="aperk-desc">Reveals all enemy positions to one team for 30 seconds.</div><div class="aperk-btns"><button class="aperk-btn red-t" onclick="adminPerk('intel_drop','red')">→ RED TEAM</button><button class="aperk-btn blue-t" onclick="adminPerk('intel_drop','blue')">→ BLUE TEAM</button></div><div class="aperk-result" id="apr-intel_drop"></div></div>
               <div class="aperk-card"><div class="aperk-head"><div class="aperk-icon">⚫</div><div class="aperk-name">BLACKOUT</div></div><div class="aperk-desc">Disables GPS map for ALL players for 20 seconds. Total chaos.</div><div class="aperk-btns"><button class="aperk-btn danger" onclick="adminPerk('blackout')">DEPLOY BLACKOUT</button></div><div class="aperk-result" id="apr-blackout"></div></div>
               <div class="aperk-card"><div class="aperk-head"><div class="aperk-icon">🔴</div><div class="aperk-name">FLARE DROP</div></div><div class="aperk-desc">Place a visible flare on the live map. Visible to all players for 2 minutes.</div><div class="aperk-btns"><button class="aperk-btn all" onclick="goToMapFlare()">OPEN MAP → PLACE FLARE</button></div></div>
-              <div class="aperk-card"><div class="aperk-head"><div class="aperk-icon">🕊</div><div class="aperk-name">CEASEFIRE</div></div><div class="aperk-desc">Fires a ceasefire signal across all maps and broadcasts to all comms.</div><div class="aperk-btns"><button class="aperk-btn all" onclick="adminPerk('ceasefire')">SIGNAL CEASEFIRE</button></div><div class="aperk-result" id="apr-ceasefire"></div></div>
+              <div class="aperk-card"><div class="aperk-head"><div class="aperk-icon">🕊</div><div class="aperk-name">CEASEFIRE</div></div><div class="aperk-desc">Fires a ceasefire signal across all maps and broadcasts to all comms.</div><div class="aperk-btns"><button class="aperk-btn all" id="ceasefire-start-btn" onclick="adminPerk('ceasefire')">SIGNAL CEASEFIRE</button><button class="aperk-btn green-b" id="ceasefire-end-btn" onclick="endCeasefire()" style="display:none">▶ CONTINUE GAME</button></div><div class="aperk-result" id="apr-ceasefire"></div></div>
               <div class="aperk-card" style="border-color:var(--red)"><div class="aperk-head"><div class="aperk-icon">💀</div><div class="aperk-name">MASS ELIMINATE</div></div><div class="aperk-desc">Sets an entire team's status to DEAD. Use for boundary violations.</div><div class="aperk-btns"><button class="aperk-btn red-t" onclick="adminPerk('eliminate_team','red')">ELIMINATE RED</button><button class="aperk-btn blue-t" onclick="adminPerk('eliminate_team','blue')">ELIMINATE BLUE</button></div><div class="aperk-result" id="apr-eliminate_team"></div></div>
             </div>
           </div>
@@ -736,13 +736,24 @@ async function adminPerk(perk,team){
   const code=document.getElementById('ap-room').value;if(!code){toast('Select a map first','err');return;}
   if(perk==='god_eye'){openLiveMap(code);toast("👁 God's Eye — live map active",'ok');return;}
   if(perk==='blackout'&&!confirm('Deploy BLACKOUT to all players?'))return;
-  if(perk.includes('eliminate')&&!confirm(`Eliminate ${team.toUpperCase()} team?`))return;
+  if(perk.includes('eliminate')&&!confirm(`Eliminate ${team?team.toUpperCase():'team'}?`))return;
   const body={perk};if(team)body.team=team;
   const r=await apiFetch(`/api/admin/rooms/${code}/perk`,{method:'POST',body:JSON.stringify(body)});
-  if(r.ok){const d=await r.json();toast(d.message||'Perk deployed','ok');showAprResult(perk,d.message||'Deployed');}
-  else{const d=await r.json().catch(()=>({error:'Error'}));toast(d.error||'Error','err');}
+  if(r.ok){
+    const d=await r.json();toast(d.message||'Perk deployed','ok');showAprResult(perk,d.message||'Deployed');
+    if(perk==='ceasefire'){
+      const sb=document.getElementById('ceasefire-start-btn');
+      const eb=document.getElementById('ceasefire-end-btn');
+      if(sb)sb.style.display='none';if(eb)eb.style.display='';
+    }
+  } else{const d=await r.json().catch(()=>({error:'Error'}));toast(d.error||'Error','err');}
 }
 function showAprResult(perk,msg){const el=document.getElementById('apr-'+perk);if(!el)return;el.textContent='✓ '+msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),6000);}
+async function endCeasefire(){
+  const code=document.getElementById('ap-room').value;if(!code){toast('Select a map','err');return;}
+  const r=await apiFetch(`/api/admin/rooms/${code}/ceasefire-end`,{method:'POST'});
+  if(r.ok){toast('⚔ Game resumed','ok');const sb=document.getElementById('ceasefire-start-btn');const eb=document.getElementById('ceasefire-end-btn');if(sb)sb.style.display='';if(eb)eb.style.display='none';}
+}
 
 // ════════════════════════════════════════════════════════════════
 // MAP MANAGEMENT
