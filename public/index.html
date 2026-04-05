@@ -1118,8 +1118,105 @@ function startBleedTimer(duration){
 // ════════════════════════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════════════════════════
-window.addEventListener('load',loadMaps);
 setInterval(()=>{if(!document.getElementById('home').classList.contains('hidden'))loadMaps();},15000);
+
+// ════════════════════════════════════════════════════════════════
+// WAKE LOCK — keep screen on during gameplay
+// ════════════════════════════════════════════════════════════════
+let wakeLock=null;
+async function requestWakeLock(){
+  try{
+    if('wakeLock' in navigator){
+      wakeLock=await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release',()=>{wakeLock=null;});
+      console.log('Wake lock active');
+    }
+  }catch(e){console.warn('Wake lock failed:',e.message);}
+}
+async function releaseWakeLock(){
+  if(wakeLock){try{await wakeLock.release();}catch{}wakeLock=null;}
+}
+// Re-acquire on visibility change (phone unlock, tab refocus)
+document.addEventListener('visibilitychange',async()=>{
+  if(document.visibilityState==='visible'&&document.getElementById('gapp').classList.contains('visible')){
+    await requestWakeLock();
+    // Also re-send GPS position immediately on resume
+    if(ws&&ws.readyState===1&&myLat)sendWS({type:'location',lat:myLat,lng:myLng,heading:0});
+  }
+});
+
+// ════════════════════════════════════════════════════════════════
+// SESSION PERSISTENCE — survive page refresh
+// ════════════════════════════════════════════════════════════════
+const SESSION_KEY='sa_player_session';
+
+function saveSession(){
+  if(!roomCode||!myCallsign)return;
+  const sess={roomCode,myCallsign,myRole,myTeam,roomPassword,savedAt:Date.now()};
+  try{sessionStorage.setItem(SESSION_KEY,JSON.stringify(sess));}catch{}
+}
+
+function clearSession(){
+  try{sessionStorage.removeItem(SESSION_KEY);}catch{}
+}
+
+function tryRestoreSession(){
+  try{
+    const raw=sessionStorage.getItem(SESSION_KEY);
+    if(!raw)return false;
+    const sess=JSON.parse(raw);
+    // Only restore if saved within last 4 hours
+    if(Date.now()-sess.savedAt>4*60*60*1000){clearSession();return false;}
+    // Check map still exists, then rejoin
+    fetch('/api/maps').then(r=>r.json()).then(maps=>{
+      const found=maps.find(m=>m.code===sess.roomCode);
+      if(!found){clearSession();return;}
+      // Auto-fill and rejoin
+      selectedMapCode=sess.roomCode;
+      myCallsign=sess.myCallsign;
+      myTeam=sess.myTeam||'red';
+      myRole=sess.myRole||'Assault';
+      roomPassword=sess.roomPassword||'';
+      roomCode=sess.roomCode;
+      // Show the game app immediately
+      document.getElementById('home').classList.add('hidden');
+      document.getElementById('gapp').classList.add('visible');
+      document.getElementById('tbnr').className='tbnr '+myTeam;
+      document.getElementById('tbnr').textContent=myTeam==='red'?'● RED TEAM':'● BLUE TEAM';
+      document.getElementById('mycard').className='mycard '+(myTeam==='red'?'rc':'bc');
+      document.getElementById('mavt').className='mavt '+(myTeam==='red'?'ra':'ba');
+      document.getElementById('mcs').className='mcs '+(myTeam==='red'?'r':'b');
+      document.getElementById('mcs').textContent=myCallsign;
+      document.getElementById('mrk').textContent=myRole+' · '+myTeam.toUpperCase()+' TEAM';
+      initMap();startGPS();connectWS();
+      myStatus='alive';updateStatusPanel();
+      toast('📡 Reconnected to '+found.name,'ok');
+    }).catch(()=>clearSession());
+    return true;
+  }catch{clearSession();return false;}
+}
+
+// Override joinGame and leaveGame to save/clear session
+const _origJoin=joinGame;
+window.joinGame=function(){
+  _origJoin();
+  setTimeout(saveSession,500); // save after WS connects
+  requestWakeLock();
+};
+const _origLeave=leaveGame;
+window.leaveGame=function(){
+  clearSession();releaseWakeLock();_origLeave();
+};
+
+// On load: try to restore session first, else show home
+window.addEventListener('load',()=>{
+  const restored=tryRestoreSession();
+  if(!restored)loadMaps();
+});
+// Save session periodically while in game
+setInterval(()=>{
+  if(document.getElementById('gapp').classList.contains('visible'))saveSession();
+},30000);
 </script>
 </body>
 </html>

@@ -181,7 +181,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .zt-opt{padding:7px;border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:9px;font-family:'Share Tech Mono',monospace;text-align:center;transition:all .2s;background:var(--bg2)}
 .zt-opt:hover,.zt-opt.sel{border-color:var(--gold);background:rgba(232,200,74,.08);color:var(--gold)}
 .zt-d{width:12px;height:12px;border-radius:50%;margin:0 auto 3px}
-.ze-map-wrap{height:350px;border-radius:4px;overflow:hidden;margin-bottom:12px}
+.ze-map-wrap{height:520px;border-radius:4px;overflow:hidden;margin-bottom:12px;position:relative}
 .zl{display:flex;flex-direction:column;gap:5px}
 .zi{background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:7px 11px;display:flex;align-items:center;gap:8px}
 .zdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
@@ -378,11 +378,21 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
               <div class="zt-opt" data-zt="safe" onclick="selZT(this)"><div class="zt-d" style="background:#00cc66"></div>Safe Zone</div>
               <div class="zt-opt" data-zt="boundary" onclick="selZT(this)"><div class="zt-d" style="background:#e8c84a"></div>Boundary</div>
             </div>
-            <div class="brow" style="margin-bottom:10px">
+            <div class="brow" style="margin-bottom:6px">
               <input class="ai" id="zlbl" placeholder="Zone label e.g. Red Base Spawn…" maxlength="60" style="flex:2">
               <button class="abtn" onclick="startZDraw('polygon')">✏️ Polygon</button>
               <button class="abtn" onclick="startZDraw('circle')">⭕ Circle</button>
               <button class="abtn danger sm" onclick="cancelZDraw()">✖</button>
+            </div>
+            <div style="display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap;align-items:center">
+              <span style="font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace;letter-spacing:1px">MAP VIEW:</span>
+              <div class="mc-btn on" data-ze-tile="osm" onclick="zeTile('osm',this)">OSM</div>
+              <div class="mc-btn" data-ze-tile="sat" onclick="zeTile('sat',this)">SATELLITE</div>
+              <div class="mc-btn" data-ze-tile="topo" onclick="zeTile('topo',this)">TOPO</div>
+              <div class="mc-btn" data-ze-tile="dark" onclick="zeTile('dark',this)">DARK</div>
+              <div style="flex:1"></div>
+              <button class="abtn sm" onclick="zeLocate()" title="Centre map on your GPS location">📍 My Location</button>
+              <button class="abtn sm purple-b" onclick="saveCurMapTemplate()">💾 Save as Template</button>
             </div>
             <div class="ze-map-wrap"><div id="ze-map"></div></div>
             <div style="font-size:9px;letter-spacing:2px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-bottom:7px">CURRENT ZONES</div>
@@ -811,6 +821,34 @@ function initZeMap(){
   });
 }
 function selZT(el){document.querySelectorAll('.zt-opt').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');selectedZT=el.dataset.zt;}
+
+function zeTile(key,el){
+  document.querySelectorAll('[data-ze-tile]').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  if(!zeMap)return;
+  if(zeMapTile)zeMap.removeLayer(zeMapTile);
+  zeMapTile=L.tileLayer(TILES[key],{maxZoom:20}).addTo(zeMap);
+}
+
+function zeLocate(){
+  if(!navigator.geolocation){toast('GPS not available','err');return;}
+  navigator.geolocation.getCurrentPosition(pos=>{
+    if(zeMap)zeMap.setView([pos.coords.latitude,pos.coords.longitude],17);
+    toast('Centred on your location');
+  },()=>toast('Could not get location','err'),{enableHighAccuracy:true});
+}
+
+async function saveCurMapTemplate(){
+  const code=document.getElementById('ze-room').value;
+  if(!code){toast('Select a map first','err');return;}
+  const name=prompt('Save this map as a template named:');
+  if(!name)return;
+  const r=await apiFetch('/api/admin/rooms/'+code);if(!r.ok)return;
+  const d=await r.json();
+  const sr=await apiFetch('/api/admin/saved-maps',{method:'POST',body:JSON.stringify({name,siteCode:code,zones:d.zones,objectives:d.objectives})});
+  if(sr.ok){toast('✓ Template "'+name+'" saved!','ok');}
+  else toast('Error saving template','err');
+}
 function startZDraw(shape){
   if(!zeMap){toast('Map not ready','err');return;}cancelZDraw();
   const col=ZC[selectedZT]||'#cc44ff';const opts={color:col,fillColor:col,fillOpacity:.15,weight:2};

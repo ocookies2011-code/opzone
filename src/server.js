@@ -4,6 +4,7 @@ const { createServer } = require('http');
 const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const server = createServer(app);
@@ -17,12 +18,54 @@ app.use(express.static(path.join(__dirname, '../public')));
 const SUPER_ADMIN_USER = process.env.ADMIN_USER || 'chriszulu';
 const SUPER_ADMIN_PASS = process.env.ADMIN_PASS || 'SwindonA1rsoft!';
 const adminSessions = new Map(); // token → { username, role, managedSites }
-const siteAdmins = {}; // username → { password, sites: [siteCode], name }
 
-// ── Persistent storage (in-memory, survives per process) ──────────
-const savedMaps = {}; // mapId → { id, name, siteCode, zones, objectives, createdBy, createdAt }
-const rooms = {};     // roomCode → room object
+// ── Persistent file storage ───────────────────────────────────────
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '../data');
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+
+function loadJSON(file, def) {
+  try { return JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), 'utf8')); }
+  catch { return def; }
+}
+function saveJSON(file, data) {
+  try { fs.writeFileSync(path.join(DATA_DIR, file), JSON.stringify(data, null, 2)); }
+  catch (e) { console.error('Save error:', e.message); }
+}
+
+// Load persisted data on startup
+const siteAdmins = loadJSON('site-admins.json', {});
+const savedMaps = loadJSON('saved-maps.json', {});
+
+// Persisted room templates (zones + objectives only — players are transient)
+// rooms{} is in-memory; roomTemplates persist the zone/obj setup per code
+const roomTemplates = loadJSON('room-templates.json', {}); // code → { name, password, zones, objectives }
+
+// Active in-memory rooms (players, WS sessions, timers)
+const rooms = {};
 const eventLog = [];
+
+// Restore room templates as active rooms (empty of players) on startup
+Object.entries(roomTemplates).forEach(([code, tmpl]) => {
+  const room = makeRoom(code, tmpl.name, tmpl.password);
+  room.zones = tmpl.zones || [];
+  room.objectives = tmpl.objectives || [];
+  rooms[code] = room;
+  console.log(`♻ Restored map: ${tmpl.name} (${code})`);
+});
+
+function persistRoomTemplate(room) {
+  roomTemplates[room.code] = {
+    name: room.name, password: room.password,
+    zones: room.zones, objectives: room.objectives,
+    createdAt: room.createdAt,
+  };
+  saveJSON('room-templates.json', roomTemplates);
+}
+
+function deleteRoomTemplate(code) {
+  delete roomTemplates[code];
+  saveJSON('room-templates.json', roomTemplates);
+}
 
 function logEvent(type, data) {
   eventLog.push({ type, data, ts: Date.now() });
@@ -612,6 +655,7 @@ app.post('/api/admin/site-admins', superAdminAuth, (req, res) => {
   const { username, password, name, sites } = req.body;
   if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
   siteAdmins[username] = { password, name: name||username, sites: sites||[] };
+  saveJSON('site-admins.json', siteAdmins);
   logEvent('site_admin_created', { username, createdBy: req.adminSession.username });
   res.json({ ok: true });
 });
@@ -623,11 +667,12 @@ app.put('/api/admin/site-admins/:username', superAdminAuth, (req, res) => {
   if (password) siteAdmins[u].password = password;
   if (name) siteAdmins[u].name = name;
   if (sites) siteAdmins[u].sites = sites;
+  saveJSON('site-admins.json', siteAdmins);
   res.json({ ok: true });
 });
 
 app.delete('/api/admin/site-admins/:username', superAdminAuth, (req, res) => {
-  delete siteAdmins[req.params.username]; res.json({ ok: true });
+  delete siteAdmins[req.params.username]; saveJSON('site-admins.json', siteAdmins); res.json({ ok: true });
 });
 
 // ════════════════════════════════════════════════════════════════════
@@ -657,8 +702,9 @@ app.post('/api/admin/rooms', adminAuth, (req, res) => {
   // If site admin, auto-assign this room to their managed sites
   if (req.adminSession.role === 'site') {
     const sa = siteAdmins[req.adminSession.username];
-    if (sa && !sa.sites.includes(c)) sa.sites.push(c);
+    if (sa && !sa.sites.includes(c)) { sa.sites.push(c); saveJSON('site-admins.json', siteAdmins); }
   }
+  persistRoomTemplate(room);
   res.json({ code: room.code, name: room.name });
 });
 
@@ -669,6 +715,7 @@ app.put('/api/admin/rooms/:code', adminAuth, (req, res) => {
   const { name, password } = req.body;
   if (name !== undefined) { room.name = name; broadcastAll(room, { type: 'room_renamed', name }); }
   if (password !== undefined) room.password = password;
+  persistRoomTemplate(room);
   res.json({ ok: true });
 });
 
@@ -691,6 +738,7 @@ app.delete('/api/admin/rooms/:code', adminAuth, (req, res) => {
   if (!room) return res.status(404).json({ error: 'Not found' });
   if (!canAccessRoom(req.adminSession, room.code)) return res.status(403).json({ error: 'No access' });
   broadcastAll(room, { type: 'kicked', reason: 'Map closed by admin' });
+  deleteRoomTemplate(req.params.code.toUpperCase());
   delete rooms[req.params.code.toUpperCase()];
   logEvent('room_deleted', { code: req.params.code }); res.json({ ok: true });
 });
@@ -752,6 +800,7 @@ app.post('/api/admin/rooms/:code/objectives', adminAuth, (req, res) => {
   };
   room.objectives.push(obj);
   broadcastAll(room, { type: 'objective_added', objective: obj });
+  persistRoomTemplate(room);
   res.json(obj);
 });
 
@@ -766,6 +815,7 @@ app.put('/api/admin/rooms/:code/objectives/:objId', adminAuth, (req, res) => {
   if (req.body.lng !== undefined) obj.lng = req.body.lng;
   if (req.body.done !== undefined) obj.done = req.body.done;
   broadcastAll(room, { type: 'objective_updated', objective: obj });
+  persistRoomTemplate(room);
   res.json(obj);
 });
 
@@ -774,6 +824,7 @@ app.delete('/api/admin/rooms/:code/objectives/:objId', adminAuth, (req, res) => 
   if (!canAccessRoom(req.adminSession, room.code)) return res.status(403).json({ error: 'No access' });
   room.objectives = room.objectives.filter(o => o.id !== req.params.objId);
   broadcastAll(room, { type: 'objective_removed', id: req.params.objId });
+  persistRoomTemplate(room);
   res.json({ ok: true });
 });
 
@@ -791,6 +842,7 @@ app.post('/api/admin/rooms/:code/zones', adminAuth, (req, res) => {
     createdBy: { callsign: req.adminSession.username }, ts: Date.now(),
   };
   room.zones.push(zone); broadcastAll(room, { type: 'zone_added', zone });
+  persistRoomTemplate(room);
   res.json(zone);
 });
 
@@ -798,13 +850,17 @@ app.delete('/api/admin/rooms/:code/zones/:zid', adminAuth, (req, res) => {
   const room = rooms[req.params.code.toUpperCase()]; if (!room) return res.status(404).json({ error: 'Not found' });
   if (!canAccessRoom(req.adminSession, room.code)) return res.status(403).json({ error: 'No access' });
   room.zones = room.zones.filter(z => z.id !== req.params.zid);
-  broadcastAll(room, { type: 'zone_removed', id: req.params.zid }); res.json({ ok: true });
+  broadcastAll(room, { type: 'zone_removed', id: req.params.zid });
+  persistRoomTemplate(room);
+  res.json({ ok: true });
 });
 
 app.delete('/api/admin/rooms/:code/zones', adminAuth, (req, res) => {
   const room = rooms[req.params.code.toUpperCase()]; if (!room) return res.status(404).json({ error: 'Not found' });
   if (!canAccessRoom(req.adminSession, room.code)) return res.status(403).json({ error: 'No access' });
-  room.zones = []; broadcastAll(room, { type: 'zones_cleared' }); res.json({ ok: true });
+  room.zones = []; broadcastAll(room, { type: 'zones_cleared' });
+  persistRoomTemplate(room);
+  res.json({ ok: true });
 });
 
 // ════════════════════════════════════════════════════════════════════
@@ -821,6 +877,7 @@ app.post('/api/admin/saved-maps', adminAuth, (req, res) => {
   if (!name) return res.status(400).json({ error: 'Name required' });
   const map = { id: uuidv4(), name, siteCode: siteCode||'', zones: zones||[], objectives: objectives||[], createdBy: req.adminSession.username, createdAt: Date.now() };
   savedMaps[map.id] = map;
+  saveJSON('saved-maps.json', savedMaps);
   logEvent('map_saved', { name, by: req.adminSession.username });
   res.json(map);
 });
@@ -832,11 +889,12 @@ app.put('/api/admin/saved-maps/:id', adminAuth, (req, res) => {
   if (zones) map.zones = zones;
   if (objectives) map.objectives = objectives;
   map.updatedAt = Date.now();
+  saveJSON('saved-maps.json', savedMaps);
   res.json(map);
 });
 
 app.delete('/api/admin/saved-maps/:id', adminAuth, (req, res) => {
-  delete savedMaps[req.params.id]; res.json({ ok: true });
+  delete savedMaps[req.params.id]; saveJSON('saved-maps.json', savedMaps); res.json({ ok: true });
 });
 
 // Load a saved map into a room
@@ -848,6 +906,7 @@ app.post('/api/admin/rooms/:code/load-map/:mapId', adminAuth, (req, res) => {
   room.objectives = map.objectives.map(o => ({ ...o, id: uuidv4(), done: false }));
   room.activeMapId = req.params.mapId;
   broadcastAll(room, { type: 'map_loaded', zones: room.zones, objectives: room.objectives, mapName: map.name });
+  persistRoomTemplate(room);
   logEvent('map_loaded', { room: room.code, map: map.name, by: req.adminSession.username });
   res.json({ ok: true, message: `Map "${map.name}" loaded.` });
 });
