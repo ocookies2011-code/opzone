@@ -396,7 +396,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
               <button class="abtn sm" onclick="zeLocate()" title="Centre map on your GPS location">📍 My Location</button>
               <button class="abtn sm purple-b" onclick="saveCurMapTemplate()">💾 Save as Template</button>
             </div>
-            <div class="ze-map-wrap"><div id="ze-map"></div></div>
+            <div class="ze-map-wrap"><div id="ze-map" style="height:100%;width:100%;min-height:520px"></div></div>
             <div style="font-size:9px;letter-spacing:2px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-bottom:7px">CURRENT ZONES</div>
             <div id="ze-list"><div class="empty">Select a map</div></div>
           </div>
@@ -587,11 +587,11 @@ function sv(el){
   if(currentView==='livemap'){populateSelects();setTimeout(()=>{initLiveMap();if(liveMap)liveMap.invalidateSize();},150);}
   if(currentView==='zoneeditor'){
     populateSelects();
-    // Give the DOM time to show the container before Leaflet measures it
-    setTimeout(()=>{
+    // Double rAF ensures the browser has painted the visible container before Leaflet measures it
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
       if(!zeMap){initZeMap();}
-      else{zeMap.invalidateSize();}
-    },200);
+      else{zeMap.invalidateSize();zeMap.invalidateSize();}
+    }));
   }
   if(currentView==='savedmaps'){populateSelects();loadSavedMaps();}
   if(currentView==='siteadmins')loadSiteAdmins();
@@ -849,12 +849,16 @@ async function broadcastRoom(){const code=document.getElementById('br-room').val
 function initZeMap(){
   const container=document.getElementById('ze-map');
   if(!container)return;
-  // If already initialised, just fix size
-  if(zeMap){zeMap.invalidateSize();return;}
-  zeMap=L.map('ze-map',{center:[51.56,-1.78],zoom:14,attributionControl:false,preferCanvas:true});
+  if(zeMap){
+    // Already exists — just force size recalc with two frames
+    requestAnimationFrame(()=>requestAnimationFrame(()=>zeMap.invalidateSize()));
+    return;
+  }
+  zeMap=L.map('ze-map',{center:[51.56,-1.78],zoom:14,attributionControl:false});
   zeMapTile=L.tileLayer(TILES.osm,{maxZoom:20}).addTo(zeMap);
   zeDrawLayer=new L.FeatureGroup().addTo(zeMap);
-  setTimeout(()=>zeMap.invalidateSize(),80);
+  // Force Leaflet to measure the container after the browser has painted
+  requestAnimationFrame(()=>requestAnimationFrame(()=>zeMap.invalidateSize()));
 
   zeMap.on(L.Draw.Event.CREATED,e=>{
     const code=document.getElementById('ze-room').value;if(!code){toast('Select a map','err');return;}

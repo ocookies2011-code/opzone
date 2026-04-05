@@ -519,17 +519,17 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
           <div class="mrk" id="mrk">—</div>
           <!-- Alive is automated — only manual statuses are below -->
           <div id="status-alive-indicator" style="background:rgba(0,204,102,.1);border:1px solid var(--green);border-radius:4px;padding:8px;text-align:center;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);margin-bottom:6px;display:none">✓ ALIVE — STATUS OK</div>
+          <div id="status-support-indicator" style="background:rgba(42,127,255,.1);border:1px solid var(--blue);border-radius:4px;padding:8px;text-align:center;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--blue);margin-bottom:6px;display:none;animation:blink 1.5s infinite">◈ SUPPORT REQUESTED — Auto-clear in 60s</div>
           <div id="status-dead-panel" style="display:none">
             <div style="background:rgba(255,42,42,.1);border:1px solid var(--red);border-radius:4px;padding:10px;text-align:center;margin-bottom:8px">
               <div style="font-family:'Orbitron',monospace;font-size:14px;color:var(--red);font-weight:700;letter-spacing:2px;animation:blink .8s infinite">☠ BLEEDING OUT</div>
               <div style="font-family:'Share Tech Mono',monospace;font-size:28px;color:var(--red);font-weight:700;margin:4px 0" id="bleed-timer">2:00</div>
-              <div style="font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace">Call Medic or reach Respawn Zone</div>
+              <div style="font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace">Medic within 5m or reach Respawn Zone</div>
             </div>
           </div>
-          <div class="sgrid" style="grid-template-columns:1fr 1fr;gap:6px">
-            <button class="sb2 dead" id="btn-dead" onclick="setStatus('dead')">✕ I AM DOWN</button>
-            <button class="sb2 medic" id="btn-medic" onclick="setStatus('medic')">+ MEDIC NEEDED</button>
-            <button class="sb2 support" id="btn-support" onclick="setStatus('support')" style="grid-column:span 2">◈ NEED SUPPORT</button>
+          <div class="sgrid" style="grid-template-columns:1fr;gap:6px">
+            <button class="sb2 medic" id="btn-medic" onclick="setStatus('medic')" style="padding:14px;font-size:14px;letter-spacing:2px">🚨 I AM DOWN — MEDIC NEEDED</button>
+            <button class="sb2 support" id="btn-support" onclick="setStatus('support')">◈ NEED SUPPORT</button>
           </div>
         </div>
         <div class="gps-panel">
@@ -557,15 +557,59 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
     <!-- KIT -->
     <div class="gscreen scrollable" id="gscreen-kit">
       <div class="kit-wrap">
-        <div class="sec-t">◈ MY KIT</div>
-        <div class="gc"><div class="gh"><div class="gn2">M4A1 CQBR</div><div class="gt2">ASSAULT RIFLE</div></div><div class="ge">🔫</div><div class="gst"><div class="gsi"><div class="gsn">350</div><div class="gsb"><div class="gsf" style="width:85%;background:var(--green)"></div></div><div class="gsl">FPS</div></div><div class="gsi"><div class="gsn">40m</div><div class="gsb"><div class="gsf" style="width:70%;background:var(--gold)"></div></div><div class="gsl">Range</div></div><div class="gsi"><div class="gsn">0.2g</div><div class="gsb"><div class="gsf" style="width:60%;background:var(--warn)"></div></div><div class="gsl">BB</div></div></div></div>
-        <div class="gc"><div class="gh"><div class="gn2">Glock 17</div><div class="gt2">SIDEARM</div></div><div class="ge">🔫</div><div class="gst"><div class="gsi"><div class="gsn">280</div><div class="gsb"><div class="gsf" style="width:55%;background:var(--green)"></div></div><div class="gsl">FPS</div></div><div class="gsi"><div class="gsn">15m</div><div class="gsb"><div class="gsf" style="width:30%;background:var(--gold)"></div></div><div class="gsl">Range</div></div><div class="gsi"><div class="gsn">0.2g</div><div class="gsb"><div class="gsf" style="width:60%;background:var(--warn)"></div></div><div class="gsl">BB</div></div></div></div>
-        <button class="abtn2" onclick="toast('Replica management coming soon')">+ ADD REPLICA</button>
+        <div class="sec-t">◈ MY LOADOUT</div>
+        <div id="kit-list" style="display:flex;flex-direction:column;gap:8px">
+          <div class="empty" style="color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:11px;text-align:center;padding:16px">No replicas added yet</div>
+        </div>
+        <button class="abtn2" onclick="showAddReplica()" style="margin-top:4px">+ ADD REPLICA</button>
+
+        <!-- Add Replica Form (hidden by default) -->
+        <div id="add-replica-form" style="display:none;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:14px;margin-top:8px;display:none;flex-direction:column;gap:10px">
+          <div style="font-family:'Orbitron',monospace;font-size:10px;color:var(--gold);letter-spacing:2px;border-bottom:1px solid var(--border);padding-bottom:8px">◈ ADD REPLICA</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div><div class="fl">Replica Name</div><input class="fi" id="kit-name" placeholder="M4A1, AK47…" maxlength="30"></div>
+            <div><div class="fl">Type</div>
+              <select class="fi fi-lower" id="kit-type">
+                <option value="Assault Rifle">Assault Rifle</option>
+                <option value="Sniper Rifle">Sniper Rifle</option>
+                <option value="SMG">SMG</option>
+                <option value="LMG">LMG</option>
+                <option value="Shotgun">Shotgun</option>
+                <option value="Pistol/Sidearm">Pistol/Sidearm</option>
+                <option value="DMR">DMR</option>
+              </select>
+            </div>
+            <div><div class="fl">FPS (Muzzle Velocity)</div><input class="fi" id="kit-fps" type="number" placeholder="350" min="100" max="500"></div>
+            <div><div class="fl">Joules</div><input class="fi" id="kit-joules" type="number" placeholder="1.14" step="0.01" min="0.1" max="3"></div>
+            <div><div class="fl">BB Weight (g)</div>
+              <select class="fi fi-lower" id="kit-bb">
+                <option>0.20g</option><option>0.23g</option><option>0.25g</option>
+                <option>0.28g</option><option>0.30g</option><option>0.32g</option>
+                <option>0.36g</option><option>0.40g</option>
+              </select>
+            </div>
+            <div><div class="fl">Effective Range</div><input class="fi" id="kit-range" placeholder="40m" maxlength="10"></div>
+          </div>
+          <div><div class="fl">Notes</div><input class="fi fi-lower" id="kit-notes" placeholder="HPA, hop-up brand, mags…" maxlength="80"></div>
+          <div style="display:flex;gap:8px">
+            <button class="jbtn" onclick="saveReplica()" style="flex:1;padding:10px">✓ SAVE</button>
+            <button class="abtn2" onclick="cancelAddReplica()" style="flex:0 0 80px;padding:10px">✕ Cancel</button>
+          </div>
+        </div>
+
+        <div style="margin-top:10px;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px">
+          <div style="font-family:'Orbitron',monospace;font-size:9px;color:var(--gold);letter-spacing:2px;margin-bottom:8px">◈ SITE RULES REMINDER</div>
+          <div style="font-size:11px;color:var(--dim);line-height:1.6">
+            Always chrono before play. Ensure your FPS is within site limits.<br>
+            Full-seal eye protection mandatory at all times.<br>
+            Call hits honestly — this is an honour game.
+          </div>
+        </div>
       </div>
     </div>
 
   </div><!-- /gmain -->
-  <div class="gftr">SWINDON AIRSOFT · by Chris Zulu · <a href="/admin">Admin</a></div>
+  <div class="gftr">ZULU'S GAME TRACKER · by Chris Zulu · <a href="/admin">Admin</a></div>
 </div>
 
 <div id="pausedOv"><div class="pov-txt">⏸ GAME PAUSED</div><div class="pov-sub">Hold positions — await admin</div></div>
@@ -861,24 +905,34 @@ function renderObjMarker(obj){
   if(obj.done)cls+=' done-obj';
   const icon=L.divIcon({html:`<div class="${cls}" title="${esc(obj.text)}">${obj.done?'✓':'!'}</div>`,className:'',iconSize:[22,22],iconAnchor:[11,11]});
   const m=L.marker([obj.lat,obj.lng],{icon}).addTo(map)
-    .bindPopup(`<div style="font-family:'Share Tech Mono',monospace;font-size:11px"><b>${esc(obj.text)}</b><br>Team: ${obj.team.toUpperCase()}<br>${obj.done?'✓ COMPLETE':'⬤ ACTIVE'}</div>`);
+    .bindPopup(`<div style="font-family:Share Tech Mono,monospace;font-size:11px"><b>${esc(obj.text)}</b><br>Team: ${obj.team.toUpperCase()}<br>${obj.done?'✓ COMPLETE':'⬤ ACTIVE'}</div>`);
   objMarkers[obj.id]=m;
 }
 function removeObjMarker(id){if(objMarkers[id]){map.removeLayer(objMarkers[id]);delete objMarkers[id];}}
 function refreshObjMarkers(){objectives.forEach(o=>renderObjMarker(o));}
 
 function makeMarkerIcon(p,isMe,isGhost=false){
-  const team=p.status==='dead'?'dead':p.team;
+  const isDead=p.status==='dead';
+  const isSupport=p.status==='support';
+  const team=isDead?'dead':p.team;
   const sz=isMe?36:28;
-  const urgent=p.status==='medic'||p.status==='support';
-  const glow=urgent?(p.status==='medic'?'0 0 14px rgba(255,170,0,.7)':'0 0 14px rgba(42,127,255,.7)'):'';
-  const badge=p.status!=='alive'?`<div class="pm-sb" style="background:${p.status==='medic'?'#ffaa00':p.status==='dead'?'#333':'#2a7fff'}">${p.status==='medic'?'🚑':p.status==='dead'?'💀':'🆘'}</div>`:'';
-  const pulse=(team!=='dead'&&!isGhost)?`<div class="pm-pulse ${team}" style="width:${sz+10}px;height:${sz+10}px;top:-5px;left:-5px"></div>`:'';
+  const medicGlow=isDead?'0 0 18px rgba(255,42,42,.9)':isSupport?'0 0 14px rgba(42,127,255,.7)':'';
+  // SOS badge for downed players — large flashing red cross
+  let badge='';
+  if(isDead){
+    badge=`<div class="pm-sb" style="background:#cc0000;animation:blink .6s infinite;font-size:11px">🆘</div>`;
+  } else if(p.status==='support'){
+    badge=`<div class="pm-sb" style="background:#2a7fff">🆘</div>`;
+  }
+  // Urgency ring for downed — extra pulsing red ring
+  const urgentRing=isDead?`<div class="pm-pulse dead-sos" style="width:${sz+20}px;height:${sz+20}px;top:-10px;left:-10px;border-color:#ff0000;animation:ping .8s ease-out infinite"></div>`:'';
+  const pulse=(!isDead&&!isGhost)?`<div class="pm-pulse ${team}" style="width:${sz+10}px;height:${sz+10}px;top:-5px;left:-5px"></div>`:'';
   const ri=ROLE_ICONS[p.role]||'⚔';
-  const html=`<div class="pmw">${pulse}<div class="pm ${team}${isMe?' me':''}${isGhost?' ghost':''}" style="width:${sz}px;height:${sz}px;${glow?`box-shadow:${glow}`:''}">
+  const lblExtra=isDead?' · 🆘 MEDIC':isSupport?' · SUPPORT':'';
+  const html=`<div class="pmw">${urgentRing}${pulse}<div class="pm ${team}${isMe?' me':''}${isGhost?' ghost':''}" style="width:${sz}px;height:${sz}px;${medicGlow?`box-shadow:${medicGlow}`:''}">
     ${badge}<span style="font-size:${isMe?14:11}px;pointer-events:none">${isMe?'★':ri}</span></div>
-    <div class="pm-lbl" style="color:${team==='red'?'var(--red)':team==='blue'?'var(--blue)':'#555'}">${esc(p.callsign)}${urgent?' · '+p.status.toUpperCase():''}</div></div>`;
-  return L.divIcon({html,className:'',iconSize:[sz+10,sz+22],iconAnchor:[(sz+10)/2,(sz+10)/2]});
+    <div class="pm-lbl" style="color:${isDead?'#ff4444':team==='red'?'var(--red)':team==='blue'?'var(--blue)':'#555'};${isDead?'font-weight:bold;animation:blink .8s infinite':''}">${esc(p.callsign)}${lblExtra}</div></div>`;
+  return L.divIcon({html,className:'',iconSize:[sz+22,sz+26],iconAnchor:[(sz+22)/2,(sz+22)/2]});
 }
 
 function updMarker(p,isMe=false){
@@ -891,7 +945,7 @@ function updMarker(p,isMe=false){
   const isGhost=isEnemy&&p._ghost;
   const icon=makeMarkerIcon(p,isMe,isGhost);
   const col=p.team==='red'?'#ff5555':'#5599ff';
-  const popup=`<div style="font-family:'Share Tech Mono',monospace;font-size:11px"><b style="color:${col}">${isGhost?'⚠ ENEMY — ':''}${esc(p.callsign)}</b><br>${isGhost?'Intel position':p.role+' · '+p.team.toUpperCase()}<br>Status: <b>${p.status.toUpperCase()}</b>${p.lat&&!isGhost?`<br>${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}`:''}</div>`;
+  const popup=`<div style="font-family:Share Tech Mono,monospace;font-size:11px"><b style="color:${col}">${isGhost?'⚠ ENEMY — ':''}${esc(p.callsign)}</b><br>${isGhost?'Intel position':p.role+' · '+p.team.toUpperCase()}<br>Status: <b>${p.status.toUpperCase()}</b>${p.lat&&!isGhost?`<br>${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}`:''}</div>`;
   if(markers[p.id]){markers[p.id].setLatLng([p.lat,p.lng]);markers[p.id].setIcon(icon);markers[p.id].setPopupContent(popup);}
   else{const m=L.marker([p.lat,p.lng],{icon,zIndexOffset:isMe?1000:0}).addTo(map).bindPopup(popup);markers[p.id]=m;if(isMe&&!myMarkerSet){map.setView([p.lat,p.lng],17);myMarkerSet=true;}}
 }
@@ -905,17 +959,21 @@ const perkParticles=[]; // active particle systems
 const persistAnim={}; // perkName -> { particles, lat, lng, endAt }
 
 function getPerkCanvas(){
-  if(perkCanvas)return perkCanvas;
-  perkCanvas=document.getElementById('perk-canvas');
-  if(!perkCanvas)return null;
-  perkCtx=perkCanvas.getContext('2d');
-  // Size canvas to map container
-  const mapEl=document.getElementById('leaflet-map');
-  perkCanvas.width=mapEl.offsetWidth;perkCanvas.height=mapEl.offsetHeight;
-  // Resize on window resize
-  window.addEventListener('resize',()=>{if(perkCanvas&&map){perkCanvas.width=mapEl.offsetWidth;perkCanvas.height=mapEl.offsetHeight;}});
-  startPerkLoop();
+  if(!perkCanvas){
+    perkCanvas=document.getElementById('perk-canvas');
+    if(!perkCanvas)return null;
+    perkCtx=perkCanvas.getContext('2d');
+    window.addEventListener('resize',resizePerkCanvas);
+    startPerkLoop();
+  }
+  resizePerkCanvas();
   return perkCanvas;
+}
+function resizePerkCanvas(){
+  const mapEl=document.getElementById('leaflet-map');
+  if(!perkCanvas||!mapEl)return;
+  if(perkCanvas.width!==mapEl.offsetWidth)perkCanvas.width=mapEl.offsetWidth;
+  if(perkCanvas.height!==mapEl.offsetHeight)perkCanvas.height=mapEl.offsetHeight;
 }
 
 function startPerkLoop(){
@@ -928,19 +986,22 @@ function startPerkLoop(){
     // Draw persistent anims
     for(const [name,a] of Object.entries(persistAnim)){
       if(now>a.endAt){delete persistAnim[name];continue;}
-      if(!map||a.lat==null)continue;
+      if(!map||a.lat==null||!perkCtx)continue;
+      resizePerkCanvas();
       const pt=map.latLngToLayerPoint([a.lat,a.lng]);
-      const t=(now-a.startAt)/(a.endAt-a.startAt); // 0..1
+      const t=Math.min(1,(now-a.startAt)/(a.endAt-a.startAt));
       drawPersistAnim(name,pt.x,pt.y,t,now);
     }
     // Draw one-shot particles
     for(let i=perkParticles.length-1;i>=0;i--){
       const sys=perkParticles[i];
       if(now>sys.endAt){perkParticles.splice(i,1);continue;}
-      if(!map||sys.lat==null)continue;
+      if(!map||sys.lat==null||!perkCtx)continue;
       const pt=map.latLngToLayerPoint([sys.lat,sys.lng]);
-      const t=(now-sys.startAt)/(sys.endAt-sys.startAt);
+      const t=Math.min(1,(now-sys.startAt)/(sys.endAt-sys.startAt));
+      perkCtx.save();
       drawOneShotAnim(sys.type,pt.x,pt.y,t,now,perkCtx);
+      perkCtx.restore();
     }
   }
   loop();
@@ -1296,6 +1357,15 @@ function handle(msg){
 
     case 'hack_detected':toast('⚠ HACKED — '+msg.from+' has your location!','err');break;
 
+    case 'support_expired':
+      if(myStatus==='support'){
+        myStatus='alive';
+        if(myId&&players[myId]){players[myId].status='alive';updMarker(players[myId],true);}
+        updateStatusPanel();
+        toast('◈ Support status cleared — back to active','ok');
+      }
+      break;
+
     case 'emp_hit':
       document.getElementById('emp-ov').classList.add('show');
       let rem=Math.floor((msg.duration||15000)/1000);
@@ -1425,7 +1495,7 @@ function renderSquad(){
     if(p.status==='dead'&&p._bleedEndsAt){
       const rem=Math.max(0,Math.ceil((p._bleedEndsAt-Date.now())/1000));
       const m=Math.floor(rem/60),sec=rem%60;
-      bleedInfo=`<span style="font-size:9px;color:var(--red);font-family:'Share Tech Mono',monospace;font-weight:700">⏱ ${m}:${sec<10?'0':''}${sec}</span>`;
+      bleedInfo=`<span style="font-size:9px;color:var(--red);font-family:Share Tech Mono,monospace;font-weight:700">⏱ ${m}:${sec<10?'0':''}${sec}</span>`;
     }
     return `<div class="pc ${p.status==='dead'?'down':''} ${p.status==='medic'?'medic-c':''}" onclick="focusP('${p.id}')">
       <div class="pa" style="border-color:${col}">${ROLE_ICONS[p.role]||'⚔'}</div>
@@ -1468,25 +1538,43 @@ function updBadge(){const b=document.getElementById('nb-cm');if(!b)return;if(unr
 // ACTIONS
 // ════════════════════════════════════════════════════════════════
 function setStatus(s){
-  // Only allow: dead, medic, support — alive is server-automated
-  if(!['dead','medic','support'].includes(s))return;
-  if(s==='dead'&&myStatus==='dead')return; // already dead
-  myStatus=s;
-  sendWS({type:'status',status:s});
-  toast('Status → '+s.toUpperCase());
-  if(myId&&players[myId]){players[myId].status=s;updMarker(players[myId],true);}
+  // medic = player is down (triggers bleed-out server-side)
+  // support = needs backup (auto-clears after 60s)
+  if(!['medic','support'].includes(s))return;
+  if(s==='medic'){
+    if(myStatus==='dead')return; // already bleeding out
+    myStatus='dead'; // local status is dead so perks etc are blocked
+    sendWS({type:'status',status:'medic'});
+    toast('🚨 MEDIC NEEDED — Bleeding out!','err');
+    if(myId&&players[myId]){players[myId].status='dead';updMarker(players[myId],true);}
+  } else if(s==='support'){
+    if(myStatus==='dead'){toast('Cannot request support while down','warn');return;}
+    myStatus='support';
+    sendWS({type:'status',status:'support'});
+    toast('◈ Support requested — auto-clears in 60s','warn');
+    if(myId&&players[myId]){players[myId].status='support';updMarker(players[myId],true);}
+  }
   updateStatusPanel();
 }
 
 function updateStatusPanel(){
   const aliveInd=document.getElementById('status-alive-indicator');
   const deadPanel=document.getElementById('status-dead-panel');
-  const isDown=myStatus==='dead'||myStatus==='medic';
+  const suppInd=document.getElementById('status-support-indicator');
+  const isDown=myStatus==='dead';
   if(aliveInd)aliveInd.style.display=myStatus==='alive'?'block':'none';
   if(deadPanel)deadPanel.style.display=isDown?'block':'none';
+  if(suppInd)suppInd.style.display=myStatus==='support'?'block':'none';
   // Pulse the screen red when bleeding out
   const body=document.getElementById('gapp');
-  if(body)body.classList.toggle('bleeding-body',myStatus==='dead');
+  if(body)body.classList.toggle('bleeding-body',isDown);
+  // Disable status buttons while down
+  const medicBtn=document.getElementById('btn-medic');
+  const suppBtn=document.getElementById('btn-support');
+  if(medicBtn)medicBtn.disabled=isDown;
+  if(suppBtn)suppBtn.disabled=isDown;
+  if(medicBtn)medicBtn.style.opacity=isDown?'0.4':'1';
+  if(suppBtn)suppBtn.style.opacity=isDown?'0.4':'1';
 }
 function sendOrder(){const txt=document.getElementById('ctxt').value.trim();if(!txt)return;sendWS({type:'order',text:txt,priority:document.getElementById('cprio').value});document.getElementById('ctxt').value='';}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.activeElement&&document.activeElement.id==='ctxt')sendOrder();});
@@ -1532,6 +1620,7 @@ let bleedTimer=null, bleedEndsAt=0;
 
 function usePerk(id){
   const c=document.getElementById('pk-'+id);if(!c||c.classList.contains('cd'))return;
+  // Block perks while bleeding out (dead), but allow during support
   if(myStatus==='dead'){toast('Cannot use perks while down','err');return;}
   sendWS({type:'perk',perk:id});
   // Optimistic: show local animation immediately (server confirms or rejects)
@@ -1565,6 +1654,73 @@ function startBleedTimer(duration){
     if(rem<=0){clearInterval(bleedTimer);bleedTimer=null;}
   },500);
 }
+
+// ════════════════════════════════════════════════════════════════
+// KIT / LOADOUT MANAGER
+// ════════════════════════════════════════════════════════════════
+const KIT_KEY='zgt_kit';
+let kitReplicas=[];
+function loadKit(){
+  try{const saved=localStorage.getItem(KIT_KEY);kitReplicas=saved?JSON.parse(saved):[];}catch{kitReplicas=[];}
+  renderKit();
+}
+function saveKitLocal(){try{localStorage.setItem(KIT_KEY,JSON.stringify(kitReplicas));}catch{}}
+function renderKit(){
+  const el=document.getElementById('kit-list');if(!el)return;
+  if(!kitReplicas.length){el.innerHTML='<div style="color:var(--dim);font-family:Share Tech Mono,monospace;font-size:11px;text-align:center;padding:20px">No replicas added. Tap + ADD REPLICA below.</div>';return;}
+  const ico={'Assault Rifle':'🔫','Sniper Rifle':'🎯','SMG':'⚡','LMG':'🛡','Shotgun':'💥','Pistol/Sidearm':'🔫','DMR':'🎯'};
+  el.innerHTML=kitReplicas.map((r,i)=>{
+    const fps=parseInt(r.fps)||0;
+    const fpsCol=fps<=350?'var(--green)':fps<=400?'var(--warn)':'var(--red)';
+    return `<div class="gc">
+      <div class="gh">
+        <div><div class="gn2">${esc(r.name)}</div><div class="gt2">${esc(r.type)}</div></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span style="font-size:18px">${ico[r.type]||'🔫'}</span>
+          <button onclick="deleteReplica(${i})" style="background:transparent;border:1px solid rgba(255,42,42,.4);color:var(--red);border-radius:2px;padding:2px 6px;font-size:9px;cursor:pointer">DEL</button>
+        </div>
+      </div>
+      <div class="gst">
+        <div class="gsi"><div class="gsn" style="color:${fpsCol}">${r.fps||'—'}</div><div class="gsb"><div class="gsf" style="width:${Math.min(100,(fps/500*100))+'%'};background:${fpsCol}"></div></div><div class="gsl">FPS</div></div>
+        <div class="gsi"><div class="gsn">${r.joules||'—'}</div><div class="gsb"><div class="gsf" style="width:${Math.min(100,(parseFloat(r.joules)||0)/3*100)+'%'};background:var(--gold)"></div></div><div class="gsl">Joules</div></div>
+        <div class="gsi"><div class="gsn" style="font-size:10px">${esc(r.bb||'—')}</div><div class="gsb"><div class="gsf" style="width:60%;background:var(--blue)"></div></div><div class="gsl">BB</div></div>
+      </div>
+      ${(r.range||r.notes)?`<div style="font-size:9px;color:var(--dim);font-family:Share Tech Mono,monospace;padding:4px 0">Range: ${esc(r.range||'—')} ${r.notes?'· '+esc(r.notes):''}</div>`:''}
+    </div>`;
+  }).join('');
+}
+function showAddReplica(){
+  const f=document.getElementById('add-replica-form');if(!f)return;
+  f.style.display='flex';
+  ['kit-name','kit-fps','kit-joules','kit-range','kit-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  const n=document.getElementById('kit-name');if(n)n.focus();
+}
+function cancelAddReplica(){const f=document.getElementById('add-replica-form');if(f)f.style.display='none';}
+function saveReplica(){
+  const name=document.getElementById('kit-name').value.trim();
+  if(!name){toast('Enter a replica name','warn');return;}
+  kitReplicas.push({name,type:document.getElementById('kit-type').value,fps:document.getElementById('kit-fps').value,joules:document.getElementById('kit-joules').value,bb:document.getElementById('kit-bb').value,range:document.getElementById('kit-range').value,notes:document.getElementById('kit-notes').value.trim(),addedAt:Date.now()});
+  saveKitLocal();renderKit();cancelAddReplica();toast('✓ '+name+' added to loadout','ok');
+}
+function deleteReplica(i){
+  const name=kitReplicas[i]?.name||'replica';
+  if(!confirm('Remove '+name+'?'))return;
+  kitReplicas.splice(i,1);saveKitLocal();renderKit();toast('Removed from loadout');
+}
+
+// Override switchTab to load kit on tab switch
+function switchTab(el){
+  if(!el)return;
+  document.querySelectorAll('.gt').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.gscreen').forEach(sc=>sc.classList.remove('active'));
+  el.classList.add('active');activeTab=el.dataset.s;
+  const screen=document.getElementById('gscreen-'+activeTab);
+  if(screen)screen.classList.add('active');
+  if(activeTab==='comms'){unread=0;updBadge();}
+  if(activeTab==='map'&&map)setTimeout(()=>map.invalidateSize(),100);
+  if(activeTab==='kit')loadKit();
+}
+function switchTabById(s){const el=document.querySelector('.gt[data-s="'+s+'"]');if(el)switchTab(el);}
 
 // ════════════════════════════════════════════════════════════════
 // INIT

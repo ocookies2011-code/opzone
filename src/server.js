@@ -519,24 +519,39 @@ wss.on('connection', (ws) => {
         if (!playerId || !roomCode) break;
         const room = rooms[roomCode]; if (!room) break;
         const player = room.players[playerId]; if (!player) break;
-        // Block setting 'alive' directly from client — must go through revive/bleed-out
-        const allowedStatuses = ['dead', 'medic', 'support'];
+        // Only allow medic and support from client — 'dead' removed (medic now triggers bleed-out)
+        // 'alive' is server-automated via revive/bleed-out
+        const allowedStatuses = ['medic', 'support'];
         if (!allowedStatuses.includes(msg.status)) break;
         const prev = player.status;
         player.status = msg.status;
         broadcastAll(room, { type: 'status_update', playerId, status: msg.status, team: player.team });
-        // Start bleed-out timer when player dies
-        if (msg.status === 'dead' && prev !== 'dead') {
+
+        if (msg.status === 'medic' && prev !== 'dead') {
+          // MEDIC NEEDED = player is down — trigger 2-min bleed-out
+          player.status = 'dead'; // internal status is 'dead' for medic-scanner
+          broadcastAll(room, { type: 'status_update', playerId, status: 'dead', team: player.team });
           startBleedOut(room, player);
           startMedicScanner(room);
-        }
-        if (msg.status === 'medic') {
-          const alert = { id: uuidv4(), from: player.callsign, team: player.team, text: `🚨 MEDIC NEEDED — ${player.callsign} (${player.team.toUpperCase()}) requires assistance!`, priority: 'high', ts: Date.now() };
+          const alert = { id: uuidv4(), from: player.callsign, team: player.team,
+            text: `🚨 MEDIC NEEDED — ${player.callsign} (${player.team.toUpperCase()}) is down! 2 minutes!`, priority: 'high', ts: Date.now() };
           room.orders.push(alert); broadcastAll(room, { type: 'new_order', order: alert });
+          // Tell the downed player to start the bleed-out UI
+          sendTo(ws, { type: 'you_are_bleeding', duration: 120000 });
         }
+
         if (msg.status === 'support') {
-          const alert = { id: uuidv4(), from: player.callsign, team: player.team, text: `⚡ SUPPORT NEEDED — ${player.callsign} (${player.team.toUpperCase()}) needs backup!`, priority: 'high', ts: Date.now() };
+          const alert = { id: uuidv4(), from: player.callsign, team: player.team,
+            text: `⚡ SUPPORT NEEDED — ${player.callsign} (${player.team.toUpperCase()}) needs backup!`, priority: 'high', ts: Date.now() };
           room.orders.push(alert); broadcastAll(room, { type: 'new_order', order: alert });
+          // Auto-reset support status to alive after 60 seconds
+          setTimeout(() => {
+            if (room.players[playerId] && room.players[playerId].status === 'support') {
+              room.players[playerId].status = 'alive';
+              broadcastAll(room, { type: 'status_update', playerId, status: 'alive', team: player.team });
+              sendTo(ws, { type: 'support_expired' });
+            }
+          }, 60000);
         }
         break;
       }
