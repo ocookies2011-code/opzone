@@ -1268,6 +1268,26 @@ function editRoles(code){
   });
 }
 
+function editRoleLimits(code){
+  const room=roomsData.find(r=>r.code===code);if(!room)return;
+  const curr=room.roleLimits||{};
+  const roles=room.allowedRoles||ALL_ROLES;
+  const lines=roles.map(r=>r+'='+(curr[r]!=null?curr[r]:'')).join(', ');
+  const input=prompt('Max players per role for '+code+'. Format: Role=Number (blank=unlimited).\nExample: Assault=20, Medic=3, Sniper=2',lines);
+  if(input===null)return;
+  const limits={};
+  input.split(/[,;]/).forEach(part=>{
+    const eq=part.indexOf('=');if(eq<0)return;
+    const role=part.slice(0,eq).trim();const num=parseInt(part.slice(eq+1).trim());
+    if(ALL_ROLES.includes(role)&&!isNaN(num)&&num>0)limits[role]=num;
+  });
+  const finalLimits=Object.keys(limits).length?limits:null;
+  apiFetch('/api/admin/rooms/'+code,{method:'PUT',body:JSON.stringify({roleLimits:finalLimits})}).then(r=>{
+    if(r.ok){toast(finalLimits?'Limits: '+Object.entries(finalLimits).map(([k,v])=>k+'='+v).join(', '):'Limits cleared','ok');loadData();}
+    else toast('Error','err');
+  });
+}
+
 // ════════════════════════════════════════════════════════════════
 // PLAYER ACCOUNTS
 // ════════════════════════════════════════════════════════════════

@@ -305,57 +305,40 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
 
 <!-- ══════════════ HOME PAGE ══════════════ -->
 <div id="home">
-  <!-- HERO -->
-  <div class="hp-hero">
-    <div class="hp-logo">ZULU'S <span>GAME TRACKER</span></div>
-    <div class="hp-tagline">Real-Time Airsoft Tactical Intelligence</div>
-    <div class="hp-by">by Chris Zulu · Swindon Airsoft</div>
-    <!-- App preview mockup -->
-    <div class="hp-preview">
-      <div class="hp-preview-screen">
-        <div class="hp-preview-hdr"><span style="color:var(--gold);font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px">ZULU'S GAME TRACKER</span><span style="font-size:8px;color:var(--green);margin-left:auto">● LIVE</span></div>
-        <div class="hp-preview-nav"><span class="hp-pn active">🗺️ MAP</span><span class="hp-pn">👥 SQUAD</span><span class="hp-pn">📡 COMMS</span><span class="hp-pn">⚡ STATUS</span><span class="hp-pn">🔫 KIT</span></div>
-        <div class="hp-preview-map">
-          <div class="hp-pm-marker red" style="left:30%;top:40%">⚔<div class="hp-pm-lbl">GHOST</div></div>
-          <div class="hp-pm-marker red" style="left:55%;top:60%">🎯<div class="hp-pm-lbl">HAWK</div></div>
-          <div class="hp-pm-marker red" style="left:20%;top:65%">✚<div class="hp-pm-lbl">DOC</div></div>
-          <div class="hp-pm-zone blue-zone" style="left:60%;top:25%;width:90px;height:55px">BLUE BASE</div>
-          <div class="hp-pm-zone red-zone" style="left:5%;top:55%;width:80px;height:50px">RED BASE</div>
-          <div class="hp-pm-zone obj-zone" style="left:40%;top:45%;width:70px;height:40px">OBJECTIVE</div>
-          <div class="hp-pm-hud"><span class="r-hud">🔴 3</span><span class="b-hud">🔵 4</span></div>
-        </div>
-        <div class="hp-preview-bar">📡 UAV ACTIVE · EMP READY · Team Perks Available</div>
+
+  <!-- ── TOP NAV BAR ── -->
+  <div class="hn-bar">
+    <div class="hn-logo">ZULU'S <span>GAME TRACKER</span> <span class="hn-ver">v1.1</span></div>
+    <div class="hn-links">
+      <div class="hn-link active" onclick="showPage('play')" id="hnl-play">🎯 PLAY</div>
+      <div class="hn-link" onclick="showPage('register')" id="hnl-register">✚ REGISTER</div>
+      <div class="hn-link" onclick="showPage('login')" id="hnl-login">🔑 LOGIN</div>
+      <div class="hn-link" onclick="showPage('guide')" id="hnl-guide">📖 GUIDE</div>
+      <div class="hn-link" onclick="showPage('about')" id="hnl-about">ℹ ABOUT</div>
+      <a class="hn-link admin-link" href="/admin">⚙ ADMIN</a>
+    </div>
+  </div>
+
+  <!-- ── PAGES ── -->
+
+  <!-- PLAY PAGE -->
+  <div id="page-play" class="hp-page active">
+    <div class="hp-hero-compact">
+      <div class="hp-logo">ZULU'S <span>GAME TRACKER</span></div>
+      <div class="hp-tagline">Real-Time Airsoft Tactical Intelligence · v1.1</div>
+    </div>
+
+    <!-- Search bar -->
+    <div class="hp-join" style="padding-top:16px">
+      <div class="hp-join-title">FIND YOUR GAME</div>
+      <div class="search-row">
+        <input class="fi fi-lower" id="map-search" placeholder="Search by site name or room code…" oninput="filterMaps()" autocomplete="off" style="flex:1;font-size:14px">
+        <button class="abtn2" onclick="loadMaps()" style="flex:0 0 auto">🔄</button>
       </div>
-    </div>
-  </div>
-
-  <!-- FEATURES -->
-  <div class="hp-features">
-    <div class="hp-feat"><div class="hp-feat-icon">📡</div><div class="hp-feat-title">Live GPS Tracking</div><div class="hp-feat-desc">Real-time squad positions on an interactive battlefield map. Watch your team move in real time.</div></div>
-    <div class="hp-feat"><div class="hp-feat-icon">🔴🔵</div><div class="hp-feat-title">Red vs Blue Teams</div><div class="hp-feat-desc">Enemy positions stay hidden until revealed. UAV scans, intel hacks and perks expose them.</div></div>
-    <div class="hp-feat"><div class="hp-feat-icon">⚡</div><div class="hp-feat-title">Tactical Perks</div><div class="hp-feat-desc">UAV scans, EMP scrambles, smoke screens, medkits, air support — all real server-enforced effects.</div></div>
-    <div class="hp-feat"><div class="hp-feat-icon">🩹</div><div class="hp-feat-title">Bleed-Out System</div><div class="hp-feat-desc">2-minute bleed-out countdown when downed. Get a medic, use a medkit, or walk back to respawn.</div></div>
-    <div class="hp-feat"><div class="hp-feat-icon">🗺️</div><div class="hp-feat-title">Admin Zone Drawing</div><div class="hp-feat-desc">Draw respawn zones, objectives, hazard areas and boundaries saved permanently per site.</div></div>
-    <div class="hp-feat"><div class="hp-feat-icon">📢</div><div class="hp-feat-title">In-Game Comms</div><div class="hp-feat-desc">Priority orders, medic alerts, support requests and team broadcasts. Stay coordinated.</div></div>
-    <div class="hp-feat"><div class="hp-feat-icon">💾</div><div class="hp-feat-title">Saved Map Templates</div><div class="hp-feat-desc">Save zone and objective layouts per game site. Load them instantly at the start of each game.</div></div>
-    <div class="hp-feat"><div class="hp-feat-icon">🛡️</div><div class="hp-feat-title">Multi-Admin Control</div><div class="hp-feat-desc">Super admin plus site-specific admins. Each admin manages their own field, objectives and perks.</div></div>
-  </div>
-
-  <!-- ACCOUNT / JOIN SECTION -->
-  <div class="hp-join">
-    <div class="hp-join-title">DEPLOY TO THE FIELD</div>
-
-    <!-- Account tabs -->
-    <div class="acct-tabs" id="acct-tabs">
-      <div class="acct-tab active" onclick="showAcctTab('join')">🎯 Join</div>
-      <div class="acct-tab" onclick="showAcctTab('login')">🔑 Login</div>
-      <div class="acct-tab" onclick="showAcctTab('register')">✚ Register</div>
-      <div class="acct-tab" onclick="showAcctTab('help')">📖 Guide</div>
-    </div>
-
-    <!-- GUEST JOIN TAB -->
-    <div id="acct-join" class="acct-panel">
       <div class="map-cards" id="map-cards"><div class="map-empty">Loading active maps…</div></div>
+      <div class="map-empty" id="map-no-results" style="display:none">No maps match your search.</div>
+
+      <!-- Join form (shown after selecting a map) -->
       <div class="join-form" id="join-form">
         <div class="jf-title">🎯 DEPLOY TO FIELD</div>
         <div class="jf-sel" id="selected-map-display">No map selected — tap a map above</div>
@@ -367,7 +350,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
               <option>Medic</option><option>Scout</option><option>Commander</option>
             </select>
           </div>
-          <div id="pw-field" style="display:none"><div class="fl">Map Password</div><input class="fi fi-lower" type="password" id="inp-pw" placeholder="Password"></div>
+          <div id="pw-field" style="display:none"><div class="fl">Map Password</div><input class="fi fi-lower" type="password" id="inp-pw"></div>
         </div>
         <div><div class="fl">Select Team</div>
           <div class="team-pick">
@@ -377,33 +360,62 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
         </div>
         <button class="jbtn" id="join-btn" onclick="joinGame()" disabled>SELECT A MAP ABOVE</button>
         <div class="hp-err" id="join-err"></div>
+        <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--dim);font-family:Share Tech Mono,monospace">
+          Have an account? <span onclick="showPage('login')" style="color:var(--gold);cursor:pointer;text-decoration:underline">Login</span> to pre-fill your callsign
+        </div>
       </div>
     </div>
+  </div>
 
-    <!-- LOGIN TAB -->
-    <div id="acct-login" class="acct-panel" style="display:none">
-      <div class="join-form">
-        <div class="jf-title">🔑 PLAYER LOGIN</div>
+  <!-- REGISTER PAGE -->
+  <div id="page-register" class="hp-page" style="display:none">
+    <div class="hp-hero-compact"><div class="hp-logo">CREATE <span>ACCOUNT</span></div><div class="hp-tagline">Join Zulu's Game Tracker · Free · Instant</div></div>
+    <div class="hp-join">
+      <div class="join-form" style="max-width:480px;margin:0 auto">
+        <div class="jf-title">✚ PLAYER REGISTRATION</div>
+        <div class="frow">
+          <div style="flex:1"><div class="fl">Username</div><input class="fi fi-lower" id="reg-user" placeholder="ghost_actual" autocomplete="username"></div>
+          <div style="flex:1"><div class="fl">Callsign (in-game)</div><input class="fi" id="reg-call" maxlength="12" placeholder="GHOST"></div>
+        </div>
+        <div><div class="fl">Password</div><input class="fi fi-lower" type="password" id="reg-pass" placeholder="Minimum 6 characters" autocomplete="new-password"></div>
+        <div class="frow">
+          <div style="flex:1"><div class="fl">Email Address</div><input class="fi fi-lower" type="email" id="reg-email" placeholder="ghost@email.com"></div>
+          <div style="flex:1"><div class="fl">Contact Number</div><input class="fi fi-lower" type="tel" id="reg-phone" placeholder="+44 7700 000000"></div>
+        </div>
+        <div><div class="fl">Town / Postcode</div><input class="fi fi-lower" id="reg-addr" placeholder="Swindon, SN1"></div>
+        <button class="jbtn" onclick="doRegister()">✚ CREATE ACCOUNT</button>
+        <div class="hp-err" id="reg-err"></div>
+        <div style="font-size:10px;color:var(--dim);font-family:Share Tech Mono,monospace;text-align:center;line-height:1.6;margin-top:8px">
+          Your details are stored securely and only used for game management.<br>
+          Already have an account? <span onclick="showPage('login')" style="color:var(--gold);cursor:pointer">Login here</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGIN PAGE -->
+  <div id="page-login" class="hp-page" style="display:none">
+    <div class="hp-hero-compact"><div class="hp-logo">PLAYER <span>LOGIN</span></div><div class="hp-tagline">Sign in to your Zulu's Game Tracker account</div></div>
+    <div class="hp-join">
+      <div class="join-form" style="max-width:420px;margin:0 auto">
+        <div class="jf-title">🔑 LOGIN</div>
         <div><div class="fl">Username</div><input class="fi fi-lower" id="li-user" placeholder="your_username" autocomplete="username"></div>
         <div><div class="fl">Password</div><input class="fi fi-lower" type="password" id="li-pass" placeholder="Password" autocomplete="current-password"></div>
-        <button class="jbtn" onclick="doPlayerLogin()">LOGIN & DEPLOY</button>
+        <button class="jbtn" onclick="doPlayerLogin()">LOGIN</button>
         <div class="hp-err" id="li-err"></div>
-        <div style="font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace;text-align:center">Logging in pre-fills your callsign and saves your session</div>
+        <div style="font-size:10px;color:var(--dim);font-family:Share Tech Mono,monospace;text-align:center;margin-top:8px">
+          No account? <span onclick="showPage('register')" style="color:var(--gold);cursor:pointer">Register free</span>
+        </div>
       </div>
-      <!-- After login: map selection appears here -->
       <div id="li-map-section" style="display:none;margin-top:16px">
+        <div class="hp-join-title" style="font-size:14px">SELECT YOUR MAP</div>
+        <div class="search-row"><input class="fi fi-lower" id="li-map-search" placeholder="Search maps…" oninput="filterLoginMaps()" style="flex:1"></div>
         <div class="map-cards" id="map-cards-li"><div class="map-empty">Loading maps…</div></div>
-        <div class="join-form" id="li-join-form">
-          <div class="jf-title">⚡ SELECT MAP & DEPLOY</div>
+        <div class="join-form" id="li-join-form" style="margin-top:12px">
           <div class="jf-sel" id="li-sel-map">No map selected — tap above</div>
           <div class="frow">
-            <div><div class="fl">Role</div>
-              <select class="fi fi-lower" id="li-role">
-                <option>Assault</option><option>Sniper</option><option>Support</option>
-                <option>Medic</option><option>Scout</option><option>Commander</option>
-              </select>
-            </div>
-            <div id="li-pw-field" style="display:none"><div class="fl">Map Password</div><input class="fi fi-lower" type="password" id="li-pw"></div>
+            <div style="flex:1"><div class="fl">Role</div><select class="fi fi-lower" id="li-role"><option>Assault</option><option>Sniper</option><option>Support</option><option>Medic</option><option>Scout</option><option>Commander</option></select></div>
+            <div id="li-pw-field" style="display:none;flex:1"><div class="fl">Map Password</div><input class="fi fi-lower" type="password" id="li-pw"></div>
           </div>
           <div><div class="fl">Select Team</div>
             <div class="team-pick">
@@ -411,90 +423,68 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
               <button class="tb blue" id="li-tbb" onclick="liPickTeam('blue')">🔵 BLUE TEAM</button>
             </div>
           </div>
-          <button class="jbtn" id="li-deploy-btn" onclick="loginDeploy()" disabled>SELECT MAP ABOVE</button>
+          <button class="jbtn" id="li-deploy-btn" onclick="loginDeploy()" disabled>⚡ DEPLOY</button>
         </div>
       </div>
     </div>
-
-    <!-- REGISTER TAB -->
-    <div id="acct-register" class="acct-panel" style="display:none">
-      <div class="join-form">
-        <div class="jf-title">✚ CREATE ACCOUNT</div>
-        <div class="frow">
-          <div><div class="fl">Username</div><input class="fi fi-lower" id="reg-user" placeholder="ghost_actual" autocomplete="username"></div>
-          <div><div class="fl">Callsign</div><input class="fi" id="reg-call" maxlength="12" placeholder="GHOST"></div>
-        </div>
-        <div><div class="fl">Password</div><input class="fi fi-lower" type="password" id="reg-pass" placeholder="Minimum 6 characters" autocomplete="new-password"></div>
-        <div><div class="fl">Email Address</div><input class="fi fi-lower" type="email" id="reg-email" placeholder="ghost@swindonairsoft.co.uk"></div>
-        <div class="frow">
-          <div><div class="fl">Contact Number</div><input class="fi fi-lower" type="tel" id="reg-phone" placeholder="+44 7700 000000"></div>
-          <div><div class="fl">Postcode / Town</div><input class="fi fi-lower" id="reg-addr" placeholder="Swindon, SN1"></div>
-        </div>
-        <button class="jbtn" onclick="doRegister()">CREATE ACCOUNT</button>
-        <div class="hp-err" id="reg-err"></div>
-        <div style="font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace;text-align:center;line-height:1.5">Your details are stored securely and only used for game management. Never shared with third parties.</div>
-      </div>
-    </div>
-
-    <!-- HELP/GUIDE TAB -->
-    <div id="acct-help" class="acct-panel" style="display:none;max-width:900px">
-      <div style="display:flex;flex-direction:column;gap:16px">
-
-        <div class="help-section">
-          <div class="help-title">📡 How do I get started?</div>
-          <div class="help-body">Register an account or tap "Join as Guest". Select a map from the cards above, enter your callsign, choose your role and team, then tap <b>DEPLOY TO BATTLEFIELD</b>. When your browser asks for location permission — tap Allow. That's it.</div>
-        </div>
-
-        <div class="help-section">
-          <div class="help-title">🗺️ What am I looking at on the map?</div>
-          <div class="help-body">Your position is marked with a <b>★ star</b>. Teammates show their role icon (⚔🎯🛡✚👁⭐). Enemy positions are hidden unless your team uses a UAV or Intel Hack perk. Coloured zones on the map are drawn by your admin — hover/tap a zone to see its label.</div>
-        </div>
-
-        <div class="help-section">
-          <div class="help-title">⚡ What are Perks?</div>
-          <div class="help-body">Perks are found in the <b>STATUS tab → Tactical Perks</b>. They are team-shared abilities with cooldown timers. Once your team uses a perk, everyone on your team must wait for the cooldown before using it again (except Hack, which is personal).</div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">
-          <div class="perk-card"><div class="pc-icon">📡</div><div class="pc-name">UAV SCAN <span class="pc-cd">60s team</span></div><div class="pc-desc">Scans 30m around you. Reveals nearby enemy positions to your team for 20 seconds. Enemy team gets a warning.</div></div>
-          <div class="perk-card"><div class="pc-icon">⚡</div><div class="pc-name">EMP BLAST <span class="pc-cd">4m30s team</span></div><div class="pc-desc">Scrambles enemy GPS within 100m for 30s. Their positions show incorrectly on your team's map.</div></div>
-          <div class="perk-card"><div class="pc-icon">💨</div><div class="pc-name">SMOKE SCREEN <span class="pc-cd">3min team</span></div><div class="pc-desc">Drops a smoke zone at your position for 30 seconds. Visible on all maps as a grey area.</div></div>
-          <div class="perk-card"><div class="pc-icon">💻</div><div class="pc-name">INTEL HACK <span class="pc-cd">2m30s personal</span></div><div class="pc-desc">Reveals one random enemy's exact position to you only for 10 seconds. Personal cooldown — others can still hack.</div></div>
-          <div class="perk-card"><div class="pc-icon">🩹</div><div class="pc-name">MEDKIT <span class="pc-cd">2min team</span></div><div class="pc-desc">Instantly revives all downed teammates within 10 metres of you. You must be standing next to them.</div></div>
-          <div class="perk-card"><div class="pc-icon">🚁</div><div class="pc-name">AIR SUPPORT <span class="pc-cd">4min team</span></div><div class="pc-desc">Marks a 10m danger zone at your position for 60s and broadcasts an alert to all players.</div></div>
-        </div>
-
-        <div class="help-section">
-          <div class="help-title">🚨 What happens when I'm hit?</div>
-          <div class="help-body">Tap <b>"🚨 I AM DOWN — MEDIC NEEDED"</b> on the Status tab. This starts a <b>2-minute bleed-out countdown</b>. Your position shows a flashing 🆘 on your teammates' maps. You can be saved by: (1) a Medic role player walking within 5 metres of you, (2) a teammate using the Medkit perk within 10m, or (3) surviving the 2-minute timer and auto-respawning.</div>
-        </div>
-
-        <div class="help-section">
-          <div class="help-title">🏃 What are Roles?</div>
-          <div class="help-body"><b>⚔ Assault</b> — Standard infantry. <b>🎯 Sniper</b> — Long-range support. <b>🛡 Support</b> — Heavy weapon/suppression. <b>✚ Medic</b> — Automatically revives downed teammates within 5m. <b>👁 Scout</b> — Recon and flanking. <b>⭐ Commander</b> — Team leader. Admins can restrict which roles are available per map.</div>
-        </div>
-
-        <div class="help-section">
-          <div class="help-title">📱 How do I keep GPS tracking when my screen locks?</div>
-          <div class="help-body">The app requests a <b>screen wake lock</b> to keep your display on during gameplay — this is the most reliable method. For better background performance: on iOS, use <b>Safari → Share → Add to Home Screen</b>, then open from there. On Android, allow background activity for your browser. The app sends your position every 8 seconds as a heartbeat regardless.</div>
-        </div>
-
-        <div class="help-section">
-          <div class="help-title">❓ Common problems</div>
-          <div class="help-body">
-            <b>Map won't show my position:</b> Check browser location permission. Move outdoors for better GPS signal.<br>
-            <b>Perk button is greyed out:</b> Either you're bleeding out (perks disabled) or your team's cooldown is active.<br>
-            <b>Can't see teammates:</b> They may not have GPS yet — check the Squad tab for their status.<br>
-            <b>Disconnected:</b> The app auto-reconnects. Your session is saved — refresh the page if needed.
-          </div>
-        </div>
-
-      </div>
-    </div>
-
   </div>
 
-  <div class="hp-footer">ZULU'S GAME TRACKER · Built by Chris Zulu · Swindon Airsoft · <a href="/admin">Admin Panel</a></div>
+  <!-- GUIDE PAGE -->
+  <div id="page-guide" class="hp-page" style="display:none">
+    <div class="hp-hero-compact"><div class="hp-logo">PLAYER <span>GUIDE</span></div><div class="hp-tagline">Everything you need to know · Zulu's Game Tracker v1.1</div></div>
+    <div class="hp-join">
+      <div style="display:flex;flex-direction:column;gap:14px;max-width:860px;margin:0 auto">
+        <div class="help-section"><div class="help-title">📱 Getting Started</div><div class="help-body">Open the app, tap <b>PLAY</b>, select your map, enter a callsign, choose role and team, then <b>DEPLOY</b>. Grant location permission when asked — GPS is required for tracking. Register an account to save your callsign and session across refreshes.</div></div>
+        <div class="help-section"><div class="help-title">🗺️ The Map Screen</div><div class="help-body">Your position shows as a <b>★ star</b>. Teammates show their role insignia. Enemy positions are <b>always hidden</b> unless revealed by UAV or Intel Hack. Coloured zones are drawn by your admin — tap for labels.</div></div>
+        <div class="help-section"><div class="help-title">🚨 I Am Down — Medic Needed</div><div class="help-body">Tap the big red button on the Status tab. A <b>2-minute bleed-out timer</b> starts. Your 🆘 marker flashes on all teammates maps. You can be revived by: a <b>Medic role player within 5m</b>, the <b>Medkit perk within 10m</b>, or the timer expires and you must <b>walk into a Respawn Zone</b>. Once the timer expires, even a medic cannot revive you — respawn zone only.</div></div>
+        <div class="help-section"><div class="help-title">📱 Keeping GPS Active</div><div class="help-body">The app requests a <b>screen wake lock</b> to keep your screen on. On <b>iOS</b>: tap Share → Add to Home Screen, then open from there for best background performance. On <b>Android</b>: allow background activity for your browser. The app sends your position every 8 seconds as a keepalive regardless.</div></div>
+        <div style="font-family:Orbitron,monospace;font-size:11px;color:var(--gold);letter-spacing:2px;margin-top:4px;margin-bottom:-4px">⚡ TACTICAL PERKS</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">
+          <div class="perk-card"><div class="pc-icon">📡</div><div class="pc-name">UAV SCAN <span class="pc-cd">60s team</span></div><div class="pc-desc">Scans 30m radius around you. Reveals nearby enemies to your team for 20s. Enemy team gets a warning but no positions.</div></div>
+          <div class="perk-card"><div class="pc-icon">⚡</div><div class="pc-name">EMP BLAST <span class="pc-cd">4m30s team</span></div><div class="pc-desc">Scrambles enemy GPS within 100m for 30s. Their positions show incorrectly — random jitter on your map.</div></div>
+          <div class="perk-card"><div class="pc-icon">💨</div><div class="pc-name">SMOKE SCREEN <span class="pc-cd">3min team</span></div><div class="pc-desc">Drops smoke at your position for 30s. Hides your GPS from enemies while active. Visible to all as a grey zone.</div></div>
+          <div class="perk-card"><div class="pc-icon">💻</div><div class="pc-name">INTEL HACK <span class="pc-cd">2m30s personal</span></div><div class="pc-desc">Reveals one random enemy's position to you only for 10s. Personal cooldown — your teammates can still hack.</div></div>
+          <div class="perk-card"><div class="pc-icon">🩹</div><div class="pc-name">MEDKIT <span class="pc-cd">2min team</span></div><div class="pc-desc">Instantly revives all downed teammates within 10m. Only works before the bleed-out timer expires.</div></div>
+          <div class="perk-card"><div class="pc-icon">🚁</div><div class="pc-name">AIR SUPPORT <span class="pc-cd">4min team</span></div><div class="pc-desc">Calls suppression fire at your position. Marks a 10m hazard zone for 60s. Alerts all players including enemies.</div></div>
+        </div>
+        <div class="help-section"><div class="help-title">🪖 Roles &amp; Insignia</div><div class="help-body"><b>⚔ Assault</b> — Infantry (horizontal lines). <b>🎯 Sniper</b> — Long range (crosshair). <b>🛡 Support</b> — Heavy weapons (rectangle+line). <b>✚ Medic</b> — Auto-revives within 5m (cross). <b>👁 Scout</b> — Recon (circle+dot). <b>★ Commander</b> — Team leader (triangle). Role types and max numbers are set per map by your admin.</div></div>
+        <div class="help-section"><div class="help-title">❓ Common Issues</div><div class="help-body">
+          <b>Map won't show position:</b> Check browser location permission. Move outdoors for GPS signal.<br>
+          <b>Perk greyed out:</b> Either you're bleeding out, or your team's cooldown is active.<br>
+          <b>Can't see teammates:</b> They may not have GPS yet — check Squad tab.<br>
+          <b>Disconnected:</b> The app auto-reconnects. Refresh if needed — session is saved.<br>
+          <b>Role says "full":</b> Admin has set a max for that role — choose another.
+        </div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABOUT PAGE -->
+  <div id="page-about" class="hp-page" style="display:none">
+    <div class="hp-hero-compact"><div class="hp-logo">ABOUT <span>ZGT</span></div><div class="hp-tagline">Zulu's Game Tracker · Built for Airsoft</div></div>
+    <div class="hp-join">
+      <div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:14px">
+        <div class="help-section">
+          <div class="help-title">What is Zulu's Game Tracker?</div>
+          <div class="help-body">A real-time tactical GPS tracking app built specifically for airsoft games. Players join a game map on their phone, and their positions are shared with their team in real time on an interactive Leaflet map. Enemy positions stay hidden until revealed through tactical perks.</div>
+        </div>
+        <div class="help-section">
+          <div class="help-title">Built by</div>
+          <div class="help-body"><b style="color:var(--gold)">Chris Zulu</b> · Swindon Airsoft<br>Version <b>1.1.0</b> · Built with Node.js, WebSockets, Leaflet.js and PostgreSQL.</div>
+        </div>
+        <div class="help-section">
+          <div class="help-title">Features</div>
+          <div class="help-body">Live GPS tracking · Red vs Blue teams · 6 tactical perks · Bleed-out system · Admin zone drawing · Saved map templates · Multi-admin management · Player accounts · Role limits per map · Military insignia · Background GPS keepalive · PostgreSQL persistent storage</div>
+        </div>
+        <div class="help-section">
+          <div class="help-title">Admin Panel</div>
+          <div class="help-body">Game administrators access the panel at <a href="/admin" style="color:var(--gold)">/admin</a>. The super admin can create maps, draw zones, manage site admins, view player accounts, use tactical perks, and control all aspects of the game.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hp-footer">ZULU'S GAME TRACKER v1.1 · Built by Chris Zulu · Swindon Airsoft · <a href="/admin">Admin Panel</a></div>
 </div>
 
 <!-- ══════════════ GAME APP ══════════════ -->
@@ -722,7 +712,15 @@ let map=null,tileLayer=null;
 let myLat=null,myLng=null,myAcc=null;
 let myMarkerSet=false,uavActive=false,uavTimeout=null,empTimerIv=null;
 let unread=0,activeTab='map';
-const ROLE_ICONS={Assault:'⚔',Sniper:'🎯',Support:'🛡',Medic:'✚',Scout:'👁',Commander:'⭐'};
+const ROLE_ICONS={Assault:'⚔',Sniper:'🎯',Support:'🛡',Medic:'✚',Scout:'👁',Commander:'★'};
+const ROLE_SVG={
+  Assault:'<line x1="4" y1="8" x2="20" y2="8" stroke="currentColor" stroke-width="2.5"/><line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2.5"/><line x1="4" y1="16" x2="20" y2="16" stroke="currentColor" stroke-width="2.5"/>',
+  Sniper:'<circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="2" x2="12" y2="22" stroke="currentColor" stroke-width="1.5"/><line x1="2" y1="12" x2="22" y2="12" stroke="currentColor" stroke-width="1.5"/>',
+  Support:'<rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="1.5"/>',
+  Medic:'<path d="M9 3H15V9H21V15H15V21H9V15H3V9H9V3Z" fill="none" stroke="currentColor" stroke-width="2"/>',
+  Scout:'<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/>',
+  Commander:'<polygon points="12,3 22,20 2,20" fill="none" stroke="currentColor" stroke-width="2"/>',
+};
 const TILES={osm:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',sat:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',topo:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',dark:'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'};
 
 // Clock — safe null check
@@ -744,16 +742,13 @@ let playerToken=sessionStorage.getItem('zgt_player_token')||'';
 let playerCallsign=sessionStorage.getItem('zgt_callsign')||'';
 let liTeam='red', liSelectedMap='', liHasPassword=false;
 
-function showAcctTab(tab){
-  document.querySelectorAll('.acct-tab').forEach((t,i)=>{
-    const tabs=['join','login','register'];
-    t.classList.toggle('active',tabs[i]===tab);
+function showAcctTab(tab){showPage(tab==='join'?'play':tab==='help'?'guide':tab);}
+function showPage(page){
+  ['play','register','login','guide','about'].forEach(p=>{
+    const el=document.getElementById('page-'+p);if(el)el.style.display=p===page?'block':'none';
+    const lnk=document.getElementById('hnl-'+p);if(lnk)lnk.classList.toggle('active',p===page);
   });
-  document.getElementById('acct-join').style.display=tab==='join'?'block':'none';
-  document.getElementById('acct-login').style.display=tab==='login'?'block':'none';
-  document.getElementById('acct-register').style.display=tab==='register'?'block':'none';
-  document.getElementById('acct-help').style.display=tab==='help'?'block':'none';
-  if(tab==='login'||tab==='join') loadMaps();
+  if(page==='play'||page==='login')loadMaps();
 }
 
 async function doPlayerLogin(){
@@ -793,30 +788,26 @@ async function doRegister(){
   sessionStorage.setItem('zgt_callsign',playerCallsign);
   document.getElementById('inp-cs').value=playerCallsign;
   toast('✓ Account created! Welcome, '+playerCallsign,'ok');
-  showAcctTab('join');loadMaps();
+  showPage('play');loadMaps();
 }
 
 async function loadMapsForLogin(){
-  try{
-    const r=await fetch('/api/maps');const maps=await r.json();
-    const el=document.getElementById('map-cards-li');
-    if(!maps.length){el.innerHTML='<div class="map-empty">No active maps</div>';return;}
-    el.innerHTML=maps.map(m=>`<div class="map-card" onclick="liSelectMap('${m.code}','${esc(m.name)}',${m.hasPassword},this)">
-      <div class="mc-name">${esc(m.name)}</div>
-      <div class="mc-meta">
-        <span class="mc-badge red">🔴 ${m.redCount}</span><span class="mc-badge blue">🔵 ${m.blueCount}</span>
-        <span>${m.playerCount} player${m.playerCount!==1?'s':''}</span>
-        ${m.hasPassword?'<span class="mc-lock">🔒</span>':''}
-      </div>
-    </div>`).join('');
-  }catch{document.getElementById('map-cards-li').innerHTML='<div class="map-empty">Could not load maps</div>';}
+  if(_allMaps.length)renderMapCards(_allMaps,'map-cards-li');
+  else await loadMaps();
 }
 
-function liSelectMap(code,name,hasPassword,cardEl){
+function liSelectMap(code,name,hasPassword,cardEl,allowedRoles,roleLimits){
   liSelectedMap=code;liHasPassword=hasPassword;
   document.getElementById('li-sel-map').textContent='Selected: '+name+' ('+code+')';
   document.getElementById('li-pw-field').style.display=hasPassword?'block':'none';
-  const btn=document.getElementById('li-deploy-btn');btn.disabled=false;btn.textContent='⚡ DEPLOY TO BATTLEFIELD';
+  const roleEl=document.getElementById('li-role');
+  const ALL_ROLES=['Assault','Sniper','Support','Medic','Scout','Commander'];
+  const roles=allowedRoles||ALL_ROLES;
+  roleEl.innerHTML=roles.map(function(r){
+    const lim=roleLimits&&roleLimits[r]!=null?' (max '+roleLimits[r]+')':'';
+    return '<option value="'+r+'">'+r+lim+'</option>';
+  }).join('');
+  const btn=document.getElementById('li-deploy-btn');btn.disabled=false;btn.textContent='⚡ DEPLOY';
   document.querySelectorAll('#map-cards-li .map-card').forEach(c=>c.classList.remove('selected'));
   if(cardEl)cardEl.classList.add('selected');
 }
@@ -852,24 +843,47 @@ function loginDeploy(){
 // ════════════════════════════════════════════════════════════════
 // HOME PAGE
 // ════════════════════════════════════════════════════════════════
+let _allMaps=[];
+function filterMaps(){
+  const q=(document.getElementById('map-search')||{value:''}).value.toLowerCase().trim();
+  const maps=q?_allMaps.filter(m=>m.name.toLowerCase().includes(q)||m.code.toLowerCase().includes(q)):_allMaps;
+  renderMapCards(maps,'map-cards');
+  const nr=document.getElementById('map-no-results');
+  if(nr)nr.style.display=(q&&!maps.length)?'block':'none';
+}
+function filterLoginMaps(){
+  const q=(document.getElementById('li-map-search')||{value:''}).value.toLowerCase().trim();
+  const maps=q?_allMaps.filter(m=>m.name.toLowerCase().includes(q)||m.code.toLowerCase().includes(q)):_allMaps;
+  renderMapCards(maps,'map-cards-li');
+}
+function renderMapCards(maps,id){
+  const el=document.getElementById(id);if(!el)return;
+  if(!maps.length){el.innerHTML='<div class="map-empty">No maps found</div>';return;}
+  el.innerHTML=maps.map(function(m){
+    const ar=JSON.stringify(m.allowedRoles||null);
+    const rl=JSON.stringify(m.roleLimits||null);
+    const nm=esc(m.name);
+    const oc="selectMap('"+m.code+"','"+nm+"',"+m.hasPassword+",this,"+ar+","+rl+")";
+    const roles=m.allowedRoles?'<span style="font-size:8px;color:var(--gold);font-family:Share Tech Mono,monospace">'+m.allowedRoles.join(' · ')+'</span>':'';
+    const lock=m.hasPassword?'<span class="mc-lock">🔒</span>':'';
+    return '<div class="map-card'+(m.code===selectedMapCode?' selected':'')+'" onclick="'+oc+'">'
+      +'<div class="mc-name">'+nm+' <span style="font-size:9px;color:var(--dim)">'+m.code+'</span></div>'
+      +'<div class="mc-meta">'
+      +'<span class="mc-badge red">🔴 '+m.redCount+'</span>'
+      +'<span class="mc-badge blue">🔵 '+m.blueCount+'</span>'
+      +'<span style="font-size:9px;color:var(--dim)">'+m.playerCount+' online</span>'
+      +lock+roles+'</div></div>';
+  }).join('');
+}
 async function loadMaps(){
   try{
-    const r=await fetch('/api/maps');const maps=await r.json();
-    const el=document.getElementById('map-cards');
-    if(!maps.length){el.innerHTML='<div class="map-empty">No active maps right now. Ask your admin to create one.</div>';return;}
-    el.innerHTML=maps.map(m=>`<div class="map-card" data-code="${m.code}" onclick="selectMap('${m.code}','${esc(m.name)}',${m.hasPassword},this,${JSON.stringify(m.allowedRoles)})">
-      <div class="mc-name">${esc(m.name)}</div>
-      <div class="mc-meta">
-        <span class="mc-badge red">🔴 ${m.redCount}</span>
-        <span class="mc-badge blue">🔵 ${m.blueCount}</span>
-        <span>${m.playerCount} player${m.playerCount!==1?'s':''}</span>
-        ${m.hasPassword?'<span class="mc-lock">🔒</span>':''}
-      </div>
-    </div>`).join('');
-  }catch{document.getElementById('map-cards').innerHTML='<div class="map-empty">Could not load maps.</div>';}
+    const r=await fetch('/api/maps');_allMaps=await r.json();
+    renderMapCards(_allMaps,'map-cards');
+    renderMapCards(_allMaps,'map-cards-li');
+  }catch{['map-cards','map-cards-li'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<div class="map-empty">Could not load maps</div>';});}
 }
 
-function selectMap(code,name,hasPassword,cardEl,allowedRoles){
+function selectMap(code,name,hasPassword,cardEl,allowedRoles,roleLimits){
   selectedMapCode=code;selectedMapHasPassword=hasPassword;
   document.getElementById('selected-map-display').textContent='Selected: '+name+' ('+code+')';
   document.getElementById('pw-field').style.display=hasPassword?'block':'none';
@@ -877,7 +891,10 @@ function selectMap(code,name,hasPassword,cardEl,allowedRoles){
   const roleEl=document.getElementById('inp-role');
   const ALL_ROLES=['Assault','Sniper','Support','Medic','Scout','Commander'];
   const roles=allowedRoles||ALL_ROLES;
-  roleEl.innerHTML=roles.map(r=>`<option value="${r}">${r}</option>`).join('');
+  roleEl.innerHTML=roles.map(function(r){
+    const lim=roleLimits&&roleLimits[r]!=null?' (max '+roleLimits[r]+')':'';
+    return '<option value="'+r+'">'+r+lim+'</option>';
+  }).join('');
   const btn=document.getElementById('join-btn');btn.disabled=false;btn.textContent='⚡ DEPLOY TO BATTLEFIELD';
   document.getElementById('join-err').classList.remove('show');
   document.querySelectorAll('.map-card').forEach(c=>c.classList.remove('selected'));
@@ -960,7 +977,8 @@ function switchTile(key,el){
 function renderZone(zone){
   if(zoneLayers[zone.id])return;
   const col=zone.color||'#cc44ff';
-  const opts={color:col,fillColor:col,fillOpacity:.15,weight:2,dashArray:'6,4'};
+  const isBoundary=zone.zoneType==='boundary';
+  const opts={color:col,fillColor:col,fillOpacity:isBoundary?0:0.15,weight:isBoundary?3:2,dashArray:isBoundary?'12,6':'6,4'};
   let layer;
   if(zone.shape==='circle'&&zone.center)layer=L.circle(zone.center,{...opts,radius:zone.radius});
   else if(zone.latlngs&&zone.latlngs.length)layer=L.polygon(zone.latlngs,opts);
@@ -1003,9 +1021,12 @@ function makeMarkerIcon(p,isMe,isGhost=false){
   const urgentRing=isDead?`<div class="pm-pulse dead-sos" style="width:${sz+20}px;height:${sz+20}px;top:-10px;left:-10px;border-color:#ff0000;animation:ping .8s ease-out infinite"></div>`:'';
   const pulse=(!isDead&&!isGhost)?`<div class="pm-pulse ${team}" style="width:${sz+10}px;height:${sz+10}px;top:-5px;left:-5px"></div>`:'';
   const ri=ROLE_ICONS[p.role]||'⚔';
+  const svgMark=ROLE_SVG[p.role||'Assault']||ROLE_SVG.Assault;
+  const icoClr=isDead?'#ff6666':team==='red'?'#ffcccc':'#cce0ff';
+  const icoSz=Math.round(sz*0.54);
   const lblExtra=isDead?' · 🆘 MEDIC':isSupport?' · SUPPORT':'';
   const html=`<div class="pmw">${urgentRing}${pulse}<div class="pm ${team}${isMe?' me':''}${isGhost?' ghost':''}" style="width:${sz}px;height:${sz}px;${medicGlow?`box-shadow:${medicGlow}`:''}">
-    ${badge}<span style="font-size:${isMe?14:11}px;pointer-events:none">${isMe?'★':ri}</span></div>
+    ${badge}${isMe?'<span style="font-size:13px;font-weight:900;line-height:1">★</span>':'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="'+icoSz+'" height="'+icoSz+'" style="color:'+icoClr+'">'+svgMark+'</svg>'}</div>
     <div class="pm-lbl" style="color:${isDead?'#ff4444':team==='red'?'var(--red)':team==='blue'?'var(--blue)':'#555'};${isDead?'font-weight:bold;animation:blink .8s infinite':''}">${esc(p.callsign)}${lblExtra}</div></div>`;
   return L.divIcon({html,className:'',iconSize:[sz+22,sz+26],iconAnchor:[(sz+22)/2,(sz+22)/2]});
 }
@@ -1301,6 +1322,9 @@ function onGPS(pos){
   if(!mySmokeActive){
     sendWS({type:'location',lat:myLat,lng:myLng,heading:0});
   }
+  // Persist anims that follow me update their lat/lng
+  if(persistAnim.uav&&persistAnim.uav.followMe){persistAnim.uav.lat=myLat;persistAnim.uav.lng=myLng;}
+  if(persistAnim.smoke&&persistAnim.smoke.followMe){persistAnim.smoke.lat=myLat;persistAnim.smoke.lng=myLng;}
   // Always cache in SW regardless of smoke
   notifySW({type:'GPS_UPDATE',lat:myLat,lng:myLng,heading:0});
 }
@@ -1358,6 +1382,7 @@ function handle(msg){
       toast(msg.message||'Error','err');
       // If wrong password or room not found, go back to home
       if(msg.code==='WRONG_PASSWORD'||msg.code==='ROOM_NOT_FOUND'){leaveGame();}
+      if(msg.code==='ROLE_FULL'){toast('⛔ '+msg.message,'err');}
       break;
 
     case 'player_joined':
@@ -1556,9 +1581,11 @@ function handle(msg){
       // Smoke: suppress GPS broadcast for its duration (hides our team from enemies)
       if(msg.perk==='smoke'){
         mySmokeActive=true;
+        if(persistAnim.smoke)persistAnim.smoke.followMe=true;
         toast('💨 Smoke active — your position hidden for '+(msg.duration/1000||30)+'s','ok');
         setTimeout(()=>{mySmokeActive=false;},msg.duration||30000);
       }
+      if(msg.perk==='uav'){if(persistAnim.uav)persistAnim.uav.followMe=true;}
       break;
 
     case 'perk_anim_end':
@@ -1999,6 +2026,7 @@ window.leaveGame=function(){
 
 // On load: try to restore session first, else show home
 window.addEventListener('load',()=>{
+  showPage('play');
   const restored=tryRestoreSession();
   if(!restored)loadMaps();
 });

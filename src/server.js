@@ -162,6 +162,7 @@ async function persistRoomTemplate(room) {
     name: room.name, password: room.password,
     zones: room.zones, objectives: room.objectives,
     allowedRoles: room.allowedRoles,
+    roleLimits: room.roleLimits,
     createdAt: room.createdAt,
   };
   await persist('room-templates', room.code, roomTemplates[room.code]);
@@ -184,7 +185,7 @@ const ZONE_TYPES = {
   objective:    { label: 'Objective',      color: '#ffaa00', fillOpacity: 0.20 },
   hazard:       { label: 'Hazard Zone',    color: '#ff2a2a', fillOpacity: 0.15 },
   safe:         { label: 'Safe Zone',      color: '#00cc66', fillOpacity: 0.12 },
-  boundary:     { label: 'Game Boundary',  color: '#e8c84a', fillOpacity: 0.05 },
+  boundary:     { label: 'Game Boundary',  color: '#e8c84a', fillOpacity: 0.00 },
   custom:       { label: 'Custom Zone',    color: '#cc44ff', fillOpacity: 0.15 },
 };
 
@@ -202,6 +203,7 @@ function makeRoom(code, name, password) {
     zones: [],
     mapTiles: 'osm',
     allowedRoles: null, // null = all roles allowed; array = restricted list
+    roleLimits: null,   // null = unlimited; obj like {Medic:3, Sniper:5} = capped per role
     activeMapId: null,
     createdAt: Date.now(),
     gamePaused: false,
@@ -328,7 +330,11 @@ function setTeamCooldown(room, team, perk, seconds) {
 // ── Revive helper (used by medic proximity + medkit) ──────────────
 function revivePlayer(room, target, byCallsign) {
   if (target.status === 'alive') return;
-  // Cancel bleed-out timer if running
+  // If bleed-out timer expired, player must reach respawn zone — medic cannot revive
+  if (target._bleedExpired) {
+    sendTo(target.ws, { type: 'revive_blocked', reason: 'Bleed-out expired — reach your respawn zone.' });
+    return;
+  }
   if (target._bleedTimer) { clearTimeout(target._bleedTimer); target._bleedTimer = null; }
   target.status = 'alive';
   target.bleedingOut = false;
@@ -344,19 +350,20 @@ const BLEED_OUT_MS = 120000; // 2 minutes
 function startBleedOut(room, player) {
   if (player._bleedTimer) clearTimeout(player._bleedTimer);
   player.bleedingOut = true;
+  player._bleedExpired = false;
   broadcastAll(room, { type: 'bleed_start', playerId: player.id, duration: BLEED_OUT_MS });
   sendTo(player.ws, { type: 'you_are_bleeding', duration: BLEED_OUT_MS });
   player._bleedTimer = setTimeout(() => {
     player._bleedTimer = null;
     player.bleedingOut = false;
+    player._bleedExpired = true; // medic can no longer revive — must reach respawn zone
     if (player.status !== 'alive') {
-      // Auto-respawn: find nearest respawn zone for their team
       const respawnType = player.team === 'red' ? 'respawn_red' : 'respawn_blue';
       const respawns = room.zones.filter(z => z.zoneType === respawnType);
-      player.status = 'alive';
-      broadcastAll(room, { type: 'status_update', playerId: player.id, status: 'alive', team: player.team });
-      sendTo(player.ws, { type: 'auto_respawned', respawnZones: respawns });
-      const ord = { id: uuidv4(), from: 'SYSTEM', team: player.team, text: `🔄 ${player.callsign} bled out — returning to respawn.`, priority: 'low', ts: Date.now() };
+      // Tell player they are now permanently dead until reaching respawn zone
+      sendTo(player.ws, { type: 'bleed_expired', respawnZones: respawns });
+      const ord = { id: uuidv4(), from: 'SYSTEM', team: player.team,
+        text: `💀 ${player.callsign} bled out — must reach respawn zone to rejoin!`, priority: 'high', ts: Date.now() };
       room.orders.push(ord); broadcastAll(room, { type: 'new_order', order: ord });
     }
   }, BLEED_OUT_MS);
@@ -372,7 +379,7 @@ function startMedicScanner(room) {
       if (medic.role !== 'Medic' || !medic.lat || medic.status !== 'alive') return;
       players.forEach(downed => {
         if (downed.team !== medic.team || downed.id === medic.id) return;
-        if (downed.status === 'alive' || !downed.lat) return;
+        if (downed.status === 'alive' || !downed.lat || downed._bleedExpired) return;
         const dist = haversine(medic.lat, medic.lng, downed.lat, downed.lng);
         if (dist <= MEDIC_RADIUS) {
           revivePlayer(room, downed, medic.callsign);
@@ -552,14 +559,14 @@ const PERK_CONFIGS = {
       setTeamCooldown(room, team, 'air', 240);
 
       const zone = {
-        id: uuidv4(), zoneType: 'hazard', label: `🚁 AIR STRIKE — ${caster.callsign}`,
+        id: uuidv4(), zoneType: 'hazard', label: `🚁 SUPPRESSION FIRE — ${caster.callsign}`,
         shape: 'circle', center: [caster.lat, caster.lng], radius: 10, // 10m radius
         color: '#ff6600', latlngs: [], createdBy: { callsign: caster.callsign }, ts: Date.now(),
       };
       room.zones.push(zone);
       broadcastAll(room, { type: 'zone_added', zone });
       broadcastTeam(room, team, { type: 'perk_anim', perk: 'air', lat: caster.lat, lng: caster.lng, callsign: caster.callsign, team });
-      const ord = { id: uuidv4(), from: '⭐ AIR CMD', team, text: `🚁 AIR SUPPORT inbound at ${caster.callsign}'s position! ALL UNITS CLEAR!`, priority: 'high', ts: Date.now() };
+      const ord = { id: uuidv4(), from: '⭐ AIR CMD', team, text: `🚁 AIR SUPPORT — Suppression fire at ${caster.callsign}'s position! Enemies in zone are pinned!`, priority: 'high', ts: Date.now() };
       room.orders.push(ord); broadcastAll(room, { type: 'new_order', order: ord });
       setTimeout(() => {
         room.zones = room.zones.filter(z => z.id !== zone.id);
@@ -595,7 +602,16 @@ wss.on('connection', (ws) => {
         roomCode = code;
         playerId = uuidv4();
         const team = ['red','blue'].includes(msg.team) ? msg.team : 'red';
-        const player = { id: playerId, callsign: (msg.callsign||'SOLDIER').toUpperCase().slice(0,12), team, role: msg.role||'Assault', status: 'alive', lat: null, lng: null, heading: 0, lastSeen: Date.now(), joinedAt: Date.now(), ws };
+        const reqRole = msg.role || 'Assault';
+        // Check role limit
+        if (room.roleLimits && room.roleLimits[reqRole] !== undefined) {
+          const currentCount = Object.values(room.players).filter(p => p.role === reqRole).length;
+          if (currentCount >= room.roleLimits[reqRole]) {
+            sendTo(ws, { type: 'error', code: 'ROLE_FULL', message: `${reqRole} slots are full (${room.roleLimits[reqRole]} max). Choose another role.` });
+            break;
+          }
+        }
+        const player = { id: playerId, callsign: (msg.callsign||'SOLDIER').toUpperCase().slice(0,12), team, role: reqRole, status: 'alive', lat: null, lng: null, heading: 0, lastSeen: Date.now(), joinedAt: Date.now(), ws };
         room.players[playerId] = player;
         sendTo(ws, { type: 'init', playerId, room: roomSnapshotForTeam(room, team), roomCode });
         broadcastTeam(room, team, { type: 'player_joined', player: playerPublic(player) }, ws);
@@ -616,6 +632,23 @@ wss.on('connection', (ws) => {
         broadcastTeam(room, player.team, locMsg, ws);
         const et = player.team === 'red' ? 'blue' : 'red';
         if (room.uavActive && room.uavActive[et]) broadcastTeam(room, et, locMsg);
+        // ── Respawn zone check — if dead+expired and inside respawn zone, auto-revive ──
+        if (player.status === 'dead' && player._bleedExpired && msg.lat && msg.lng) {
+          const respawnType = player.team === 'red' ? 'respawn_red' : 'respawn_blue';
+          const inZone = room.zones.filter(z => z.zoneType === respawnType).some(z => {
+            if (z.shape === 'circle' && z.center) return haversine(msg.lat, msg.lng, z.center[0], z.center[1]) <= z.radius;
+            return false; // polygon respawn zones not supported for auto-detect yet
+          });
+          if (inZone) {
+            player._bleedExpired = false;
+            player.status = 'alive';
+            broadcastAll(room, { type: 'status_update', playerId: player.id, status: 'alive', team: player.team });
+            sendTo(player.ws, { type: 'respawn_zone_revive' });
+            const ord = { id: uuidv4(), from: 'SYSTEM', team: player.team,
+              text: `🔄 ${player.callsign} reached respawn zone — back in action!`, priority: 'normal', ts: Date.now() };
+            room.orders.push(ord); broadcastAll(room, { type: 'new_order', order: ord });
+          }
+        }
         break;
       }
 
@@ -742,6 +775,7 @@ app.get('/api/maps', (_, res) => {
     redCount: Object.values(r.players).filter(p=>p.team==='red').length,
     blueCount: Object.values(r.players).filter(p=>p.team==='blue').length,
     allowedRoles: r.allowedRoles || null,
+    roleLimits: r.roleLimits || null,
   })));
 });
 
@@ -917,6 +951,7 @@ app.get('/api/admin/rooms', adminAuth, (req, res) => {
     objectives: r.objectives, zones: r.zones, orderCount: r.orders.length,
     createdAt: r.createdAt, gamePaused: r.gamePaused, mapTiles: r.mapTiles, activeMapId: r.activeMapId,
     allowedRoles: r.allowedRoles,
+    roleLimits: r.roleLimits || null,
   })));
 });
 
@@ -944,6 +979,7 @@ app.put('/api/admin/rooms/:code', adminAuth, (req, res) => {
   if (name !== undefined) { room.name = name; broadcastAll(room, { type: 'room_renamed', name }); }
   if (password !== undefined) room.password = password;
   if (req.body.allowedRoles !== undefined) room.allowedRoles = req.body.allowedRoles;
+  if (req.body.roleLimits !== undefined) room.roleLimits = req.body.roleLimits;
   persistRoomTemplate(room).catch(()=>{});
   res.json({ ok: true });
 });
@@ -1273,6 +1309,7 @@ app.post('/api/admin/import', superAdminAuth, async (req, res) => {
         const room = makeRoom(code, tmpl.name, tmpl.password);
         room.zones = tmpl.zones || []; room.objectives = tmpl.objectives || [];
         room.allowedRoles = tmpl.allowedRoles || null;
+        room.roleLimits = tmpl.roleLimits || null;
         rooms[code] = room;
       }
     }
