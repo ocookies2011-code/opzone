@@ -325,32 +325,26 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
   <div id="page-play" class="hp-page active">
     <div class="hp-hero-compact">
       <div class="hp-logo">ZULU'S <span>GAME TRACKER</span></div>
-      <div class="hp-tagline">Real-Time Airsoft Tactical Intelligence · v1.1</div>
+      <div class="hp-tagline">Real-Time Airsoft Tactical Intelligence · v1.2</div>
     </div>
 
-    <!-- Search bar -->
     <div class="hp-join" style="padding-top:16px">
-      <div class="hp-join-title">FIND YOUR GAME</div>
-      <div class="search-row">
-        <input class="fi fi-lower" id="map-search" placeholder="Search by site name or room code…" oninput="filterMaps()" autocomplete="off" style="flex:1;font-size:14px">
-        <button class="abtn2" onclick="loadMaps()" style="flex:0 0 auto">🔄</button>
-      </div>
+      <div class="hp-join-title">SELECT YOUR MAP</div>
       <div class="map-cards" id="map-cards"><div class="map-empty">Loading active maps…</div></div>
-      <div class="map-empty" id="map-no-results" style="display:none">No maps match your search.</div>
 
-      <!-- Join form (shown after selecting a map) -->
-      <div class="join-form" id="join-form">
-        <div class="jf-title">🎯 DEPLOY TO FIELD</div>
-        <div class="jf-sel" id="selected-map-display">No map selected — tap a map above</div>
-        <div><div class="fl">Callsign</div><input class="fi" id="inp-cs" maxlength="12" placeholder="GHOST"></div>
+      <!-- Join form — hidden until a map is selected -->
+      <div class="join-form" id="join-form" style="display:none">
+        <div class="jf-title">🎯 DEPLOY TO BATTLEFIELD</div>
+        <div class="jf-sel" id="selected-map-display">—</div>
+        <div><div class="fl">Callsign</div><input class="fi" id="inp-cs" maxlength="12" placeholder="GHOST" autocomplete="off"></div>
         <div class="frow">
-          <div><div class="fl">Role</div>
+          <div style="flex:2"><div class="fl">Role</div>
             <select class="fi fi-lower" id="inp-role">
               <option>Assault</option><option>Sniper</option><option>Support</option>
               <option>Medic</option><option>Scout</option><option>Commander</option>
             </select>
           </div>
-          <div id="pw-field" style="display:none"><div class="fl">Map Password</div><input class="fi fi-lower" type="password" id="inp-pw"></div>
+          <div id="pw-field" style="display:none;flex:1"><div class="fl">Map Password</div><input class="fi fi-lower" type="password" id="inp-pw"></div>
         </div>
         <div><div class="fl">Select Team</div>
           <div class="team-pick">
@@ -358,9 +352,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
             <button class="tb blue" id="tbb" onclick="pickTeam('blue')">🔵 BLUE TEAM</button>
           </div>
         </div>
-        <button class="jbtn" id="join-btn" onclick="joinGame()" disabled>SELECT A MAP ABOVE</button>
+        <button class="jbtn" id="join-btn" onclick="joinGame()">⚡ DEPLOY TO BATTLEFIELD</button>
         <div class="hp-err" id="join-err"></div>
-        <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--dim);font-family:Share Tech Mono,monospace">
+        <div style="text-align:center;margin-top:8px;font-size:11px;color:var(--dim);font-family:Share Tech Mono,monospace">
           Have an account? <span onclick="showPage('login')" style="color:var(--gold);cursor:pointer;text-decoration:underline">Login</span> to pre-fill your callsign
         </div>
       </div>
@@ -409,7 +403,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
       </div>
       <div id="li-map-section" style="display:none;margin-top:16px">
         <div class="hp-join-title" style="font-size:14px">SELECT YOUR MAP</div>
-        <div class="search-row"><input class="fi fi-lower" id="li-map-search" placeholder="Search maps…" oninput="filterLoginMaps()" style="flex:1"></div>
         <div class="map-cards" id="map-cards-li"><div class="map-empty">Loading maps…</div></div>
         <div class="join-form" id="li-join-form" style="margin-top:12px">
           <div class="jf-sel" id="li-sel-map">No map selected — tap above</div>
@@ -866,7 +859,7 @@ function renderMapCards(maps,id){
     const oc="selectMap('"+m.code+"','"+nm+"',"+m.hasPassword+",this,"+ar+","+rl+")";
     const roles=m.allowedRoles?'<span style="font-size:8px;color:var(--gold);font-family:Share Tech Mono,monospace">'+m.allowedRoles.join(' · ')+'</span>':'';
     const lock=m.hasPassword?'<span class="mc-lock">🔒</span>':'';
-    return '<div class="map-card'+(m.code===selectedMapCode?' selected':'')+'" onclick="'+oc+'">'
+    return '<div class="map-card" onclick="'+oc+'">'
       +'<div class="mc-name">'+nm+' <span style="font-size:9px;color:var(--dim)">'+m.code+'</span></div>'
       +'<div class="mc-meta">'
       +'<span class="mc-badge red">🔴 '+m.redCount+'</span>'
@@ -885,9 +878,8 @@ async function loadMaps(){
 
 function selectMap(code,name,hasPassword,cardEl,allowedRoles,roleLimits){
   selectedMapCode=code;selectedMapHasPassword=hasPassword;
-  document.getElementById('selected-map-display').textContent='Selected: '+name+' ('+code+')';
+  document.getElementById('selected-map-display').textContent=name+' ('+code+')';
   document.getElementById('pw-field').style.display=hasPassword?'block':'none';
-  // Update role dropdown based on map's allowed roles
   const roleEl=document.getElementById('inp-role');
   const ALL_ROLES=['Assault','Sniper','Support','Medic','Scout','Commander'];
   const roles=allowedRoles||ALL_ROLES;
@@ -895,11 +887,12 @@ function selectMap(code,name,hasPassword,cardEl,allowedRoles,roleLimits){
     const lim=roleLimits&&roleLimits[r]!=null?' (max '+roleLimits[r]+')':'';
     return '<option value="'+r+'">'+r+lim+'</option>';
   }).join('');
-  const btn=document.getElementById('join-btn');btn.disabled=false;btn.textContent='⚡ DEPLOY TO BATTLEFIELD';
+  // Show the join form and scroll it into view
+  const form=document.getElementById('join-form');
+  if(form){form.style.display='flex';form.scrollIntoView({behavior:'smooth',block:'start'});}
   document.getElementById('join-err').classList.remove('show');
   document.querySelectorAll('.map-card').forEach(c=>c.classList.remove('selected'));
   if(cardEl)cardEl.classList.add('selected');
-  btn.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
 function pickTeam(t){myTeam=t;document.getElementById('tbr').classList.toggle('sel',t==='red');document.getElementById('tbb').classList.toggle('sel',t==='blue');}

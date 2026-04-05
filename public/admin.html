@@ -1258,37 +1258,52 @@ document.addEventListener('keydown',e=>{
 // ════════════════════════════════════════════════════════════════
 const ALL_ROLES=['Assault','Sniper','Support','Medic','Scout','Commander'];
 
-function editRoles(code){
+let _roleEditorCode=null;
+
+function openRoleEditor(code){
   const room=roomsData.find(r=>r.code===code);if(!room)return;
-  const current=(room.allowedRoles||ALL_ROLES).join(', ');
-  const input=prompt('Roles for '+code+' (comma-sep): Assault, Sniper, Support, Medic, Scout, Commander. Blank=all:',current);
-  if(input===null)return;
-  const roles=input.split(',').map(r=>r.trim()).filter(r=>ALL_ROLES.includes(r));
-  const finalRoles=roles.length===ALL_ROLES.length||roles.length===0?null:roles;
-  apiFetch('/api/admin/rooms/'+code,{method:'PUT',body:JSON.stringify({allowedRoles:finalRoles})}).then(r=>{
-    if(r.ok){toast(finalRoles?'Roles restricted to: '+finalRoles.join(', '):'All roles allowed','ok');loadData();}
-    else toast('Error','err');
-  });
+  _roleEditorCode=code;
+  document.getElementById('role-modal-map').textContent='Map: '+room.name+' ('+code+')';
+  const currentRoles=room.allowedRoles||ALL_ROLES;
+  const currentLimits=room.roleLimits||{};
+  const rows=document.getElementById('role-modal-rows');
+  rows.innerHTML=ALL_ROLES.map(function(role){
+    const allowed=currentRoles.includes(role);
+    const limit=currentLimits[role]!=null?currentLimits[role]:'';
+    return '<div style="display:flex;align-items:center;gap:12px;padding:8px 10px;background:var(--bg2);border-radius:4px;border:1px solid var(--border)">'
+      +'<label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1">'
+      +'<input type="checkbox" id="role-chk-'+role+'" '+(allowed?'checked':'')
+      +' style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer">'
+      +'<span style="font-family:Share Tech Mono,monospace;font-size:12px;color:var(--text)">'+role+'</span>'
+      +'</label>'
+      +'<div style="display:flex;align-items:center;gap:6px">'
+      +'<span style="font-size:9px;color:var(--dim);font-family:Share Tech Mono,monospace">MAX</span>'
+      +'<input type="number" id="role-lim-'+role+'" value="'+limit
+      +'" min="1" max="999" placeholder="&#8734;"'
+      +' style="width:60px;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:4px 6px;font-family:Share Tech Mono,monospace;font-size:12px;text-align:center">'
+      +'</div></div>';
+  }).join('');
+  document.getElementById('role-modal').style.display='flex';
 }
 
-function editRoleLimits(code){
-  const room=roomsData.find(r=>r.code===code);if(!room)return;
-  const curr=room.roleLimits||{};
-  const roles=room.allowedRoles||ALL_ROLES;
-  const lines=roles.map(r=>r+'='+(curr[r]!=null?curr[r]:'')).join(', ');
-  const input=prompt('Max players per role for '+code+'. Format: Role=Number (blank=unlimited).\nExample: Assault=20, Medic=3, Sniper=2',lines);
-  if(input===null)return;
-  const limits={};
-  input.split(/[,;]/).forEach(part=>{
-    const eq=part.indexOf('=');if(eq<0)return;
-    const role=part.slice(0,eq).trim();const num=parseInt(part.slice(eq+1).trim());
-    if(ALL_ROLES.includes(role)&&!isNaN(num)&&num>0)limits[role]=num;
+function closeRoleEditor(){
+  document.getElementById('role-modal').style.display='none';
+  _roleEditorCode=null;
+}
+
+async function saveRoleEditor(){
+  if(!_roleEditorCode)return;
+  const allowedRoles=ALL_ROLES.filter(r=>document.getElementById('role-chk-'+r)?.checked);
+  const roleLimits={};
+  ALL_ROLES.forEach(function(r){
+    const v=parseInt((document.getElementById('role-lim-'+r)||{}).value||'');
+    if(!isNaN(v)&&v>0)roleLimits[r]=v;
   });
-  const finalLimits=Object.keys(limits).length?limits:null;
-  apiFetch('/api/admin/rooms/'+code,{method:'PUT',body:JSON.stringify({roleLimits:finalLimits})}).then(r=>{
-    if(r.ok){toast(finalLimits?'Limits: '+Object.entries(finalLimits).map(([k,v])=>k+'='+v).join(', '):'Limits cleared','ok');loadData();}
-    else toast('Error','err');
-  });
+  const finalRoles=allowedRoles.length===0||allowedRoles.length===ALL_ROLES.length?null:allowedRoles;
+  const finalLimits=Object.keys(roleLimits).length?roleLimits:null;
+  const res=await apiFetch('/api/admin/rooms/'+_roleEditorCode,{method:'PUT',body:JSON.stringify({allowedRoles:finalRoles,roleLimits:finalLimits})});
+  if(res.ok){toast('✓ Roles & limits saved','ok');closeRoleEditor();loadData();}
+  else toast('Error saving roles','err');
 }
 
 // ════════════════════════════════════════════════════════════════
