@@ -852,7 +852,7 @@ app.put('/api/player/me', (req, res) => {
 });
 
 // Admin: view all player accounts
-app.get('/api/admin/player-accounts', adminAuth, (req, res) => {
+app.get('/api/admin/player-accounts', superAdminAuth, (req, res) => {
   const accounts = Object.values(playerAccounts).map(a => ({
     username: a.username, callsign: a.callsign, email: a.email,
     phone: a.phone, createdAt: a.createdAt, lastLogin: a.lastLogin,
@@ -958,7 +958,10 @@ app.get('/api/admin/rooms', adminAuth, (req, res) => {
 app.post('/api/admin/rooms', adminAuth, (req, res) => {
   const { code, name, password } = req.body;
   const c = (code || uuidv4().slice(0,6)).toUpperCase();
-  if (!canAccessRoom(req.adminSession, c) && req.adminSession.role !== 'super') return res.status(403).json({ error: 'No access' });
+  // Site admins: can create new maps (auto-assigned to them) but cannot take over another admin's map
+  if (req.adminSession.role !== 'super' && rooms[c] && !canAccessRoom(req.adminSession, c)) {
+    return res.status(403).json({ error: 'Map code already in use by another site.' });
+  }
   const room = getOrCreateRoom(c, name||c, password||'');
   if (name) room.name = name;
   if (password !== undefined) room.password = password;
@@ -1048,6 +1051,7 @@ app.post('/api/admin/rooms/:code/map-tiles', adminAuth, (req, res) => {
 // ════════════════════════════════════════════════════════════════════
 app.get('/api/admin/rooms/:code/objectives', adminAuth, (req, res) => {
   const room = rooms[req.params.code.toUpperCase()]; if (!room) return res.status(404).json({ error: 'Not found' });
+  if (!canAccessRoom(req.adminSession, room.code)) return res.status(403).json({ error: 'No access' });
   res.json(room.objectives);
 });
 
@@ -1140,6 +1144,10 @@ app.get('/api/admin/saved-maps', adminAuth, (req, res) => {
 app.post('/api/admin/saved-maps', adminAuth, (req, res) => {
   const { name, siteCode, zones, objectives } = req.body;
   if (!name) return res.status(400).json({ error: 'Name required' });
+  // Site admins can only save templates for their assigned maps
+  if (req.adminSession.role !== 'super' && siteCode && !req.adminSession.managedSites.includes(siteCode)) {
+    return res.status(403).json({ error: 'No access to that site' });
+  }
   const map = { id: uuidv4(), name, siteCode: siteCode||'', zones: zones||[], objectives: objectives||[], createdBy: req.adminSession.username, createdAt: Date.now() };
   savedMaps[map.id] = map;
   persist('saved-maps', map.id, map);
@@ -1149,6 +1157,9 @@ app.post('/api/admin/saved-maps', adminAuth, (req, res) => {
 
 app.put('/api/admin/saved-maps/:id', adminAuth, (req, res) => {
   const map = savedMaps[req.params.id]; if (!map) return res.status(404).json({ error: 'Not found' });
+  if (req.adminSession.role !== 'super' && map.siteCode && !req.adminSession.managedSites.includes(map.siteCode)) {
+    return res.status(403).json({ error: 'No access' });
+  }
   const { name, zones, objectives } = req.body;
   if (name) map.name = name;
   if (zones) map.zones = zones;
@@ -1159,6 +1170,10 @@ app.put('/api/admin/saved-maps/:id', adminAuth, (req, res) => {
 });
 
 app.delete('/api/admin/saved-maps/:id', adminAuth, (req, res) => {
+  const map = savedMaps[req.params.id]; if (!map) return res.status(404).json({ error: 'Not found' });
+  if (req.adminSession.role !== 'super' && map.siteCode && !req.adminSession.managedSites.includes(map.siteCode)) {
+    return res.status(403).json({ error: 'No access' });
+  }
   const _delSM=req.params.id; delete savedMaps[_delSM]; persistDel('saved-maps',_delSM); saveJSON('saved-maps.json',savedMaps); res.json({ ok: true });
 });
 
