@@ -62,6 +62,26 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
 .hp-footer a{color:var(--dim);text-decoration:none;padding-bottom:1px;border-bottom:1px solid var(--border)}
 .hp-footer a:hover{color:var(--text)}
 
+/* ─── NAV BAR ─── */
+.hn-bar{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:50px;background:rgba(8,11,15,.97);border-bottom:1px solid rgba(232,200,74,.15);position:sticky;top:0;z-index:200;flex-shrink:0}
+.hn-logo{font-family:'Orbitron',monospace;font-size:13px;font-weight:900;color:var(--gold);letter-spacing:3px;white-space:nowrap;text-shadow:0 0 20px rgba(232,200,74,.3)}
+.hn-logo span{color:rgba(200,216,232,.55);font-weight:400}
+.hn-ver{font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace;letter-spacing:1px;margin-left:4px;vertical-align:middle}
+.hn-links{display:flex;gap:2px;align-items:center;flex-wrap:nowrap}
+.hn-link{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;letter-spacing:.5px;color:var(--dim);padding:6px 10px;border-radius:5px;cursor:pointer;transition:all .2s;text-decoration:none;text-transform:uppercase;white-space:nowrap;user-select:none}
+.hn-link:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.hn-link.active{color:var(--gold);background:rgba(232,200,74,.08)}
+.admin-link{border:1px solid rgba(232,200,74,.2)!important;color:rgba(232,200,74,.6)!important;margin-left:6px}
+.admin-link:hover{border-color:var(--gold)!important;color:var(--gold)!important;background:rgba(232,200,74,.06)!important}
+
+/* ─── PAGE STRUCTURE ─── */
+.hp-page{display:none}
+.hp-page.active{display:block}
+.hp-hero-compact{background:linear-gradient(160deg,#05080c 0%,#09121e 60%,#05080c 100%);padding:36px 24px 30px;text-align:center;border-bottom:1px solid rgba(232,200,74,.1);position:relative;overflow:hidden}
+.hp-hero-compact::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 100% at 50% 0%,rgba(232,200,74,.05) 0%,transparent 70%);pointer-events:none}
+.hp-hero-compact .hp-logo{font-size:clamp(20px,5vw,36px);letter-spacing:3px;margin-bottom:6px;position:relative}
+.hp-hero-compact .hp-tagline{font-size:11px;letter-spacing:2px;color:var(--dim);margin:0;position:relative}
+
 /* ─── HERO PREVIEW MOCKUP ─── */
 .hp-preview{display:flex;justify-content:center;margin-top:32px}
 .hp-preview-screen{background:#0a1218;border:1px solid var(--gold2);border-radius:12px;width:min(360px,90vw);overflow:hidden;box-shadow:0 0 40px rgba(232,200,74,.15)}
@@ -337,6 +357,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
 
     <div class="hp-join" style="padding-top:16px">
       <div class="hp-join-title">SELECT YOUR MAP</div>
+      <div style="max-width:960px;margin:0 auto 12px">
+        <input class="fi fi-lower" id="map-search" placeholder="🔍  Search maps…" oninput="filterMaps()" autocomplete="off" style="max-width:320px;font-size:13px;padding:9px 12px">
+      </div>
+      <div id="map-no-results" style="display:none" class="map-empty">No maps match your search</div>
       <div class="map-cards" id="map-cards"><div class="map-empty">Loading active maps…</div></div>
 
       <!-- Join form — hidden until a map is selected -->
