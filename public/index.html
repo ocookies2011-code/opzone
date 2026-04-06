@@ -69,7 +69,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
 .hp-preview-nav{display:flex;background:var(--panel);border-bottom:1px solid var(--border)}
 .hp-pn{flex:1;text-align:center;font-size:8px;font-weight:700;letter-spacing:.5px;padding:7px 0;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace}
 .hp-pn.active{color:var(--gold);border-bottom:2px solid var(--gold)}
-.hp-preview-map{background:linear-gradient(135deg,#0a180a 0%,#0f2010 50%,#0a180a 100%);height:200px;position:relative;overflow:hidden}
+.hp-preview-map{height:200px;position:relative;overflow:hidden;background:#0a1218}
+#hero-leaflet-map{width:100%;height:200px;z-index:1}
+.hp-preview-map-overlay{position:absolute;inset:0;pointer-events:none;z-index:2;background:linear-gradient(to bottom,rgba(8,11,15,.35) 0%,transparent 40%,transparent 70%,rgba(8,11,15,.5) 100%)}
 .hp-pm-marker{position:absolute;display:flex;flex-direction:column;align-items:center;font-size:16px}
 .hp-pm-marker .hp-pm-lbl{font-size:7px;background:rgba(0,0,0,.85);color:var(--red);padding:1px 4px;border-radius:2px;font-family:'Share Tech Mono',monospace;white-space:nowrap;margin-top:2px}
 .hp-pm-zone{position:absolute;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:7px;font-family:'Share Tech Mono',monospace;letter-spacing:1px;font-weight:700}
@@ -430,7 +432,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
         <div class="help-section"><div class="help-title">📱 Getting Started</div><div class="help-body">Open the app, tap <b>PLAY</b>, select your map, enter a callsign, choose role and team, then <b>DEPLOY</b>. Grant location permission when asked — GPS is required for tracking. Register an account to save your callsign and session across refreshes.</div></div>
         <div class="help-section"><div class="help-title">🗺️ The Map Screen</div><div class="help-body">Your position shows as a <b>★ star</b>. Teammates show their role insignia. Enemy positions are <b>always hidden</b> unless revealed by UAV or Intel Hack. Coloured zones are drawn by your admin — tap for labels.</div></div>
         <div class="help-section"><div class="help-title">🚨 I Am Down — Medic Needed</div><div class="help-body">Tap the big red button on the Status tab. A <b>2-minute bleed-out timer</b> starts. Your 🆘 marker flashes on all teammates maps. You can be revived by: a <b>Medic role player within 5m</b>, the <b>Medkit perk within 10m</b>, or the timer expires and you must <b>walk into a Respawn Zone</b>. Once the timer expires, even a medic cannot revive you — respawn zone only.</div></div>
-        <div class="help-section"><div class="help-title">📱 Keeping GPS Active</div><div class="help-body">The app requests a <b>screen wake lock</b> to keep your screen on. On <b>iOS</b>: tap Share → Add to Home Screen, then open from there for best background performance. On <b>Android</b>: allow background activity for your browser. The app sends your position every 8 seconds as a keepalive regardless.</div></div>
+        <div class="help-section"><div class="help-title">📱 Keeping GPS Active</div><div class="help-body">The app uses three layers to keep GPS alive when your screen locks: (1) a <b>Screen Wake Lock</b> to keep the display on, (2) a <b>silent audio session</b> that prevents the browser suspending the page (most reliable method), and (3) a <b>Service Worker</b> that caches your last position. On <b>iOS</b>: tap Share → <b>Add to Home Screen</b>, then open from there — Safari PWA mode gives the best background GPS. On <b>Android</b>: allow background activity for Chrome. Keep the app open in the foreground during gameplay for best results.</div></div>
         <div style="font-family:Orbitron,monospace;font-size:11px;color:var(--gold);letter-spacing:2px;margin-top:4px;margin-bottom:-4px">⚡ TACTICAL PERKS</div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">
           <div class="perk-card"><div class="pc-icon">📡</div><div class="pc-name">UAV SCAN <span class="pc-cd">60s team</span></div><div class="pc-desc">Scans 30m radius around you. Reveals nearby enemies to your team for 20s. Enemy team gets a warning but no positions.</div></div>
@@ -440,7 +442,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
           <div class="perk-card"><div class="pc-icon">🩹</div><div class="pc-name">MEDKIT <span class="pc-cd">2min team</span></div><div class="pc-desc">Instantly revives all downed teammates within 10m. Only works before the bleed-out timer expires.</div></div>
           <div class="perk-card"><div class="pc-icon">🚁</div><div class="pc-name">AIR SUPPORT <span class="pc-cd">4min team</span></div><div class="pc-desc">Calls suppression fire at your position. Marks a 10m hazard zone for 60s. Alerts all players including enemies.</div></div>
         </div>
-        <div class="help-section"><div class="help-title">🪖 Roles &amp; Insignia</div><div class="help-body"><b>⚔ Assault</b> — Infantry (horizontal lines). <b>🎯 Sniper</b> — Long range (crosshair). <b>🛡 Support</b> — Heavy weapons (rectangle+line). <b>✚ Medic</b> — Auto-revives within 5m (cross). <b>👁 Scout</b> — Recon (circle+dot). <b>★ Commander</b> — Team leader (triangle). Role types and max numbers are set per map by your admin.</div></div>
+        <div class="help-section"><div class="help-title">🪖 Roles &amp; Insignia</div><div class="help-body"><b>⚔ Assault</b> — Two chevrons (British infantry stripes). <b>🎯 Sniper</b> — Star with scope (marksman badge). <b>🛡 Support</b> — Crown (British Army support symbol). <b>✚ Medic</b> — Geneva cross in circle (NATO/British medic). <b>👁 Scout</b> — Binoculars (recce). <b>★ Commander</b> — Crown and orb (officer rank). Role types and max numbers are set per map by your admin.</div></div>
         <div class="help-section"><div class="help-title">❓ Common Issues</div><div class="help-body">
           <b>Map won't show position:</b> Check browser location permission. Move outdoors for GPS signal.<br>
           <b>Perk greyed out:</b> Either you're bleeding out, or your team's cooldown is active.<br>
@@ -598,7 +600,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
             <div class="pkc" id="pk-emp" onclick="usePerk('emp')"><div class="pki">⚡</div><div class="pkn">EMP</div><div class="pko">Scramble 100m · team 4m30s</div><div class="pkct" id="pct-emp">TEAM READY</div><div class="pkbar" id="pb-emp" style="width:0"></div></div>
             <div class="pkc" id="pk-smoke" onclick="usePerk('smoke')"><div class="pki">💨</div><div class="pkn">SMOKE</div><div class="pko">Smoke zone · team 3min</div><div class="pkct" id="pct-smoke">TEAM READY</div><div class="pkbar" id="pb-smoke" style="width:0"></div></div>
             <div class="pkc" id="pk-hack" onclick="usePerk('hack')"><div class="pki">💻</div><div class="pkn">HACK</div><div class="pko">1 enemy 10s · personal 2m30s</div><div class="pkct" id="pct-hack">READY</div><div class="pkbar" id="pb-hack" style="width:0"></div></div>
-            <div class="pkc" id="pk-medkit" onclick="usePerk('medkit')"><div class="pki">🩹</div><div class="pkn">MEDKIT</div><div class="pko">Revive 10m · team 2min</div><div class="pkct" id="pct-medkit">TEAM READY</div><div class="pkbar" id="pb-medkit" style="width:0"></div></div>
+            <div class="pkc" id="pk-medkit" onclick="usePerk('medkit')"><div class="pki">🩹</div><div class="pkn">MEDKIT</div><div class="pko">Within 10m of downed · team 2min</div><div class="pkct" id="pct-medkit">TEAM READY</div><div class="pkbar" id="pb-medkit" style="width:0"></div></div>
             <div class="pkc" id="pk-air" onclick="usePerk('air')"><div class="pki">🚁</div><div class="pkn">AIR SUP</div><div class="pko">10m zone · team 4min</div><div class="pkct" id="pct-air">TEAM READY</div><div class="pkbar" id="pb-air" style="width:0"></div></div>
           </div>
         </div>
@@ -706,13 +708,20 @@ let myLat=null,myLng=null,myAcc=null;
 let myMarkerSet=false,uavActive=false,uavTimeout=null,empTimerIv=null;
 let unread=0,activeTab='map';
 const ROLE_ICONS={Assault:'⚔',Sniper:'🎯',Support:'🛡',Medic:'✚',Scout:'👁',Commander:'★'};
+// British Army-style role insignia
+// Assault = three downward chevrons (Private/Lance Corporal stripes, British style)
+// Sniper = crosshair inside a diamond (sniper badge style)
+// Support = crown (British Army crown symbol for support/logistics)
+// Medic = Geneva cross in circle (standard NATO/British medic)
+// Scout = binoculars silhouette (recce/scout)
+// Commander = crown above a pip/diamond (officer rank style)
 const ROLE_SVG={
-  Assault:'<line x1="4" y1="8" x2="20" y2="8" stroke="currentColor" stroke-width="2.5"/><line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2.5"/><line x1="4" y1="16" x2="20" y2="16" stroke="currentColor" stroke-width="2.5"/>',
-  Sniper:'<circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="2" x2="12" y2="22" stroke="currentColor" stroke-width="1.5"/><line x1="2" y1="12" x2="22" y2="12" stroke="currentColor" stroke-width="1.5"/>',
-  Support:'<rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="1.5"/>',
-  Medic:'<path d="M9 3H15V9H21V15H15V21H9V15H3V9H9V3Z" fill="none" stroke="currentColor" stroke-width="2"/>',
-  Scout:'<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/>',
-  Commander:'<polygon points="12,3 22,20 2,20" fill="none" stroke="currentColor" stroke-width="2"/>',
+  Assault:'<polyline points="4,7 12,14 20,7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><polyline points="4,12 12,19 20,12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>',
+  Sniper:'<polygon points="12,3 14,9 20,9 15.5,13 17.5,19 12,15.5 6.5,19 8.5,13 4,9 10,9" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="11.5" r="2" fill="currentColor"/>',
+  Support:'<path d="M7,17 C7,17 5,14 5,11 C5,7.7 8.1,5 12,5 C15.9,5 19,7.7 19,11 C19,14 17,17 17,17 Z" fill="none" stroke="currentColor" stroke-width="2"/><line x1="9" y1="19" x2="15" y2="19" stroke="currentColor" stroke-width="2"/><line x1="12" y1="17" x2="12" y2="19" stroke="currentColor" stroke-width="2"/>',
+  Medic:'<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 9H15V12H18V15H15V18H9V15H6V12H9V9Z" fill="none" stroke="currentColor" stroke-width="1.6"/>',
+  Scout:'<ellipse cx="8.5" cy="13" rx="4" ry="3" fill="none" stroke="currentColor" stroke-width="1.8"/><ellipse cx="15.5" cy="13" rx="4" ry="3" fill="none" stroke="currentColor" stroke-width="1.8"/><line x1="12" y1="13" x2="12" y2="13" stroke="currentColor" stroke-width="2"/><path d="M8.5,10 L10,7 L12,8 L14,7 L15.5,10" fill="none" stroke="currentColor" stroke-width="1.5"/>',
+  Commander:'<path d="M8,11 C8,8.8 9.8,7 12,7 C14.2,7 16,8.8 16,11 C16,12.4 15.3,13.6 14.2,14.3 L15,17 L9,17 L9.8,14.3 C8.7,13.6 8,12.4 8,11Z" fill="none" stroke="currentColor" stroke-width="1.8"/><line x1="9" y1="19" x2="15" y2="19" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="5" r="1.5" fill="currentColor"/>',
 };
 const TILES={osm:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',sat:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',topo:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',dark:'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'};
 
@@ -1315,9 +1324,6 @@ function onGPS(pos){
   if(!mySmokeActive){
     sendWS({type:'location',lat:myLat,lng:myLng,heading:0});
   }
-  // Persist anims that follow me update their lat/lng
-  if(persistAnim.uav&&persistAnim.uav.followMe){persistAnim.uav.lat=myLat;persistAnim.uav.lng=myLng;}
-  if(persistAnim.smoke&&persistAnim.smoke.followMe){persistAnim.smoke.lat=myLat;persistAnim.smoke.lng=myLng;}
   // Always cache in SW regardless of smoke
   notifySW({type:'GPS_UPDATE',lat:myLat,lng:myLng,heading:0});
 }
@@ -1574,11 +1580,11 @@ function handle(msg){
       // Smoke: suppress GPS broadcast for its duration (hides our team from enemies)
       if(msg.perk==='smoke'){
         mySmokeActive=true;
-        if(persistAnim.smoke)persistAnim.smoke.followMe=true;
+        // Smoke stays at cast position — do NOT follow the player
         toast('💨 Smoke active — your position hidden for '+(msg.duration/1000||30)+'s','ok');
         setTimeout(()=>{mySmokeActive=false;},msg.duration||30000);
       }
-      if(msg.perk==='uav'){if(persistAnim.uav)persistAnim.uav.followMe=true;}
+      // UAV stays at cast position — do NOT follow the player
       break;
 
     case 'perk_anim_end':
@@ -1588,9 +1594,29 @@ function handle(msg){
       document.getElementById('ceasefire-ov').classList.remove('show');
       toast('⚔ Ceasefire ended — game resumes!','warn');break;
 
+    case 'bleed_expired':
+      // Server confirmed bleed-out expired — must reach respawn zone
+      showRespawnDirective();
+      toast('☠ BLEED OUT — HEAD TO RESPAWN ZONE!','err');
+      break;
+
+    case 'respawn_zone_revive':
+      // Auto-revived by walking into respawn zone
+      myStatus='alive';
+      if(bleedTimer){clearInterval(bleedTimer);bleedTimer=null;}
+      const rd=document.getElementById('respawn-directive');if(rd)rd.remove();
+      const btEl=document.getElementById('bleed-timer');if(btEl){btEl.textContent='2:00';btEl.style.fontSize='28px';}
+      updateStatusPanel();
+      const rb3=document.getElementById('revived-banner');if(rb3){rb3.textContent='🔄 RESPAWNED — Back in action!';rb3.style.display='flex';setTimeout(()=>rb3.style.display='none',3000);}
+      if(myId&&players[myId]){players[myId].status='alive';updMarker(players[myId],true);}
+      toast('🔄 Reached respawn zone — back in action!','ok');
+      break;
+
     case 'revived':
       myStatus='alive';
       if(bleedTimer){clearInterval(bleedTimer);bleedTimer=null;}
+      const rdMedic=document.getElementById('respawn-directive');if(rdMedic)rdMedic.remove();
+      const btElM=document.getElementById('bleed-timer');if(btElM){btElM.textContent='2:00';btElM.style.fontSize='28px';}
       updateStatusPanel();
       const rb=document.getElementById('revived-banner');if(rb){rb.textContent='🩹 REVIVED by '+msg.by+'!';rb.style.display='flex';setTimeout(()=>rb.style.display='none',3000);}
       if(myId&&players[myId]){players[myId].status='alive';updMarker(players[myId],true);}
@@ -1770,9 +1796,30 @@ function usePerk(id){
   const c=document.getElementById('pk-'+id);if(!c||c.classList.contains('cd'))return;
   // Block perks while bleeding out (dead), but allow during support
   if(myStatus==='dead'){toast('Cannot use perks while down','err');return;}
+  // Medkit: client-side proximity check — must have a downed teammate within 10m
+  if(id==='medkit'){
+    if(!myLat){toast('No GPS — cannot check range','err');return;}
+    const MEDKIT_RANGE=10;
+    const downed=Object.values(players).filter(p=>
+      p.team===myTeam && p.id!==myId && p.status!=='alive' && p.lat && p.lng
+    );
+    const inRange=downed.some(p=>haversineClient(myLat,myLng,p.lat,p.lng)<=MEDKIT_RANGE);
+    if(!inRange){
+      toast('No downed teammates within 10m range','err');
+      return;
+    }
+  }
   sendWS({type:'perk',perk:id});
   // Optimistic: show local animation immediately (server confirms or rejects)
   if(myLat&&map)showPerkAnim(id,myLat,myLng);
+}
+
+function haversineClient(lat1,lng1,lat2,lng2){
+  const R=6371000;
+  const dLat=(lat2-lat1)*Math.PI/180;
+  const dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
 function applyTeamCooldown(perk, seconds, endsAt){
@@ -1799,9 +1846,33 @@ function startBleedTimer(duration){
     const rem=Math.max(0,Math.ceil((bleedEndsAt-Date.now())/1000));
     const m=Math.floor(rem/60), sec=rem%60;
     const el=document.getElementById('bleed-timer');
-    if(el)el.textContent=m+':'+(sec<10?'0':'')+sec;
-    if(rem<=0){clearInterval(bleedTimer);bleedTimer=null;}
+    if(rem<=0){
+      clearInterval(bleedTimer);bleedTimer=null;
+      if(el){el.textContent='EXPIRED';el.style.fontSize='14px';}
+      showRespawnDirective();
+    } else {
+      if(el){el.textContent=m+':'+(sec<10?'0':'')+sec;el.style.fontSize='28px';}
+    }
   },500);
+}
+
+function showRespawnDirective(){
+  // Update the dead panel to tell player to head to respawn
+  const deadPanel=document.getElementById('status-dead-panel');
+  if(deadPanel){
+    const existing=document.getElementById('respawn-directive');
+    if(!existing){
+      const div=document.createElement('div');
+      div.id='respawn-directive';
+      div.style.cssText='background:rgba(255,100,0,.15);border:2px solid #ff6400;border-radius:4px;padding:10px;text-align:center;margin-top:8px;animation:blink .8s infinite';
+      div.innerHTML='<div style="font-family:\'Orbitron\',monospace;font-size:13px;color:#ff6400;font-weight:700;letter-spacing:2px">⚠ HEAD TO RESPAWN</div>'
+        +'<div style="font-family:\'Share Tech Mono\',monospace;font-size:10px;color:var(--dim);margin-top:4px">Walk to your team\'s respawn zone to rejoin</div>';
+      deadPanel.appendChild(div);
+    }
+  }
+  // Switch to map tab so they can see respawn zones
+  toast('☠ BLEED OUT — HEAD TO RESPAWN ZONE NOW!','err');
+  switchTabById('map');
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1887,6 +1958,30 @@ setInterval(()=>{
 // WAKE LOCK — keep screen on during gameplay
 // ════════════════════════════════════════════════════════════════
 let wakeLock=null;
+
+// Silent audio keepalive — most reliable cross-platform method to
+// prevent the browser from suspending GPS when the screen locks.
+// A looping silent AudioContext node keeps the audio session alive
+// which in turn keeps the page active on both iOS Safari and Android Chrome.
+let _audioCtx=null,_audioNode=null;
+function startSilentAudio(){
+  try{
+    if(_audioCtx)return; // already running
+    _audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    // Create a silent oscillator with zero gain — keeps audio session open
+    const osc=_audioCtx.createOscillator();
+    const gain=_audioCtx.createGain();
+    gain.gain.value=0.001; // near-silent, not truly 0 (some browsers suspend at exactly 0)
+    osc.connect(gain);gain.connect(_audioCtx.destination);
+    osc.start();
+    _audioNode=osc;
+  }catch(e){/* AudioContext not available — fall back to wake lock only */}
+}
+function stopSilentAudio(){
+  try{if(_audioNode)_audioNode.stop();if(_audioCtx)_audioCtx.close();}catch{}
+  _audioCtx=null;_audioNode=null;
+}
+
 async function requestWakeLock(){
   try{
     if('wakeLock' in navigator){
@@ -1900,7 +1995,13 @@ async function requestWakeLock(){
         }
       });
     }
-  }catch(e){/* wake lock not supported or denied — silent fail */}
+  }catch(e){/* wake lock not supported or denied — silent audio will keep GPS alive */}
+  // Start silent audio keepalive (works on screen lock where wake lock fails)
+  startSilentAudio();
+  // Register periodic background sync for Android Chrome
+  if(swReg&&'periodicSync' in swReg){
+    swReg.periodicSync.register('gps-keepalive',{minInterval:15000}).catch(()=>{});
+  }
   // Send player context to SW
   notifySW({
     type:'PLAYER_CONTEXT',
@@ -1911,6 +2012,7 @@ async function requestWakeLock(){
 }
 async function releaseWakeLock(){
   if(wakeLock){try{await wakeLock.release();}catch{}wakeLock=null;}
+  stopSilentAudio();
 }
 // Visibility change — screen unlock / tab switch back
 document.addEventListener('visibilitychange',async()=>{

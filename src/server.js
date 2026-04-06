@@ -1138,7 +1138,7 @@ app.delete('/api/admin/rooms/:code/zones', adminAuth, (req, res) => {
 app.get('/api/admin/saved-maps', adminAuth, (req, res) => {
   const sess = req.adminSession;
   const maps = Object.values(savedMaps).filter(m => sess.role === 'super' || sess.managedSites.includes(m.siteCode) || m.createdBy === sess.username);
-  res.json(maps.map(m => ({ id: m.id, name: m.name, siteCode: m.siteCode, zoneCount: (m.zones||[]).length, objectiveCount: (m.objectives||[]).length, createdAt: m.createdAt, createdBy: m.createdBy })));
+  res.json(maps.map(m => ({ id: m.id, name: m.name, gameType: m.gameType||'Standard', siteCode: m.siteCode, zoneCount: (m.zones||[]).length, objectiveCount: (m.objectives||[]).length, createdAt: m.createdAt, createdBy: m.createdBy })));
 });
 
 app.post('/api/admin/saved-maps', adminAuth, (req, res) => {
@@ -1148,7 +1148,7 @@ app.post('/api/admin/saved-maps', adminAuth, (req, res) => {
   if (req.adminSession.role !== 'super' && siteCode && !req.adminSession.managedSites.includes(siteCode)) {
     return res.status(403).json({ error: 'No access to that site' });
   }
-  const map = { id: uuidv4(), name, siteCode: siteCode||'', zones: zones||[], objectives: objectives||[], createdBy: req.adminSession.username, createdAt: Date.now() };
+  const map = { id: uuidv4(), name, siteCode: siteCode||'', gameType: req.body.gameType||'Standard', zones: zones||[], objectives: objectives||[], createdBy: req.adminSession.username, createdAt: Date.now() };
   savedMaps[map.id] = map;
   persist('saved-maps', map.id, map);
   logEvent('map_saved', { name, by: req.adminSession.username });
@@ -1194,6 +1194,21 @@ app.post('/api/admin/rooms/:code/load-map/:mapId', adminAuth, (req, res) => {
 // ════════════════════════════════════════════════════════════════════
 // REST — Players, Broadcast, Admin Perks, Event Log
 // ════════════════════════════════════════════════════════════════════
+// Respawn a single player
+app.post('/api/admin/rooms/:code/respawn-player', adminAuth, (req, res) => {
+  const room = rooms[req.params.code.toUpperCase()]; if (!room) return res.status(404).json({ error: 'Not found' });
+  if (!canAccessRoom(req.adminSession, room.code)) return res.status(403).json({ error: 'No access' });
+  const player = room.players[req.body.playerId]; if (!player) return res.status(404).json({ error: 'Player not found' });
+  if (player._bleedTimer) { clearTimeout(player._bleedTimer); player._bleedTimer = null; }
+  player.status = 'alive'; player.bleedingOut = false; player._bleedExpired = false;
+  broadcastAll(room, { type: 'status_update', playerId: player.id, status: 'alive', team: player.team });
+  sendTo(player.ws, { type: 'respawn_zone_revive' });
+  const msg = { id: uuidv4(), from: '⭐ ADMIN', team: player.team, text: `🔄 ${player.callsign} respawned by admin.`, priority: 'normal', ts: Date.now() };
+  room.orders.push(msg); broadcastAll(room, { type: 'new_order', order: msg });
+  logEvent('player_respawned', { code: room.code, callsign: player.callsign, by: req.adminSession.username });
+  res.json({ ok: true });
+});
+
 app.post('/api/admin/rooms/:code/kick/:pid', adminAuth, (req, res) => {
   const room = rooms[req.params.code.toUpperCase()]; if (!room) return res.status(404).json({ error: 'Not found' });
   if (!canAccessRoom(req.adminSession, room.code)) return res.status(403).json({ error: 'No access' });

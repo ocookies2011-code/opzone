@@ -273,7 +273,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
       <div class="sbi" data-v="broadcast" onclick="sv(this)"><span class="sico">📢</span>Broadcast</div>
       <div class="sbi super-only" data-v="siteadmins" onclick="sv(this)"><span class="sico">👤</span>Site Admins</div>
       <div class="sbi" data-v="log" onclick="sv(this)"><span class="sico">📋</span>Event Log</div>
-      <div class="sbi" data-v="players" onclick="sv(this)"><span class="sico">👥</span>Player Accounts</div>
+      <div class="sbi super-only" data-v="players" onclick="sv(this)"><span class="sico">👥</span>Player Accounts</div>
       <div class="sbi" data-v="password" onclick="sv(this)"><span class="sico">🔑</span>Change Password</div>
       <div class="sbi super-only" data-v="databackup" onclick="sv(this)"><span class="sico">💿</span>Data Backup</div>
     </div>
@@ -322,6 +322,50 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
               <div class="mleg"><div class="mleg-dot" style="border-color:#ffaa00;background:rgba(255,170,0,.2)"></div>Medic</div>
             </div>
             <div id="live-map"></div>
+
+            <!-- ── INLINE ADMIN CONTROLS ── -->
+            <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+
+              <!-- Game Controls -->
+              <div style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:10px">
+                <div style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:8px">◈ GAME CONTROLS</div>
+                <div style="display:flex;flex-wrap:wrap;gap:5px">
+                  <button class="abtn sm" onclick="lmPause()" style="background:var(--warn);color:#000">⏸ PAUSE</button>
+                  <button class="abtn sm" onclick="lmResume()" style="background:var(--green);color:#000">▶ RESUME</button>
+                  <button class="abtn sm" onclick="lmReset()" style="background:var(--blue);color:#fff">🔄 RESPAWN ALL</button>
+                  <button class="abtn sm" id="lm-ceasefire-btn" onclick="lmCeasefire()" style="background:#fff;color:#000">🕊 CEASEFIRE</button>
+                  <button class="abtn sm" id="lm-ceasefire-end-btn" onclick="lmCeasefireEnd()" style="background:var(--green);color:#000;display:none">⚔ END CEASEFIRE</button>
+                </div>
+              </div>
+
+              <!-- Respawn Individual Players -->
+              <div style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:10px">
+                <div style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:8px">◈ RESPAWN PLAYER</div>
+                <div id="lm-player-respawn-list" style="display:flex;flex-direction:column;gap:4px;max-height:120px;overflow-y:auto">
+                  <div style="font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace">Select a map to see players</div>
+                </div>
+              </div>
+
+              <!-- Intel & Reveals -->
+              <div style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:10px">
+                <div style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:8px">◈ INTEL</div>
+                <div style="display:flex;flex-wrap:wrap;gap:5px">
+                  <button class="abtn sm" onclick="lmPerk('intel_drop','red')" style="border-color:var(--red);color:var(--red)">👁 RED Intel</button>
+                  <button class="abtn sm" onclick="lmPerk('intel_drop','blue')" style="border-color:var(--blue);color:var(--blue)">👁 BLUE Intel</button>
+                  <button class="abtn sm" onclick="lmPerk('blackout')" style="border-color:#666;color:#ccc">⚫ Blackout</button>
+                </div>
+              </div>
+
+              <!-- Eliminate -->
+              <div style="background:var(--panel2);border:1px solid var(--red);border-radius:6px;padding:10px">
+                <div style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--red);letter-spacing:2px;margin-bottom:8px">◈ ELIMINATE TEAM</div>
+                <div style="display:flex;flex-wrap:wrap;gap:5px">
+                  <button class="abtn sm" onclick="lmPerk('eliminate_team','red')" style="background:var(--red-d);border-color:var(--red);color:var(--red)">💀 RED</button>
+                  <button class="abtn sm" onclick="lmPerk('eliminate_team','blue')" style="background:var(--blue-d);border-color:var(--blue);color:var(--blue)">💀 BLUE</button>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
       </div>
@@ -439,6 +483,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
             <div class="brow">
               <div class="form-field" style="flex:1"><div class="form-label">Source Map</div><select class="asel" id="save-src-room" style="width:100%;padding:8px"></select></div>
               <div class="form-field" style="flex:2"><div class="form-label">Template Name</div><input class="ai" id="save-map-name" placeholder="e.g. Swindon CQB — Standard Game" maxlength="60"></div>
+              <div class="form-field" style="flex:1"><div class="form-label">Game Type</div><select class="asel" id="save-game-type" style="width:100%;padding:8px"><option value="Standard">Standard</option><option value="Domination">Domination</option><option value="Capture the Flag">Capture the Flag</option><option value="VIP Escort">VIP Escort</option><option value="Attack &amp; Defend">Attack &amp; Defend</option><option value="Elimination">Elimination</option><option value="Custom">Custom</option></select></div>
               <button class="abtn green-b" onclick="saveMap()" style="margin-top:20px">💾 SAVE MAP</button>
             </div>
             <div style="font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace">Saves all zones and objectives from the selected map as a reusable template.</div>
@@ -745,7 +790,7 @@ function renderRooms(){
     <div style="padding:4px 13px;font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
       <span>ROLES:</span>
       ${r.allowedRoles?r.allowedRoles.map(function(role){return '<span style="background:rgba(232,200,74,.1);border:1px solid var(--gold2);border-radius:2px;padding:1px 5px;color:var(--gold)">'+role+'</span>';}).join(''):'<span style="color:var(--dim)">All roles allowed</span>'}
-      <button onclick="editRoles('${r.code}')" style="margin-left:auto;background:transparent;border:1px solid var(--border);color:var(--dim);border-radius:2px;padding:1px 5px;font-size:8px;cursor:pointer;font-family:'Share Tech Mono',monospace">EDIT ROLES</button>
+      <button onclick="openRoleEditor('${r.code}')" style="margin-left:auto;background:transparent;border:1px solid var(--border);color:var(--dim);border-radius:2px;padding:1px 5px;font-size:8px;cursor:pointer;font-family:'Share Tech Mono',monospace">EDIT ROLES</button>
     </div>
     <div class="rca">
       <button class="ra ${r.gamePaused?'resume':'pause'}" onclick="${r.gamePaused?`resumeRoom('${r.code}')`:`pauseRoom('${r.code}')`}">${r.gamePaused?'▶ RESUME':'⏸ PAUSE'}</button>
@@ -791,9 +836,9 @@ function handleAdminWs(msg){
       liveMapPlayers={};(msg.room?.players||[]).forEach(p=>liveMapPlayers[p.id]=p);
       rebuildLiveMarkers();rebuildLiveZones(msg.room?.zones||[]);updateLmStatus(msg.room);break;
     case 'location_update':if(liveMapPlayers[msg.playerId]){liveMapPlayers[msg.playerId].lat=msg.lat;liveMapPlayers[msg.playerId].lng=msg.lng;updateAdminMarker(liveMapPlayers[msg.playerId]);}break;
-    case 'status_update':if(liveMapPlayers[msg.playerId]){liveMapPlayers[msg.playerId].status=msg.status;updateAdminMarker(liveMapPlayers[msg.playerId]);}break;
-    case 'player_joined':liveMapPlayers[msg.player.id]=msg.player;updateAdminMarker(msg.player);break;
-    case 'player_left':delete liveMapPlayers[msg.playerId];if(liveMapMarkers[msg.playerId]){liveMap.removeLayer(liveMapMarkers[msg.playerId]);delete liveMapMarkers[msg.playerId];}break;
+    case 'status_update':if(liveMapPlayers[msg.playerId]){liveMapPlayers[msg.playerId].status=msg.status;updateAdminMarker(liveMapPlayers[msg.playerId]);renderLmPlayerRespawnList();}break;
+    case 'player_joined':liveMapPlayers[msg.player.id]=msg.player;updateAdminMarker(msg.player);renderLmPlayerRespawnList();break;
+    case 'player_left':delete liveMapPlayers[msg.playerId];if(liveMapMarkers[msg.playerId]){liveMap.removeLayer(liveMapMarkers[msg.playerId]);delete liveMapMarkers[msg.playerId];}renderLmPlayerRespawnList();break;
     case 'zone_added':addLiveZoneLayer(msg.zone);break;
     case 'zone_removed':if(liveMapZoneLayers[msg.id]){liveMap.removeLayer(liveMapZoneLayers[msg.id]);delete liveMapZoneLayers[msg.id];}break;
     case 'zones_cleared':Object.values(liveMapZoneLayers).forEach(l=>liveMap.removeLayer(l));liveMapZoneLayers={};break;
@@ -879,7 +924,41 @@ async function loadLiveMap(){
   liveMapPlayers={};(data.players||[]).forEach(p=>liveMapPlayers[p.id]=p);
   rebuildLiveMarkers();rebuildLiveZones(data.zones||[]);
   document.getElementById('lm-status').textContent=data.players.length+' players · '+((data.zones||[]).length)+' zones · '+(data.gamePaused?'PAUSED':'ACTIVE');
+  renderLmPlayerRespawnList();
   connectAdminWs(code);
+}
+
+// ── Inline live map admin actions ─────────────────────────────
+function lmCode(){return document.getElementById('lm-room').value;}
+async function lmPause(){const c=lmCode();if(!c){toast('Select a map','err');return;}const r=await apiFetch(`/api/admin/rooms/${c}/pause`,{method:'POST'});if(r.ok)toast('⏸ Game paused','ok');else toast('Error','err');}
+async function lmResume(){const c=lmCode();if(!c){toast('Select a map','err');return;}const r=await apiFetch(`/api/admin/rooms/${c}/resume`,{method:'POST'});if(r.ok)toast('▶ Game resumed','ok');else toast('Error','err');}
+async function lmReset(){const c=lmCode();if(!c){toast('Select a map','err');return;}if(!confirm('Respawn ALL players?'))return;const r=await apiFetch(`/api/admin/rooms/${c}/reset`,{method:'POST'});if(r.ok){toast('🔄 All players respawned','ok');renderLmPlayerRespawnList();}else toast('Error','err');}
+async function lmCeasefire(){const c=lmCode();if(!c){toast('Select a map','err');return;}const r=await apiFetch(`/api/admin/rooms/${c}/perk`,{method:'POST',body:JSON.stringify({perk:'ceasefire'})});if(r.ok){toast('🕊 Ceasefire signalled','ok');document.getElementById('lm-ceasefire-btn').style.display='none';document.getElementById('lm-ceasefire-end-btn').style.display='';}else toast('Error','err');}
+async function lmCeasefireEnd(){const c=lmCode();if(!c){toast('Select a map','err');return;}const r=await apiFetch(`/api/admin/rooms/${c}/ceasefire-end`,{method:'POST'});if(r.ok){toast('⚔ Ceasefire ended','ok');document.getElementById('lm-ceasefire-btn').style.display='';document.getElementById('lm-ceasefire-end-btn').style.display='none';}else toast('Error','err');}
+async function lmPerk(perk,team){const c=lmCode();if(!c){toast('Select a map','err');return;}if(perk==='blackout'&&!confirm('Blackout all players?'))return;if(perk==='eliminate_team'&&!confirm('Eliminate '+team.toUpperCase()+' team?'))return;const body={perk};if(team)body.team=team;const r=await apiFetch(`/api/admin/rooms/${c}/perk`,{method:'POST',body:JSON.stringify(body)});if(r.ok){const d=await r.json();toast(d.message||'Done','ok');}else toast('Error','err');}
+
+async function lmRespawnPlayer(pid,name){
+  const c=lmCode();if(!c)return;
+  if(!confirm('Respawn '+name+'?'))return;
+  // Use the reset endpoint targeting one player via kick+rejoin isn't ideal — use broadcast status update
+  const r=await apiFetch(`/api/admin/rooms/${c}/respawn-player`,{method:'POST',body:JSON.stringify({playerId:pid})});
+  if(r.ok){toast('🔄 '+name+' respawned','ok');if(liveMapPlayers[pid])liveMapPlayers[pid].status='alive';renderLmPlayerRespawnList();}
+  else toast('Error','err');
+}
+
+function renderLmPlayerRespawnList(){
+  const el=document.getElementById('lm-player-respawn-list');if(!el)return;
+  const ps=Object.values(liveMapPlayers);
+  if(!ps.length){el.innerHTML='<div style="font-size:9px;color:var(--dim);font-family:\'Share Tech Mono\',monospace">No players online</div>';return;}
+  el.innerHTML=ps.map(p=>{
+    const col=p.team==='red'?'var(--red)':'var(--blue)';
+    const isDead=p.status==='dead';
+    return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid var(--border)">
+      <div style="width:6px;height:6px;border-radius:50%;background:${col};flex-shrink:0"></div>
+      <span style="font-family:'Share Tech Mono',monospace;font-size:9px;flex:1;color:${isDead?'var(--red)':'var(--text)'}">${esc(p.callsign)} ${isDead?'☠':''}</span>
+      <button onclick="lmRespawnPlayer('${p.id}','${esc(p.callsign)}')" style="background:transparent;border:1px solid var(--green);color:var(--green);border-radius:2px;padding:1px 5px;font-size:8px;cursor:pointer;font-family:'Share Tech Mono',monospace;${isDead?'':'opacity:.4'}">RESPAWN</button>
+    </div>`;
+  }).join('');
 }
 function refreshLiveMap(){const code=document.getElementById('lm-room').value;if(!code||!liveMap)return;}
 function openLiveMap(code){sv(document.querySelector('[data-v="livemap"]'));setTimeout(()=>{document.getElementById('lm-room').value=code;loadLiveMap();},100);}
@@ -1082,26 +1161,33 @@ async function loadSavedMaps(){
   const maps=await r.json();
   const el=document.getElementById('saved-maps-grid');
   if(!maps.length){el.innerHTML='<div class="empty">No saved map templates yet.<br>Save a map\'s zones and objectives above.</div>';return;}
-  el.innerHTML=maps.map(m=>`<div class="sm-card">
-    <div class="sm-name">🗺️ ${esc(m.name)}</div>
-    <div class="sm-meta">${m.zoneCount} zones · ${m.objectiveCount} objectives<br>By ${esc(m.createdBy)} · ${new Date(m.createdAt).toLocaleDateString()}</div>
-    <div class="sm-btns">
-      <button class="sm-btn load" onclick="loadSavedMap('${m.id}')">LOAD INTO MAP</button>
-      <button class="sm-btn edit" onclick="renameSavedMap('${m.id}','${esc(m.name)}')">RENAME</button>
-      <button class="sm-btn del" onclick="deleteSavedMap('${m.id}','${esc(m.name)}')">DELETE</button>
-    </div>
-  </div>`).join('');
+  // Group by game type
+  const byType={};
+  maps.forEach(m=>{const t=m.gameType||'Standard';if(!byType[t])byType[t]=[];byType[t].push(m);});
+  el.innerHTML=Object.entries(byType).map(([type,typeMaps])=>`
+    <div style="grid-column:1/-1;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:2px;padding:4px 0 2px;border-bottom:1px solid var(--border);margin-bottom:2px">◈ ${esc(type)}</div>
+    ${typeMaps.map(m=>`<div class="sm-card">
+      <div class="sm-name">🗺️ ${esc(m.name)}</div>
+      <div class="sm-meta">${m.zoneCount} zones · ${m.objectiveCount} objectives<br>By ${esc(m.createdBy)} · ${new Date(m.createdAt).toLocaleDateString()}</div>
+      <div class="sm-btns">
+        <button class="sm-btn load" onclick="loadSavedMap('${m.id}')">LOAD INTO MAP</button>
+        <button class="sm-btn edit" onclick="renameSavedMap('${m.id}','${esc(m.name)}')">RENAME</button>
+        <button class="sm-btn del" onclick="deleteSavedMap('${m.id}','${esc(m.name)}')">DELETE</button>
+      </div>
+    </div>`).join('')}
+  `).join('');
 }
 
 async function saveMap(){
   const srcRoom=document.getElementById('save-src-room').value;
   const name=document.getElementById('save-map-name').value.trim();
+  const gameType=document.getElementById('save-game-type').value||'Standard';
   if(!srcRoom){toast('Select a source map','err');return;}
   if(!name){toast('Enter a template name','err');return;}
   // Fetch current state of room
   const r=await apiFetch(`/api/admin/rooms/${srcRoom}`);if(!r.ok){toast('Could not read map','err');return;}
   const d=await r.json();
-  const sr=await apiFetch('/api/admin/saved-maps',{method:'POST',body:JSON.stringify({name,siteCode:srcRoom,zones:d.zones,objectives:d.objectives})});
+  const sr=await apiFetch('/api/admin/saved-maps',{method:'POST',body:JSON.stringify({name,gameType,siteCode:srcRoom,zones:d.zones,objectives:d.objectives})});
   if(sr.ok){toast('✓ Map template "'+name+'" saved!','ok');document.getElementById('save-map-name').value='';loadSavedMaps();}else toast('Error saving map','err');
 }
 
