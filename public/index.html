@@ -17,50 +17,95 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
 /* ─── HOME ─── */
 #home{height:100%;overflow-y:auto;display:block}
 #home.hidden{display:none!important}
-.hp-hero{background:linear-gradient(180deg,#060a0e 0%,#0a1520 60%,var(--bg) 100%);padding:60px 20px 40px;text-align:center;position:relative;overflow:hidden}
-.hp-hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(232,200,74,.008) 2px,rgba(232,200,74,.008) 4px);pointer-events:none}
-.hp-logo{font-family:'Orbitron',monospace;font-size:clamp(22px,6vw,46px);font-weight:900;color:var(--gold);letter-spacing:6px;text-shadow:0 0 40px rgba(232,200,74,.4);line-height:1.1}
-.hp-logo span{color:var(--text);opacity:.7}
-.hp-tagline{font-size:clamp(11px,2.5vw,16px);letter-spacing:3px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace;margin-top:8px}
-.hp-by{font-size:11px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-top:5px;opacity:.6}
-.hp-features{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;padding:36px 20px;max-width:960px;margin:0 auto}
-.hp-feat{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px;text-align:center}
-.hp-feat-icon{font-size:30px;margin-bottom:8px}
-.hp-feat-title{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:6px}
-.hp-feat-desc{font-size:12px;color:var(--dim);line-height:1.5}
-.hp-join{background:var(--panel);border-top:1px solid var(--border);padding:36px 20px;text-align:center}
-.hp-join-title{font-family:'Orbitron',monospace;font-size:18px;font-weight:700;color:var(--text);letter-spacing:3px;margin-bottom:22px}
-.map-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;max-width:960px;margin:0 auto 26px;text-align:left}
-.map-card{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:14px 16px;cursor:pointer;transition:all .2s}
-.map-card:hover{border-color:var(--gold);transform:translateY(-2px)}
-.map-card.selected{border-color:var(--gold);box-shadow:0 0 12px rgba(232,200,74,.2)}
-.mc-name{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:6px}
+
+/* ─── NAV BAR ─── */
+.hn-bar{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:52px;background:rgba(8,11,15,.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(232,200,74,.12);position:sticky;top:0;z-index:100}
+.hn-logo{font-family:'Orbitron',monospace;font-size:13px;font-weight:900;color:var(--gold);letter-spacing:3px;text-shadow:0 0 20px rgba(232,200,74,.3)}
+.hn-logo span{color:rgba(200,216,232,.5);font-weight:400}
+.hn-ver{font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace;letter-spacing:1px;margin-left:6px;vertical-align:middle}
+.hn-links{display:flex;gap:2px;align-items:center}
+.hn-link{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;color:var(--dim);padding:6px 10px;border-radius:5px;cursor:pointer;transition:all .2s;text-decoration:none;text-transform:uppercase}
+.hn-link:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.hn-link.active{color:var(--gold);background:rgba(232,200,74,.08)}
+.admin-link{color:var(--dim)!important;border:1px solid rgba(232,200,74,.2)!important;margin-left:4px}
+.admin-link:hover{border-color:var(--gold)!important;color:var(--gold)!important}
+
+/* ─── HERO ─── */
+.hp-hero-wrap{position:relative;overflow:hidden;background:linear-gradient(160deg,#06090e 0%,#0a1422 50%,#060d18 100%);padding:56px 24px 48px}
+.hp-hero-wrap::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(232,200,74,.07) 0%,transparent 70%);pointer-events:none}
+.hp-hero-wrap::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(232,200,74,.015) 40px,rgba(232,200,74,.015) 41px),repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(42,127,255,.01) 40px,rgba(42,127,255,.01) 41px);pointer-events:none}
+.hp-hero-inner{max-width:640px;margin:0 auto;text-align:center;position:relative;z-index:1}
+.hp-hero-eyebrow{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:4px;color:rgba(232,200,74,.6);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:10px}
+.hp-hero-eyebrow::before,.hp-hero-eyebrow::after{content:'';flex:1;max-width:40px;height:1px;background:rgba(232,200,74,.25)}
+.hp-logo{font-family:'Orbitron',monospace;font-size:clamp(26px,7vw,52px);font-weight:900;color:var(--gold);letter-spacing:4px;text-shadow:0 0 60px rgba(232,200,74,.25),0 2px 0 rgba(0,0,0,.5);line-height:1.05;margin-bottom:6px}
+.hp-logo span{color:rgba(200,216,232,.75);font-weight:400}
+.hp-tagline{font-size:clamp(12px,2.5vw,15px);letter-spacing:2px;color:rgba(200,216,232,.45);text-transform:uppercase;font-family:'Share Tech Mono',monospace;margin-top:10px;margin-bottom:28px}
+.hp-hero-badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:0}
+.hp-badge{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:5px 12px;font-size:11px;color:rgba(200,216,232,.6);font-family:'Share Tech Mono',monospace;letter-spacing:.5px}
+.hp-badge .bd{width:6px;height:6px;border-radius:50%}
+
+/* ─── FEATURES STRIP ─── */
+.hp-features{display:flex;gap:0;border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05);background:rgba(0,0,0,.2)}
+.hp-feat{flex:1;padding:20px 16px;text-align:center;border-right:1px solid rgba(255,255,255,.05);transition:background .2s;min-width:0}
+.hp-feat:last-child{border-right:none}
+.hp-feat:hover{background:rgba(232,200,74,.03)}
+.hp-feat-icon{font-size:22px;margin-bottom:6px}
+.hp-feat-title{font-family:'Share Tech Mono',monospace;font-size:9px;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:3px;text-transform:uppercase}
+.hp-feat-desc{font-size:11px;color:var(--dim);line-height:1.4;display:none}
+@media(min-width:600px){.hp-feat-desc{display:block}}
+
+/* ─── PAGE STRUCTURE ─── */
+.hp-page{display:none}
+.hp-page.active{display:block}
+.hp-hero-compact{background:linear-gradient(160deg,#06090e 0%,#0a1422 60%,#060d18 100%);padding:32px 24px 28px;text-align:center;border-bottom:1px solid rgba(232,200,74,.1);position:relative;overflow:hidden}
+.hp-hero-compact::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 50% 0%,rgba(232,200,74,.05) 0%,transparent 70%);pointer-events:none}
+.hp-hero-compact .hp-logo{font-size:clamp(18px,5vw,30px);letter-spacing:3px;margin-bottom:4px;position:relative}
+.hp-hero-compact .hp-tagline{font-size:10px;letter-spacing:2px;margin:0;position:relative}
+
+/* ─── JOIN / CONTENT AREA ─── */
+.hp-join{padding:28px 20px;background:var(--bg)}
+.hp-join-title{font-family:'Share Tech Mono',monospace;font-size:10px;font-weight:700;color:var(--dim);letter-spacing:3px;margin-bottom:16px;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.hp-join-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ─── MAP CARDS ─── */
+.map-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;max-width:960px;margin:0 auto 20px;text-align:left}
+.map-card{background:rgba(17,23,32,.8);border:1px solid var(--border);border-radius:8px;padding:14px 16px;cursor:pointer;transition:all .22s;position:relative;overflow:hidden}
+.map-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold);opacity:0;transition:opacity .2s}
+.map-card:hover{border-color:rgba(232,200,74,.35);background:rgba(25,32,48,.9);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.map-card:hover::before{opacity:1}
+.map-card.selected{border-color:rgba(232,200,74,.5);background:rgba(25,32,48,.95);box-shadow:0 0 20px rgba(232,200,74,.1)}
+.map-card.selected::before{opacity:1}
+.mc-name{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--text);letter-spacing:1px;margin-bottom:8px}
 .mc-meta{font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.mc-badge{padding:2px 6px;border-radius:2px;font-size:8px;font-weight:700;letter-spacing:1px}
-.mc-badge.red{background:var(--red-d);color:var(--red);border:1px solid rgba(255,42,42,.3)}
-.mc-badge.blue{background:var(--blue-d);color:var(--blue);border:1px solid rgba(42,127,255,.3)}
-.mc-lock{color:var(--warn)}
-.map-empty{text-align:center;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:11px;padding:20px;max-width:960px;margin:0 auto}
-.join-form{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:22px;max-width:400px;margin:0 auto;display:flex;flex-direction:column;gap:13px}
-.jf-title{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:2px;color:var(--gold);text-align:center;border-bottom:1px solid var(--border);padding-bottom:10px}
-.jf-sel{background:var(--bg);border:1px solid var(--gold);border-radius:4px;padding:7px 11px;font-size:11px;font-family:'Share Tech Mono',monospace;color:var(--gold);text-align:center}
-.fl{font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace;margin-bottom:3px}
-.fi{background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;padding:10px 11px;outline:none;width:100%;transition:border-color .2s;text-transform:uppercase}
-.fi:focus{border-color:var(--gold)}
+.mc-badge{padding:2px 7px;border-radius:10px;font-size:8px;font-weight:700;letter-spacing:.5px}
+.mc-badge.red{background:rgba(255,42,42,.12);color:#ff6666;border:1px solid rgba(255,42,42,.2)}
+.mc-badge.blue{background:rgba(42,127,255,.12);color:#6699ff;border:1px solid rgba(42,127,255,.2)}
+.mc-lock{color:var(--warn);font-size:10px}
+.map-empty{text-align:center;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:11px;padding:30px 20px;max-width:960px;margin:0 auto;background:rgba(255,255,255,.02);border:1px dashed rgba(255,255,255,.06);border-radius:8px}
+
+/* ─── JOIN FORM ─── */
+.join-form{background:rgba(13,17,23,.9);border:1px solid var(--border);border-radius:10px;padding:22px;max-width:400px;margin:0 auto;display:flex;flex-direction:column;gap:13px;backdrop-filter:blur(8px)}
+.jf-title{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--gold);text-align:center;border-bottom:1px solid var(--border);padding-bottom:12px;opacity:.8}
+.jf-sel{background:rgba(232,200,74,.06);border:1px solid rgba(232,200,74,.25);border-radius:6px;padding:8px 12px;font-size:11px;font-family:'Share Tech Mono',monospace;color:var(--gold);text-align:center}
+.fl{font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace;margin-bottom:4px}
+.fi{background:rgba(13,17,23,.8);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;padding:10px 12px;outline:none;width:100%;transition:border-color .2s,box-shadow .2s;text-transform:uppercase}
+.fi:focus{border-color:rgba(232,200,74,.4);box-shadow:0 0 0 3px rgba(232,200,74,.06)}
 .fi-lower{text-transform:none}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .team-pick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.tb{padding:11px;border-radius:5px;border:2px solid;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .2s;background:transparent;text-transform:uppercase}
-.tb.red{border-color:var(--red);color:var(--red)}.tb.red.sel{background:var(--red-d);box-shadow:0 0 12px rgba(255,42,42,.3)}
-.tb.blue{border-color:var(--blue);color:var(--blue)}.tb.blue.sel{background:var(--blue-d);box-shadow:0 0 12px rgba(42,127,255,.3)}
-.jbtn{background:var(--gold);color:#000;border:none;border-radius:4px;padding:13px;font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:2px;cursor:pointer;width:100%;transition:all .2s;text-transform:uppercase}
-.jbtn:hover{background:#f0d060}
-.jbtn:disabled{opacity:.45;cursor:not-allowed}
-.hp-err{color:var(--red);font-size:11px;font-family:'Share Tech Mono',monospace;text-align:center;display:none}
+.tb{padding:11px;border-radius:7px;border:1px solid;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s;background:transparent;text-transform:uppercase}
+.tb.red{border-color:rgba(255,42,42,.3);color:rgba(255,100,100,.8)}.tb.red:hover{border-color:var(--red);background:rgba(255,42,42,.08)}
+.tb.red.sel{border-color:var(--red);background:rgba(255,42,42,.12);color:var(--red);box-shadow:0 0 12px rgba(255,42,42,.15)}
+.tb.blue{border-color:rgba(42,127,255,.3);color:rgba(100,160,255,.8)}.tb.blue:hover{border-color:var(--blue);background:rgba(42,127,255,.08)}
+.tb.blue.sel{border-color:var(--blue);background:rgba(42,127,255,.12);color:var(--blue);box-shadow:0 0 12px rgba(42,127,255,.15)}
+.jbtn{background:linear-gradient(135deg,var(--gold),#c8a820);color:#000;border:none;border-radius:7px;padding:13px;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;cursor:pointer;width:100%;transition:all .2s;text-transform:uppercase;box-shadow:0 4px 15px rgba(232,200,74,.2)}
+.jbtn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(232,200,74,.3)}
+.jbtn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.hp-err{color:#ff8080;font-size:11px;font-family:'Share Tech Mono',monospace;text-align:center;display:none;background:rgba(255,42,42,.08);border:1px solid rgba(255,42,42,.2);border-radius:4px;padding:8px}
 .hp-err.show{display:block}
-.hp-footer{text-align:center;padding:18px;font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace;border-top:1px solid var(--border)}
-.hp-footer a{color:var(--dim);text-decoration:none;padding-bottom:1px;border-bottom:1px solid var(--border)}
-.hp-footer a:hover{color:var(--text)}
+.hp-footer{text-align:center;padding:20px;font-size:10px;color:rgba(74,96,112,.5);font-family:'Share Tech Mono',monospace;border-top:1px solid rgba(255,255,255,.04)}
+.hp-footer a{color:rgba(74,96,112,.6);text-decoration:none}
+.hp-footer a:hover{color:var(--dim)}
 
 /* ─── HERO PREVIEW MOCKUP ─── */
 .hp-preview{display:flex;justify-content:center;margin-top:32px}
@@ -84,18 +129,21 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
 .hp-preview-bar{background:rgba(0,196,255,.08);border-top:1px solid rgba(0,196,255,.2);padding:6px 14px;font-family:'Share Tech Mono',monospace;font-size:8px;color:#00c4ff;text-align:center;letter-spacing:1px}
 
 /* ─── HELP/GUIDE SECTION ─── */
-.help-section{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 18px}
-.help-title{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:8px}
-.help-body{font-size:13px;color:var(--text);line-height:1.65}
-.perk-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px}
-.pc-icon{font-size:28px;margin-bottom:6px}
-.pc-name{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.pc-cd{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);background:var(--panel2);border:1px solid var(--border);border-radius:3px;padding:1px 6px;letter-spacing:0}
-.pc-desc{font-size:12px;color:var(--dim);line-height:1.55}
+.help-section{background:rgba(17,23,32,.7);border:1px solid rgba(30,45,61,.8);border-radius:10px;padding:18px 20px;transition:border-color .2s}
+.help-section:hover{border-color:rgba(232,200,74,.12)}
+.help-title{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;color:var(--text);letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.help-body{font-size:13px;color:rgba(200,216,232,.65);line-height:1.7}
+.help-body b{color:var(--text);font-weight:600}
+.perk-card{background:rgba(17,23,32,.7);border:1px solid rgba(30,45,61,.8);border-radius:10px;padding:16px;transition:all .2s}
+.perk-card:hover{border-color:rgba(232,200,74,.15);background:rgba(25,32,48,.8)}
+.pc-icon{font-size:24px;margin-bottom:6px}
+.pc-name{font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;color:var(--text);letter-spacing:.5px;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pc-cd{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:3px;padding:1px 6px;letter-spacing:0}
+.pc-desc{font-size:12px;color:var(--dim);line-height:1.6}
 
 /* ─── ACCOUNT TABS ─── */
-.acct-tabs{display:flex;gap:4px;max-width:700px;margin:0 auto 20px;border-bottom:2px solid var(--border)}
-.acct-tab{flex:1;text-align:center;padding:11px 6px;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--dim);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;text-transform:uppercase}
+.acct-tabs{display:flex;gap:4px;max-width:700px;margin:0 auto 20px;border-bottom:1px solid var(--border)}
+.acct-tab{flex:1;text-align:center;padding:11px 6px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;text-transform:uppercase}
 .acct-tab:hover{color:var(--text)}
 .acct-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
 .acct-panel{max-width:700px;margin:0 auto}
@@ -310,7 +358,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
 
   <!-- ── TOP NAV BAR ── -->
   <div class="hn-bar">
-    <div class="hn-logo">ZULU'S <span>GAME TRACKER</span> <span class="hn-ver">v1.1</span></div>
+    <div class="hn-logo">ZULU'S <span>GAME TRACKER</span> <span class="hn-ver">v1.4</span></div>
     <div class="hn-links">
       <div class="hn-link active" onclick="showPage('play')" id="hnl-play">🎯 PLAY</div>
       <div class="hn-link" onclick="showPage('register')" id="hnl-register">✚ REGISTER</div>
@@ -325,39 +373,69 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
 
   <!-- PLAY PAGE -->
   <div id="page-play" class="hp-page active">
-    <div class="hp-hero-compact">
-      <div class="hp-logo">ZULU'S <span>GAME TRACKER</span></div>
-      <div class="hp-tagline">Real-Time Airsoft Tactical Intelligence · v1.2</div>
+
+    <!-- Hero -->
+    <div class="hp-hero-wrap">
+      <div class="hp-hero-inner">
+        <div class="hp-hero-eyebrow">Swindon Airsoft · Real-Time Intelligence</div>
+        <div class="hp-logo">ZULU'S <span>GAME TRACKER</span></div>
+        <div class="hp-tagline">GPS · Perks · Live Tactical Map</div>
+        <div class="hp-hero-badges">
+          <div class="hp-badge"><div class="bd" style="background:#00cc66"></div>Live GPS Tracking</div>
+          <div class="hp-badge"><div class="bd" style="background:#2a7fff"></div>Red vs Blue</div>
+          <div class="hp-badge"><div class="bd" style="background:#e8c84a"></div>6 Tactical Perks</div>
+          <div class="hp-badge"><div class="bd" style="background:#ff2a2a"></div>Bleed-out System</div>
+        </div>
+      </div>
     </div>
 
-    <div class="hp-join" style="padding-top:16px">
-      <div class="hp-join-title">SELECT YOUR MAP</div>
-      <div class="map-cards" id="map-cards"><div class="map-empty">Loading active maps…</div></div>
+    <!-- Features strip -->
+    <div class="hp-features">
+      <div class="hp-feat"><div class="hp-feat-icon">📡</div><div class="hp-feat-title">Live GPS</div><div class="hp-feat-desc">Real-time positions</div></div>
+      <div class="hp-feat"><div class="hp-feat-icon">🗺️</div><div class="hp-feat-title">Zones</div><div class="hp-feat-desc">Admin-drawn areas</div></div>
+      <div class="hp-feat"><div class="hp-feat-icon">⚡</div><div class="hp-feat-title">Perks</div><div class="hp-feat-desc">UAV, EMP &amp; more</div></div>
+      <div class="hp-feat"><div class="hp-feat-icon">🩹</div><div class="hp-feat-title">Medic</div><div class="hp-feat-desc">Bleed-out &amp; revive</div></div>
+      <div class="hp-feat"><div class="hp-feat-icon">🪖</div><div class="hp-feat-title">Roles</div><div class="hp-feat-desc">6 British Army roles</div></div>
+    </div>
 
-      <!-- Join form — hidden until a map is selected -->
-      <div class="join-form" id="join-form" style="display:none">
-        <div class="jf-title">🎯 DEPLOY TO BATTLEFIELD</div>
-        <div class="jf-sel" id="selected-map-display">—</div>
-        <div><div class="fl">Callsign</div><input class="fi" id="inp-cs" maxlength="12" placeholder="GHOST" autocomplete="off"></div>
-        <div class="frow">
-          <div style="flex:2"><div class="fl">Role</div>
-            <select class="fi fi-lower" id="inp-role">
-              <option>Assault</option><option>Sniper</option><option>Support</option>
-              <option>Medic</option><option>Scout</option><option>Commander</option>
-            </select>
-          </div>
-          <div id="pw-field" style="display:none;flex:1"><div class="fl">Map Password</div><input class="fi fi-lower" type="password" id="inp-pw"></div>
+    <!-- Map select + join -->
+    <div class="hp-join">
+      <div style="max-width:960px;margin:0 auto">
+        <div class="hp-join-title">Select Your Map</div>
+
+        <!-- Search -->
+        <div style="margin-bottom:12px">
+          <input class="fi fi-lower" id="map-search" placeholder="🔍  Search maps…" oninput="filterMaps()" autocomplete="off" style="max-width:340px;text-transform:none;font-size:13px;padding:9px 12px">
         </div>
-        <div><div class="fl">Select Team</div>
-          <div class="team-pick">
-            <button class="tb red sel" id="tbr" onclick="pickTeam('red')">🔴 RED TEAM</button>
-            <button class="tb blue" id="tbb" onclick="pickTeam('blue')">🔵 BLUE TEAM</button>
+
+        <div class="map-cards" id="map-cards"><div class="map-empty">Loading active maps…</div></div>
+        <div id="map-no-results" style="display:none" class="map-empty">No maps match your search</div>
+
+        <!-- Join form — hidden until a map is selected -->
+        <div class="join-form" id="join-form" style="display:none;margin-top:8px">
+          <div class="jf-title">Deploy to Battlefield</div>
+          <div class="jf-sel" id="selected-map-display">—</div>
+          <div><div class="fl">Callsign</div><input class="fi" id="inp-cs" maxlength="12" placeholder="GHOST" autocomplete="off"></div>
+          <div class="frow">
+            <div style="flex:2"><div class="fl">Role</div>
+              <select class="fi fi-lower" id="inp-role">
+                <option>Assault</option><option>Sniper</option><option>Support</option>
+                <option>Medic</option><option>Scout</option><option>Commander</option>
+              </select>
+            </div>
+            <div id="pw-field" style="display:none;flex:1"><div class="fl">Map Password</div><input class="fi fi-lower" type="password" id="inp-pw"></div>
           </div>
-        </div>
-        <button class="jbtn" id="join-btn" onclick="joinGame()">⚡ DEPLOY TO BATTLEFIELD</button>
-        <div class="hp-err" id="join-err"></div>
-        <div style="text-align:center;margin-top:8px;font-size:11px;color:var(--dim);font-family:Share Tech Mono,monospace">
-          Have an account? <span onclick="showPage('login')" style="color:var(--gold);cursor:pointer;text-decoration:underline">Login</span> to pre-fill your callsign
+          <div><div class="fl">Select Team</div>
+            <div class="team-pick">
+              <button class="tb red sel" id="tbr" onclick="pickTeam('red')">🔴 Red Team</button>
+              <button class="tb blue" id="tbb" onclick="pickTeam('blue')">🔵 Blue Team</button>
+            </div>
+          </div>
+          <button class="jbtn" id="join-btn" onclick="joinGame()">⚡ Deploy to Battlefield</button>
+          <div class="hp-err" id="join-err"></div>
+          <div style="text-align:center;margin-top:4px;font-size:11px;color:var(--dim);font-family:Share Tech Mono,monospace">
+            Have an account? <span onclick="showPage('login')" style="color:var(--gold);cursor:pointer;text-decoration:underline">Login</span> to pre-fill your callsign
+          </div>
         </div>
       </div>
     </div>
@@ -365,7 +443,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
 
   <!-- REGISTER PAGE -->
   <div id="page-register" class="hp-page" style="display:none">
-    <div class="hp-hero-compact"><div class="hp-logo">CREATE <span>ACCOUNT</span></div><div class="hp-tagline">Join Zulu's Game Tracker · Free · Instant</div></div>
+    <div class="hp-hero-compact"><div class="hp-logo">Create <span>Account</span></div><div class="hp-tagline">Join Zulu's Game Tracker · Free · Instant</div></div>
     <div class="hp-join">
       <div class="join-form" style="max-width:480px;margin:0 auto">
         <div class="jf-title">✚ PLAYER REGISTRATION</div>
@@ -391,7 +469,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
 
   <!-- LOGIN PAGE -->
   <div id="page-login" class="hp-page" style="display:none">
-    <div class="hp-hero-compact"><div class="hp-logo">PLAYER <span>LOGIN</span></div><div class="hp-tagline">Sign in to your Zulu's Game Tracker account</div></div>
+    <div class="hp-hero-compact"><div class="hp-logo">Player <span>Login</span></div><div class="hp-tagline">Sign in to your Zulu's Game Tracker account</div></div>
     <div class="hp-join">
       <div class="join-form" style="max-width:420px;margin:0 auto">
         <div class="jf-title">🔑 LOGIN</div>
@@ -426,7 +504,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
 
   <!-- GUIDE PAGE -->
   <div id="page-guide" class="hp-page" style="display:none">
-    <div class="hp-hero-compact"><div class="hp-logo">PLAYER <span>GUIDE</span></div><div class="hp-tagline">Everything you need to know · Zulu's Game Tracker v1.1</div></div>
+    <div class="hp-hero-compact"><div class="hp-logo">Player <span>Guide</span></div><div class="hp-tagline">Everything you need to know · Zulu's Game Tracker v1.4</div></div>
     <div class="hp-join">
       <div style="display:flex;flex-direction:column;gap:14px;max-width:860px;margin:0 auto">
         <div class="help-section"><div class="help-title">📱 Getting Started</div><div class="help-body">Open the app, tap <b>PLAY</b>, select your map, enter a callsign, choose role and team, then <b>DEPLOY</b>. Grant location permission when asked — GPS is required for tracking. Register an account to save your callsign and session across refreshes.</div></div>
@@ -456,7 +534,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
 
   <!-- ABOUT PAGE -->
   <div id="page-about" class="hp-page" style="display:none">
-    <div class="hp-hero-compact"><div class="hp-logo">ABOUT <span>ZGT</span></div><div class="hp-tagline">Zulu's Game Tracker · Built for Airsoft</div></div>
+    <div class="hp-hero-compact"><div class="hp-logo">About <span>ZGT</span></div><div class="hp-tagline">Zulu's Game Tracker · Built for Airsoft</div></div>
     <div class="hp-join">
       <div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:14px">
         <div class="help-section">
@@ -479,7 +557,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
     </div>
   </div>
 
-  <div class="hp-footer">ZULU'S GAME TRACKER v1.1 · Built by Chris Zulu · Swindon Airsoft · <a href="/admin">Admin Panel</a></div>
+  <div class="hp-footer">Zulu's Game Tracker v1.4 · Built by Chris Zulu · Swindon Airsoft · <a href="/admin">Admin Panel</a></div>
 </div>
 
 <!-- ══════════════ GAME APP ══════════════ -->

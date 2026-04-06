@@ -44,6 +44,11 @@ const savedMaps = {};
 const roomTemplates = {};
 const playerAccounts = {};
 
+// ── Active in-memory state ─────────────────────────────────────────
+// Declared here (before any restoreRooms call) so it is always defined
+const rooms = {};
+const eventLog = [];
+
 // ── DB helpers ────────────────────────────────────────────────────
 async function dbGet(key) {
   if (!db) return null;
@@ -148,14 +153,12 @@ function restoreRooms() {
     room.zones = tmpl.zones || [];
     room.objectives = tmpl.objectives || [];
     room.allowedRoles = tmpl.allowedRoles || null;
+    room.roleLimits = tmpl.roleLimits || null;
+    room.createdAt = tmpl.createdAt || room.createdAt;
     rooms[code] = room;
     console.log(`  🗺 Restored: ${tmpl.name} (${code})`);
   });
 }
-
-// ── Active in-memory state ────────────────────────────────────────
-const rooms = {};
-const eventLog = [];
 
 async function persistRoomTemplate(room) {
   roomTemplates[room.code] = {
