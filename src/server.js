@@ -44,8 +44,7 @@ const savedMaps = {};
 const roomTemplates = {};
 const playerAccounts = {};
 
-// ── Active in-memory state ─────────────────────────────────────────
-// Declared here (before any restoreRooms call) so it is always defined
+// MUST be declared before initDB/restoreRooms are called
 const rooms = {};
 const eventLog = [];
 
