@@ -12,14 +12,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
 :root{--bg:#080b0f;--bg2:#0d1117;--panel:#111720;--panel2:#192030;--border:#1e2d3d;--red:#ff2a2a;--red-d:rgba(255,42,42,.15);--blue:#2a7fff;--blue-d:rgba(42,127,255,.15);--gold:#e8c84a;--gold2:#c8a820;--text:#c8d8e8;--dim:#4a6070;--green:#00cc66;--warn:#ffaa00}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif}
+html{height:100%;height:-webkit-fill-available}
+body{min-height:100%;min-height:-webkit-fill-available;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 /* ─── HOME ─── */
 #home{height:100%;overflow-y:auto;display:block}
 #home.hidden{display:none!important}
 
 /* === CINEMATIC HERO === */
-.hp-hero-main{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px 60px;text-align:center;overflow:hidden;background:#020509}
+.hp-hero-main{position:relative;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px 60px;text-align:center;overflow:hidden;background:#020509}
 .hp-hero-canvas{position:absolute;inset:0;z-index:0}
 .hp-hero-vignette{position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse 80% 70% at 50% 50%,transparent 0%,rgba(2,5,9,.7) 70%,rgba(2,5,9,.97) 100%)}
 .hp-hero-grid{position:absolute;inset:0;z-index:1;background-image:linear-gradient(rgba(232,200,74,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(232,200,74,.03) 1px,transparent 1px);background-size:40px 40px;animation:gridDrift 20s linear infinite}
@@ -382,6 +383,178 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdha
 .pov-sub{font-size:12px;color:var(--text);letter-spacing:2px;font-family:'Share Tech Mono',monospace}
 
 ::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ══════════════════════════════════════════
+   SAFE AREA (notch / home bar)
+══════════════════════════════════════════ */
+.hn-bar{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+.gftr{padding-bottom:max(8px,env(safe-area-inset-bottom))}
+.gbar{padding-top:max(0px,env(safe-area-inset-top))}
+.cbar{padding-bottom:max(8px,env(safe-area-inset-bottom))}
+
+/* ══════════════════════════════════════════
+   TABLET  ≤ 768px
+══════════════════════════════════════════ */
+@media(max-width:768px){
+  /* hero */
+  .hp-hero-main{padding:70px 16px 48px}
+  .hp-logo-main{font-size:clamp(26px,10vw,52px);letter-spacing:2px}
+  .hp-logo-sub{font-size:14px;letter-spacing:4px}
+  .hp-hero-desc{font-size:14px}
+  .hp-hero-ctas{gap:8px}
+  .hp-cta-primary,.hp-cta-secondary{padding:13px 20px;font-size:11px;min-height:44px}
+  .hp-hero-stats{gap:20px}
+  .hp-hstat-num{font-size:clamp(18px,5vw,30px)}
+
+  /* modes grid */
+  .hp-modes-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+  .hp-modes,.hp-features-section,.hp-lb{padding:40px 16px}
+
+  /* features */
+  .hp-features-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+
+  /* nav */
+  .hn-links{gap:4px}
+  .hn-link{font-size:9px;padding:5px 8px;letter-spacing:1px}
+
+  /* leaderboard table */
+  .hp-lb-row{padding:8px 10px;font-size:11px}
+
+  /* join form */
+  .join-form{padding:16px}
+  .frow{flex-direction:column;gap:8px}
+  .map-cards{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+
+  /* game app */
+  .gbar{gap:0}
+  .gt{flex:1;min-width:0;padding:7px 2px;font-size:8px;letter-spacing:0.5px}
+  .gt .ico{font-size:16px}
+
+  /* status tab */
+  .pg{grid-template-columns:repeat(3,1fr)}
+  .pkc{padding:8px 6px}
+  .pkn{font-size:9px}
+  .pko{font-size:7px;display:none}
+}
+
+/* ══════════════════════════════════════════
+   MOBILE  ≤ 480px
+══════════════════════════════════════════ */
+@media(max-width:480px){
+  /* hero */
+  .hp-hero-main{padding:60px 14px 40px}
+  .hp-logo-main{font-size:clamp(22px,9vw,44px);letter-spacing:1px}
+  .hp-logo-sub{font-size:12px;letter-spacing:3px}
+  .hp-hero-eyebrow{font-size:9px;letter-spacing:3px}
+  .hp-hero-desc{font-size:13px;margin-bottom:24px}
+  .hp-hero-ctas{flex-direction:column;align-items:stretch;gap:8px}
+  .hp-cta-primary,.hp-cta-secondary{width:100%;padding:14px;font-size:12px}
+  .hp-hero-stats{gap:14px}
+  .hp-hstat-num{font-size:24px}
+  .hp-hstat-lbl{font-size:8px}
+  .hp-hero-scroll{display:none}
+
+  /* sections */
+  .hp-modes,.hp-features-section,.hp-lb{padding:32px 12px}
+  .hp-section-title{font-size:16px;letter-spacing:2px}
+  .hp-modes-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .hp-mode-card{padding:14px 12px}
+  .hp-mode-icon{font-size:22px;margin-bottom:6px}
+  .hp-mode-name{font-size:11px;letter-spacing:1px}
+  .hp-mode-desc{font-size:11px;display:none}
+  .hp-mode-badge{display:none}
+
+  .hp-features-grid{grid-template-columns:1fr 1fr}
+  .hp-feat{padding:14px 10px}
+  .hp-feat-icon{font-size:22px}
+  .hp-feat-title{font-size:10px;letter-spacing:1px}
+  .hp-feat-desc{display:none}
+
+  /* lb table */
+  .hp-lb-table{font-size:11px}
+  .hp-lb-row{grid-template-columns:28px 1fr 64px 50px;padding:8px 8px}
+
+  /* nav — compact */
+  .hn-bar{padding:8px 10px}
+  .hn-logo{font-size:10px;letter-spacing:1px}
+  .hn-ver{display:none}
+  .hn-links{gap:2px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
+  .hn-link{padding:5px 7px;font-size:8px;white-space:nowrap}
+
+  /* join form */
+  .hp-join-title{font-size:14px}
+  .join-form{padding:14px 12px;gap:10px}
+  .jbtn{font-size:13px;padding:13px}
+  .team-pick{flex-direction:column;gap:6px}
+  .tb{padding:12px;font-size:12px}
+  .map-cards{grid-template-columns:1fr}
+  .map-card{padding:12px}
+
+  /* game app in-game */
+  .gbar{gap:0}
+  .gt{padding:6px 0;font-size:7px;letter-spacing:0}
+  .gt .ico{font-size:18px}
+  .hdr .hlogo{font-size:9px;letter-spacing:1px}
+  .hsub{display:none}
+
+  /* status tab buttons — make them tap-friendly */
+  .sb2{min-height:48px;font-size:13px}
+  .pgrid,.sgrid{gap:8px}
+
+  /* perks — 2 col on small phones */
+  .pg{grid-template-columns:repeat(2,1fr)}
+  .pkc{padding:10px 8px}
+  .pko{display:none}
+
+  /* squad */
+  .pc{padding:8px 10px;gap:8px}
+  .pa{width:32px;height:32px;font-size:16px}
+  .pcall{font-size:12px}
+  .prole,.pco{font-size:9px}
+
+  /* comms */
+  .ci{font-size:14px;padding:10px 12px}
+  .txbtn{min-width:44px;min-height:44px}
+
+  /* kill modal */
+  #kill-modal > div{padding:18px 14px}
+
+  /* game timer */
+  #game-timer-display{font-size:36px}
+}
+
+/* ══════════════════════════════════════════
+   VERY SMALL  ≤ 360px
+══════════════════════════════════════════ */
+@media(max-width:360px){
+  .hp-logo-main{font-size:22px}
+  .hp-modes-grid{grid-template-columns:1fr}
+  .hp-features-grid{grid-template-columns:1fr}
+  .gt{font-size:6px}
+  .gt .ico{font-size:16px}
+}
+
+/* ══════════════════════════════════════════
+   LANDSCAPE PHONE
+══════════════════════════════════════════ */
+@media(max-height:500px) and (orientation:landscape){
+  .hp-hero-main{min-height:auto;padding:40px 20px 32px}
+  .hp-logo-main{font-size:28px}
+  .hp-logo-sub{font-size:11px}
+  .hp-hero-desc{display:none}
+  .hp-hero-stats{margin-bottom:0}
+  .hp-hero-scroll{display:none}
+  /* In-game: expand map area, shrink tab bar */
+  .gbar{gap:0}
+  .gt{padding:4px 0;font-size:7px}
+  .gt .ico{font-size:15px}
+}
+
+/* ══════════════════════════════════════════
+   MIN TAP TARGET ENFORCEMENT
+══════════════════════════════════════════ */
+.hn-link,.abtn,.jbtn,.abtn2,.sb2,.pkc,.tb,.txbtn{min-height:44px}
+.hp-cta-primary,.hp-cta-secondary{min-height:48px}
 </style>
 </head>
 <body>

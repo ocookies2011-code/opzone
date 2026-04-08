@@ -12,7 +12,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
 :root{--bg:#06080c;--bg2:#0c1018;--panel:#101520;--panel2:#18222e;--border:#1c2a3a;--gold:#e8c84a;--gold2:#c8a820;--red:#ff2a2a;--red-d:rgba(255,42,42,.15);--blue:#2a7fff;--blue-d:rgba(42,127,255,.15);--green:#00cc66;--warn:#ffaa00;--text:#c8d8e8;--dim:#4a6070;--purple:#cc44ff}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(232,200,74,.005) 2px,rgba(232,200,74,.005) 4px);pointer-events:none;z-index:9000}
 
 /* ─── LOGIN ─── */
@@ -231,6 +231,69 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .atst.ok{border-color:var(--green);color:var(--green)}
 
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ══ SAFE AREA ══ */
+.ahdr{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));padding-top:max(10px,env(safe-area-inset-top))}
+.aside{padding-left:max(0px,env(safe-area-inset-left));padding-bottom:max(0px,env(safe-area-inset-bottom))}
+.amain{padding-bottom:max(16px,env(safe-area-inset-bottom))}
+
+/* ══ TABLET ≤ 900px ══ */
+@media(max-width:900px){
+  .aside{width:180px;flex-shrink:0}
+  .anav{gap:1px}
+  .al{padding:8px 10px;font-size:9px;letter-spacing:1px}
+  .al .ai2{display:none}
+  .aph{flex-wrap:wrap;gap:6px}
+  .form-grid{grid-template-columns:1fr 1fr}
+  .brow{flex-wrap:wrap;gap:8px}
+  .rcard{font-size:11px}
+  .rca{flex-wrap:wrap;gap:4px}
+  .ra{padding:5px 8px;font-size:9px}
+  .aperk-grid{grid-template-columns:1fr 1fr}
+}
+
+/* ══ MOBILE ≤ 640px ══ */
+@media(max-width:640px){
+  /* layout: sidebar collapses to top strip */
+  .awrap{flex-direction:column}
+  .aside{width:100%;height:auto;border-right:none;border-bottom:1px solid var(--border);flex-shrink:0}
+  .anav{flex-direction:row;flex-wrap:wrap;padding:6px;gap:3px}
+  .al{padding:7px 9px;font-size:8px;letter-spacing:0.5px;border-radius:3px;flex:none;border:1px solid transparent}
+  .al.on{border-color:rgba(232,200,74,.3)}
+  .al-ico{font-size:14px}
+  .amain{padding:10px}
+  .form-grid{grid-template-columns:1fr}
+  .brow{flex-direction:column;gap:8px}
+  .brow > *{width:100%!important}
+  .rcard{margin-bottom:8px}
+  .rca{gap:4px}
+  .ra{min-height:36px;flex:1}
+  .rct{gap:8px}
+  .aperk-grid{grid-template-columns:1fr}
+  /* saved maps */
+  .saved-maps-grid{grid-template-columns:1fr}
+  .sm-btns{flex-direction:column;gap:4px}
+  .sm-btn{width:100%;padding:9px;font-size:10px}
+  /* zone editor map */
+  .ze-map-wrap{min-height:300px}
+  #ze-map{min-height:300px!important}
+  /* live map */
+  #lm-map{min-height:280px!important}
+  /* player accounts table */
+  table{font-size:10px}
+  th,td{padding:5px 6px}
+  /* modals */
+  #role-modal > div,#load-map-modal > div{padding:16px 12px;margin:8px}
+  #role-modal > div{max-width:100%}
+}
+
+/* ══ MIN TAP TARGETS ══ */
+.al,.abtn,.abtn.sm,.ra,.sm-btn,.pkbtn{min-height:36px}
+.abtn{min-height:40px}
+
+/* ══ SAFE MODALS: use max-width not width ══ */
+#role-modal > div{max-width:520px;width:calc(100% - 32px)}
+#load-map-modal > div{max-width:420px;width:calc(100% - 32px)}
 </style>
 </head>
 <body>
