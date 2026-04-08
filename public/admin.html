@@ -411,6 +411,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
               <div class="form-field"><div class="form-label">Map Name</div><input class="ai" id="new-map-name" placeholder="e.g. Swindon CQB Field" maxlength="40"></div>
               <div class="form-field"><div class="form-label">Room Code</div><input class="ai" id="new-map-code" placeholder="e.g. CQB01" maxlength="8" style="text-transform:uppercase"></div>
               <div class="form-field"><div class="form-label">Password (optional)</div><input class="ai" id="new-map-pw" type="password" placeholder="Leave blank for open"></div>
+              <div class="form-field"><div class="form-label">Game Mode</div><select class="asel" id="new-map-mode" style="width:100%;padding:8px"><option value="Standard">⚔️ Standard</option><option value="Elimination">💀 Elimination</option><option value="Domination">🏴 Domination</option><option value="BattleRoyale">🌀 Battle Royale</option><option value="Countdown">⏱️ Countdown</option><option value="Escort">🛡️ Escort</option></select></div>
               <div class="form-field" style="justify-content:flex-end"><button class="abtn green-b" onclick="createMap()" style="width:100%;margin-top:20px">✚ CREATE MAP</button></div>
             </div>
           </div>
@@ -491,7 +492,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
             <div class="brow">
               <div class="form-field" style="flex:1"><div class="form-label">Source Map</div><select class="asel" id="save-src-room" style="width:100%;padding:8px"></select></div>
               <div class="form-field" style="flex:2"><div class="form-label">Template Name</div><input class="ai" id="save-map-name" placeholder="e.g. Swindon CQB — Standard Game" maxlength="60"></div>
-              <div class="form-field" style="flex:1"><div class="form-label">Game Type</div><select class="asel" id="save-game-type" style="width:100%;padding:8px"><option value="Standard">Standard</option><option value="Domination">Domination</option><option value="Capture the Flag">Capture the Flag</option><option value="VIP Escort">VIP Escort</option><option value="Attack &amp; Defend">Attack &amp; Defend</option><option value="Elimination">Elimination</option><option value="Custom">Custom</option></select></div>
+              <div class="form-field" style="flex:1"><div class="form-label">Game Type</div><select class="asel" id="save-game-type" style="width:100%;padding:8px"><option value="Standard">⚔️ Standard</option><option value="Elimination">💀 Elimination</option><option value="Domination">🏴 Domination</option><option value="BattleRoyale">🌀 Battle Royale</option><option value="Countdown">⏱️ Countdown</option><option value="Escort">🛡️ Escort</option></select></div>
               <button class="abtn green-b" onclick="saveMap()" style="margin-top:20px">💾 SAVE MAP</button>
             </div>
             <div style="font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace">Saves all zones and objectives from the selected map as a reusable template.</div>
@@ -788,17 +789,30 @@ function renderOverview(){
 function renderRooms(){
   const el=document.getElementById('rg');if(!el)return;
   if(!roomsData.length){el.innerHTML='<div class="empty">No active maps</div>';return;}
-  el.innerHTML=roomsData.map(r=>`<div class="rcard">
+  const MODE_ICONS={'Standard':'⚔️','Elimination':'💀','Domination':'🏴','BattleRoyale':'🌀','Countdown':'⏱️','Escort':'🛡️'};
+  el.innerHTML=roomsData.map(r=>{
+    const modeIcon=MODE_ICONS[r.gameMode]||'⚔️';
+    const modeBadge=`<span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gold);background:rgba(232,200,74,.1);border:1px solid rgba(232,200,74,.25);border-radius:2px;padding:1px 6px">${modeIcon} ${r.gameMode||'Standard'}</span>`;
+    const domScore=r.gameMode==='Domination'?`<span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim)">DOM: <span style="color:var(--red)">${(r.domScore||{}).red||0}</span> vs <span style="color:var(--blue)">${(r.domScore||{}).blue||0}</span></span>`:'';
+    const timerInfo=r.gameTimer?`<span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gold)">⏱ TIMER RUNNING</span>`:'';
+    return `<div class="rcard">
     <div class="rch">
-      <div><div class="rcc">${r.code}${r.hasPassword?' 🔒':''}</div><div class="rcn">${esc(r.name)}</div><div class="rcm">Created ${new Date(r.createdAt).toLocaleTimeString()}</div></div>
+      <div><div class="rcc">${r.code}${r.hasPassword?' 🔒':''}</div><div class="rcn">${esc(r.name)}</div><div class="rcm" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${modeBadge}${domScore}${timerInfo}</div></div>
       ${r.gamePaused?'<span class="pbg">⏸ PAUSED</span>':''}
     </div>
     <div class="rct"><span class="tp red">🔴 ${r.redCount}</span><span class="tp blue">🔵 ${r.blueCount}</span></div>
     <div class="rpl">${r.players.length?r.players.map(p=>`<div class="pr"><div class="prd" style="background:${p.team==='red'?'var(--red)':'var(--blue)'}"></div><div class="prc">${esc(p.callsign)}</div><div class="prt ${p.team}">${p.team.toUpperCase()}</div><span class="prs ${p.status}">${p.status.toUpperCase()}</span><button class="pkbtn" onclick="kickP('${r.code}','${p.id}','${esc(p.callsign)}')">KICK</button></div>`).join(''):'<div style="font-size:10px;color:var(--dim);padding:4px 0;font-family:\'Share Tech Mono\',monospace">No players</div>'}</div>
-    <div style="padding:4px 13px;font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+    <div style="padding:4px 13px;font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <span>ROLES:</span>
-      ${r.allowedRoles?r.allowedRoles.map(function(role){return '<span style="background:rgba(232,200,74,.1);border:1px solid var(--gold2);border-radius:2px;padding:1px 5px;color:var(--gold)">'+role+'</span>';}).join(''):'<span style="color:var(--dim)">All roles allowed</span>'}
-      <button onclick="openRoleEditor('${r.code}')" style="margin-left:auto;background:transparent;border:1px solid var(--border);color:var(--dim);border-radius:2px;padding:1px 5px;font-size:8px;cursor:pointer;font-family:'Share Tech Mono',monospace">EDIT ROLES</button>
+      ${r.allowedRoles?r.allowedRoles.map(function(role){return '<span style="background:rgba(232,200,74,.1);border:1px solid var(--gold2);border-radius:2px;padding:1px 5px;color:var(--gold)">'+role+'</span>';}).join(''):'<span style="color:var(--dim)">All roles</span>'}
+      ${r.roleLimits&&Object.keys(r.roleLimits).length?'<span style="color:var(--dim)">|</span>'+Object.entries(r.roleLimits).map(([k,v])=>`<span style="font-size:8px;color:var(--dim)">${k}≤${v}</span>`).join(' '):''}
+      <button onclick="openRoleEditor('${r.code}')" style="margin-left:auto;background:rgba(232,200,74,.08);border:1px solid rgba(232,200,74,.3);color:var(--gold);border-radius:2px;padding:2px 8px;font-size:8px;cursor:pointer;font-family:'Share Tech Mono',monospace;letter-spacing:1px">✏ EDIT ROLES</button>
+    </div>
+    <div style="padding:4px 13px 4px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <span style="font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace">TIMER:</span>
+      <button class="pkbtn" onclick="startTimer('${r.code}')" style="font-size:9px;padding:2px 8px">⏱ START</button>
+      <input type="number" id="timer-min-${r.code}" min="1" max="180" value="30" style="width:50px;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:2px;padding:2px 4px;font-family:'Share Tech Mono',monospace;font-size:10px;text-align:center"> min
+      <button class="pkbtn" onclick="stopTimer('${r.code}')" style="font-size:9px;padding:2px 8px;border-color:var(--red);color:var(--red)">STOP</button>
     </div>
     <div class="rca">
       <button class="ra ${r.gamePaused?'resume':'pause'}" onclick="${r.gamePaused?`resumeRoom('${r.code}')`:`pauseRoom('${r.code}')`}">${r.gamePaused?'▶ RESUME':'⏸ PAUSE'}</button>
@@ -808,7 +822,8 @@ function renderRooms(){
       <button class="ra" style="border-color:var(--gold2);color:var(--gold2)" onclick="editMap('${r.code}','${esc(r.name)}',${r.hasPassword})">✏️ EDIT</button>
       <button class="ra del" onclick="deleteMap('${r.code}')">🗑</button>
     </div>
-  </div>`).join('');
+  </div>`;
+  }).join('');
 }
 
 function populateSelects(){
@@ -1220,10 +1235,22 @@ async function createMap(){
   const name=document.getElementById('new-map-name').value.trim();
   const code=document.getElementById('new-map-code').value.trim().toUpperCase();
   const pw=document.getElementById('new-map-pw').value;
+  const gameMode=document.getElementById('new-map-mode')?.value||'Standard';
   if(!name){toast('Enter a map name','err');return;}
-  const r=await apiFetch('/api/admin/rooms',{method:'POST',body:JSON.stringify({code:code||undefined,name,password:pw})});
-  if(r.ok){const d=await r.json();toast('✓ Map "'+name+'" created (code: '+d.code+')','ok');document.getElementById('new-map-name').value='';document.getElementById('new-map-code').value='';document.getElementById('new-map-pw').value='';loadData();}
+  const r=await apiFetch('/api/admin/rooms',{method:'POST',body:JSON.stringify({code:code||undefined,name,password:pw,gameMode})});
+  if(r.ok){const d=await r.json();toast('✓ Map "'+name+'" created ('+d.code+') — Mode: '+d.gameMode,'ok');document.getElementById('new-map-name').value='';document.getElementById('new-map-code').value='';document.getElementById('new-map-pw').value='';loadData();}
   else toast('Failed to create map','err');
+}
+
+async function startTimer(code){
+  const el=document.getElementById('timer-min-'+code);
+  const minutes=parseInt(el?.value)||30;
+  const r=await apiFetch(`/api/admin/rooms/${code}/timer`,{method:'POST',body:JSON.stringify({action:'start',minutes})});
+  if(r.ok){toast('⏱ Timer started: '+minutes+'min on '+code,'ok');loadData();}else toast('Error starting timer','err');
+}
+async function stopTimer(code){
+  const r=await apiFetch(`/api/admin/rooms/${code}/timer`,{method:'POST',body:JSON.stringify({action:'stop'})});
+  if(r.ok){toast('Timer stopped on '+code,'ok');loadData();}else toast('Error','err');
 }
 
 function editMap(code,name,hasPassword){
@@ -1382,48 +1409,77 @@ async function delObj(code,id){const r=await apiFetch(`/api/admin/rooms/${code}/
 // ════════════════════════════════════════════════════════════════
 async function loadSavedMaps(){
   const r=await apiFetch('/api/admin/saved-maps');if(!r.ok)return;
-  const maps=await r.json();
+  const allMaps=await r.json();
   const el=document.getElementById('saved-maps-grid');
-  if(!maps.length){el.innerHTML='<div class="empty">No saved map templates yet.<br>Save a map\'s zones and objectives above.</div>';return;}
+  if(!allMaps.length){el.innerHTML='<div class="empty">No saved map templates yet.<br>Save a map\'s zones and objectives above.</div>';return;}
   // Group by game type
   const byType={};
-  maps.forEach(m=>{const t=m.gameType||'Standard';if(!byType[t])byType[t]=[];byType[t].push(m);});
+  const MODE_ICONS={'Standard':'⚔️','Elimination':'💀','Domination':'🏴','BattleRoyale':'🌀','Countdown':'⏱️','Escort':'🛡️'};
+  allMaps.forEach(m=>{const t=m.gameType||'Standard';if(!byType[t])byType[t]=[];byType[t].push(m);});
   el.innerHTML=Object.entries(byType).map(([type,typeMaps])=>`
-    <div style="grid-column:1/-1;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:2px;padding:4px 0 2px;border-bottom:1px solid var(--border);margin-bottom:2px">◈ ${esc(type)}</div>
-    ${typeMaps.map(m=>`<div class="sm-card">
-      <div class="sm-name">🗺️ ${esc(m.name)}</div>
-      <div class="sm-meta">${m.zoneCount} zones · ${m.objectiveCount} objectives<br>By ${esc(m.createdBy)} · ${new Date(m.createdAt).toLocaleDateString()}</div>
-      <div class="sm-btns">
-        <button class="sm-btn load" onclick="loadSavedMap('${m.id}')">LOAD INTO MAP</button>
-        <button class="sm-btn edit" onclick="renameSavedMap('${m.id}','${esc(m.name)}')">RENAME</button>
-        <button class="sm-btn del" onclick="deleteSavedMap('${m.id}','${esc(m.name)}')">DELETE</button>
-      </div>
-    </div>`).join('')}
+    <div style="grid-column:1/-1;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:2px;padding:4px 0 2px;border-bottom:1px solid var(--border);margin-bottom:2px">◈ ${MODE_ICONS[type]||''} ${esc(type)}</div>
+    ${typeMaps.map(m=>{
+      const limits=m.roleLimits&&Object.keys(m.roleLimits).length?'<div style="font-size:8px;color:var(--dim);font-family:Share Tech Mono,monospace;margin-top:2px">Limits: '+Object.entries(m.roleLimits).map(([k,v])=>k+'≤'+v).join(', ')+'</div>':'';
+      return `<div class="sm-card">
+        <div class="sm-name">${MODE_ICONS[m.gameType]||'🗺️'} ${esc(m.name)}</div>
+        <div class="sm-meta">${m.zoneCount} zones · ${m.objectiveCount} objectives · Site: ${esc(m.siteCode)||'Any'}<br>By ${esc(m.createdBy)} · ${new Date(m.createdAt).toLocaleDateString()}${limits}</div>
+        <div class="sm-btns">
+          <button class="sm-btn load" onclick="openLoadMapModal('${m.id}','${esc(m.name)}')">⚡ LOAD INTO MAP</button>
+          <button class="sm-btn edit" onclick="editSavedMapRoles('${m.id}','${esc(m.name)}')">✏ EDIT ROLES</button>
+          <button class="sm-btn edit" onclick="renameSavedMap('${m.id}','${esc(m.name)}')">RENAME</button>
+          <button class="sm-btn del" onclick="deleteSavedMap('${m.id}','${esc(m.name)}')">DELETE</button>
+        </div>
+      </div>`;
+    }).join('')}
   `).join('');
 }
 
-async function saveMap(){
-  const srcRoom=document.getElementById('save-src-room').value;
-  const name=document.getElementById('save-map-name').value.trim();
-  const gameType=document.getElementById('save-game-type').value||'Standard';
-  if(!srcRoom){toast('Select a source map','err');return;}
-  if(!name){toast('Enter a template name','err');return;}
-  // Fetch current state of room
-  const r=await apiFetch(`/api/admin/rooms/${srcRoom}`);if(!r.ok){toast('Could not read map','err');return;}
-  const d=await r.json();
-  const sr=await apiFetch('/api/admin/saved-maps',{method:'POST',body:JSON.stringify({name,gameType,siteCode:srcRoom,zones:d.zones,objectives:d.objectives})});
-  if(sr.ok){toast('✓ Map template "'+name+'" saved!','ok');document.getElementById('save-map-name').value='';loadSavedMaps();}else toast('Error saving map','err');
+// Load map modal (replaces the prompt())
+let _pendingLoadMapId=null,_pendingLoadMapName='';
+function openLoadMapModal(mapId,mapName){
+  _pendingLoadMapId=mapId;_pendingLoadMapName=mapName;
+  const sel=document.getElementById('load-map-room-sel');
+  sel.innerHTML='<option value="">Select target map…</option>'+roomsData.map(r=>`<option value="${r.code}">${esc(r.name)} (${r.code})</option>`).join('');
+  document.getElementById('load-map-modal').style.display='flex';
+  document.getElementById('load-map-modal-title').textContent='Load: '+mapName;
+}
+function closeLoadMapModal(){document.getElementById('load-map-modal').style.display='none';_pendingLoadMapId=null;}
+async function confirmLoadMap(){
+  const code=document.getElementById('load-map-room-sel').value;
+  if(!code){toast('Select a target map','err');return;}
+  if(!_pendingLoadMapId)return;
+  if(!confirm('Replace all zones & objectives in '+code+' with "'+_pendingLoadMapName+'"?'))return;
+  const r=await apiFetch(`/api/admin/rooms/${code}/load-map/${_pendingLoadMapId}`,{method:'POST'});
+  if(r.ok){const d=await r.json();toast('✓ '+d.message,'ok');closeLoadMapModal();loadData();}
+  else toast('Error loading map template','err');
 }
 
-async function loadSavedMap(mapId){
-  const rooms=roomsData.map(r=>r.code+' — '+r.name).join('\n');
-  const code=prompt('Load into which map? Enter code:\n\n'+rooms);
-  if(!code)return;
-  const targetCode=code.trim().toUpperCase().split(' ')[0];
-  if(!rooms.some(r=>r.startsWith(targetCode))){toast('Map not found: '+targetCode,'err');return;}
-  if(!confirm('This will replace all zones and objectives in '+targetCode+'!'))return;
-  const r=await apiFetch(`/api/admin/rooms/${targetCode}/load-map/${mapId}`,{method:'POST'});
-  if(r.ok){const d=await r.json();toast('✓ '+d.message,'ok');}else toast('Error loading map template','err');
+// Edit roles on a saved map template
+async function editSavedMapRoles(mapId,mapName){
+  const r=await apiFetch('/api/admin/saved-maps');if(!r.ok)return;
+  const maps=await r.json();
+  const map=maps.find(m=>m.id===mapId);if(!map)return;
+  _roleEditorCode=null;_roleEditorMapId=mapId;
+  document.getElementById('role-modal-map').textContent='Template: '+mapName;
+  const currentRoles=map.allowedRoles||ALL_ROLES;
+  const currentLimits=map.roleLimits||{};
+  const rows=document.getElementById('role-modal-rows');
+  rows.innerHTML=ALL_ROLES.map(function(role){
+    const allowed=currentRoles.includes(role);
+    const limit=currentLimits[role]!=null?currentLimits[role]:'';
+    return '<div style="display:flex;align-items:center;gap:12px;padding:8px 10px;background:var(--bg2);border-radius:4px;border:1px solid var(--border)">'
+      +'<label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1">'
+      +'<input type="checkbox" id="role-chk-'+role+'" '+(allowed?'checked':'')
+      +' style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer">'
+      +'<span style="font-family:Share Tech Mono,monospace;font-size:12px;color:var(--text)">'+role+'</span>'
+      +'</label>'
+      +'<div style="display:flex;align-items:center;gap:6px">'
+      +'<span style="font-size:9px;color:var(--dim);font-family:Share Tech Mono,monospace">MAX</span>'
+      +'<input type="number" id="role-lim-'+role+'" value="'+limit+'" min="1" max="999" placeholder="∞"'
+      +' style="width:60px;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:4px 6px;font-family:Share Tech Mono,monospace;font-size:12px;text-align:center">'
+      +'</div></div>';
+  }).join('');
+  document.getElementById('role-modal').style.display='flex';
 }
 
 async function renameSavedMap(id,currentName){
@@ -1569,10 +1625,11 @@ document.addEventListener('keydown',e=>{
 const ALL_ROLES=['Assault','Sniper','Support','Medic','Scout','Commander'];
 
 let _roleEditorCode=null;
+let _roleEditorMapId=null;
 
 function openRoleEditor(code){
   const room=roomsData.find(r=>r.code===code);if(!room)return;
-  _roleEditorCode=code;
+  _roleEditorCode=code;_roleEditorMapId=null;
   document.getElementById('role-modal-map').textContent='Map: '+room.name+' ('+code+')';
   const currentRoles=room.allowedRoles||ALL_ROLES;
   const currentLimits=room.roleLimits||{};
@@ -1598,11 +1655,32 @@ function openRoleEditor(code){
 
 function closeRoleEditor(){
   document.getElementById('role-modal').style.display='none';
-  _roleEditorCode=null;
+  _roleEditorCode=null;_roleEditorMapId=null;
+}
+
+async function saveMap(){
+  const srcRoom=document.getElementById('save-src-room').value;
+  const name=document.getElementById('save-map-name').value.trim();
+  const gameType=document.getElementById('save-game-type').value||'Standard';
+  if(!srcRoom){toast('Select a source map','err');return;}
+  if(!name){toast('Enter a template name','err');return;}
+  const r=await apiFetch(`/api/admin/rooms/${srcRoom}`);if(!r.ok){toast('Could not read map','err');return;}
+  const d=await r.json();
+  const sr=await apiFetch('/api/admin/saved-maps',{method:'POST',body:JSON.stringify({name,gameType,siteCode:srcRoom,zones:d.zones,objectives:d.objectives})});
+  if(sr.ok){toast('✓ Map template "'+name+'" saved!','ok');document.getElementById('save-map-name').value='';loadSavedMaps();}else toast('Error saving map','err');
+}
+async function renameSavedMap(id,currentName){
+  const newName=prompt('New name:',currentName);if(!newName)return;
+  const r=await apiFetch(`/api/admin/saved-maps/${id}`,{method:'PUT',body:JSON.stringify({name:newName})});
+  if(r.ok){toast('Renamed','ok');loadSavedMaps();}else toast('Error','err');
+}
+async function deleteSavedMap(id,name){
+  if(!confirm('Delete saved map "'+name+'"?'))return;
+  const r=await apiFetch(`/api/admin/saved-maps/${id}`,{method:'DELETE'});
+  if(r.ok){toast('Deleted','ok');loadSavedMaps();}else toast('Error','err');
 }
 
 async function saveRoleEditor(){
-  if(!_roleEditorCode)return;
   const allowedRoles=ALL_ROLES.filter(r=>document.getElementById('role-chk-'+r)?.checked);
   const roleLimits={};
   ALL_ROLES.forEach(function(r){
@@ -1611,9 +1689,17 @@ async function saveRoleEditor(){
   });
   const finalRoles=allowedRoles.length===0||allowedRoles.length===ALL_ROLES.length?null:allowedRoles;
   const finalLimits=Object.keys(roleLimits).length?roleLimits:null;
-  const res=await apiFetch('/api/admin/rooms/'+_roleEditorCode,{method:'PUT',body:JSON.stringify({allowedRoles:finalRoles,roleLimits:finalLimits})});
-  if(res.ok){toast('✓ Roles & limits saved','ok');closeRoleEditor();loadData();}
-  else toast('Error saving roles','err');
+  if(_roleEditorCode){
+    // Editing a live room
+    const res=await apiFetch('/api/admin/rooms/'+_roleEditorCode,{method:'PUT',body:JSON.stringify({allowedRoles:finalRoles,roleLimits:finalLimits})});
+    if(res.ok){toast('✓ Roles & limits saved for live map','ok');closeRoleEditor();loadData();}
+    else toast('Error saving roles','err');
+  } else if(_roleEditorMapId){
+    // Editing a saved map template
+    const res=await apiFetch('/api/admin/saved-maps/'+_roleEditorMapId,{method:'PUT',body:JSON.stringify({allowedRoles:finalRoles,roleLimits:finalLimits})});
+    if(res.ok){toast('✓ Roles & limits saved for template','ok');closeRoleEditor();loadSavedMaps();}
+    else toast('Error saving template roles','err');
+  }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1666,5 +1752,37 @@ async function changeAdminPassword(){
   } else {result.textContent='⚠ '+d.error||'Error';}
 }
 </script>
+
+<!-- ROLE EDITOR MODAL -->
+<div id="role-modal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.85);align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--panel);border:1px solid var(--gold2);border-radius:8px;padding:24px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;gap:12px">
+    <div style="font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--gold);letter-spacing:2px">◈ EDIT ROLES & LIMITS</div>
+    <div id="role-modal-map" style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--dim)"></div>
+    <div style="font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace;line-height:1.5">Check roles to allow them. Set MAX to limit how many players per team can use that role. Leave MAX blank for unlimited.</div>
+    <div id="role-modal-rows" style="display:flex;flex-direction:column;gap:6px"></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button onclick="saveRoleEditor()" style="flex:1;background:var(--gold);color:#000;border:none;border-radius:4px;padding:10px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer">✓ SAVE</button>
+      <button onclick="closeRoleEditor()" style="flex:0 0 100px;background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;padding:10px;font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOAD MAP MODAL -->
+<div id="load-map-modal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.85);align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--panel);border:1px solid rgba(0,196,255,.3);border-radius:8px;padding:24px;max-width:420px;width:100%;display:flex;flex-direction:column;gap:14px">
+    <div style="font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:#00c4ff;letter-spacing:2px">⚡ LOAD MAP TEMPLATE</div>
+    <div id="load-map-modal-title" style="font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--text)"></div>
+    <div style="font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace">Select the active map to load this template into. This will replace all existing zones and objectives, and apply the template's role limits.</div>
+    <div>
+      <div style="font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace;letter-spacing:1px;margin-bottom:6px">TARGET MAP</div>
+      <select id="load-map-room-sel" class="asel" style="width:100%;padding:10px;font-size:13px"></select>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="confirmLoadMap()" style="flex:1;background:#00c4ff;color:#000;border:none;border-radius:4px;padding:10px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer">⚡ LOAD NOW</button>
+      <button onclick="closeLoadMapModal()" style="flex:0 0 100px;background:transparent;color:var(--dim);border:1px solid var(--border);border-radius:4px;padding:10px;font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer">CANCEL</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
