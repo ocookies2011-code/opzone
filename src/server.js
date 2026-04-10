@@ -1273,11 +1273,12 @@ app.post('/api/admin/rooms/:code/objectives', adminAuth, (req, res) => {
     scoreValue: parseInt(req.body.scoreValue) || 1,
     // Which zones are linked to this objective (array of zone IDs)
     linkedZones: req.body.linkedZones || [],
+    zone: req.body.zone || null,  // drawn zone shape {type, center, radius, latlngs}
     lat: req.body.lat || null,
     lng: req.body.lng || null,
     done: false,
-    progress: 0,          // 0-100 capture progress (updated by clients/server)
-    capturingTeam: null,  // team currently capturing
+    progress: 0,
+    capturingTeam: null,
     createdAt: Date.now(),
   };
   room.objectives.push(obj);
@@ -1298,12 +1299,35 @@ app.put('/api/admin/rooms/:code/objectives/:objId', adminAuth, (req, res) => {
   if (req.body.captureTimeSec !== undefined) obj.captureTimeSec = parseInt(req.body.captureTimeSec) || 0;
   if (req.body.scoreValue !== undefined) obj.scoreValue = parseInt(req.body.scoreValue) || 1;
   if (req.body.linkedZones !== undefined) obj.linkedZones = req.body.linkedZones;
+  if (req.body.zone !== undefined) obj.zone = req.body.zone;
   if (req.body.lat !== undefined) obj.lat = req.body.lat;
   if (req.body.lng !== undefined) obj.lng = req.body.lng;
   if (req.body.done !== undefined) obj.done = req.body.done;
   broadcastAll(room, { type: 'objective_updated', objective: obj });
   persistRoomTemplate(room).catch(()=>{});
   res.json(obj);
+});
+
+// Rearm a single objective (reset done=false, progress=0)
+app.post('/api/admin/rooms/:code/objectives/:objId/rearm', adminAuth, (req, res) => {
+  const room = rooms[req.params.code.toUpperCase()]; if (!room) return res.status(404).json({ error: 'Not found' });
+  if (!canAccessRoom(req.adminSession, room.code)) return res.status(403).json({ error: 'No access' });
+  const obj = room.objectives.find(o => o.id === req.params.objId);
+  if (!obj) return res.status(404).json({ error: 'Objective not found' });
+  obj.done = false; obj.progress = 0; obj.capturingTeam = null;
+  broadcastAll(room, { type: 'objective_updated', objective: obj });
+  persistRoomTemplate(room).catch(() => {});
+  res.json({ ok: true });
+});
+
+// Rearm ALL objectives on a map
+app.post('/api/admin/rooms/:code/objectives/rearm-all', adminAuth, (req, res) => {
+  const room = rooms[req.params.code.toUpperCase()]; if (!room) return res.status(404).json({ error: 'Not found' });
+  if (!canAccessRoom(req.adminSession, room.code)) return res.status(403).json({ error: 'No access' });
+  room.objectives.forEach(o => { o.done = false; o.progress = 0; o.capturingTeam = null; });
+  broadcastAll(room, { type: 'objectives_rearmed', objectives: room.objectives });
+  persistRoomTemplate(room).catch(() => {});
+  res.json({ ok: true });
 });
 
 app.delete('/api/admin/rooms/:code/objectives/:objId', adminAuth, (req, res) => {
