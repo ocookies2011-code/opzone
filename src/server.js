@@ -712,6 +712,17 @@ wss.on('connection', (ws) => {
         const code = (msg.room || '').toUpperCase().trim();
         const room = rooms[code];
         if (!room) { sendTo(ws, { type: 'error', code: 'ROOM_NOT_FOUND', message: 'Map not found.' }); break; }
+
+        // ── Registered accounts only — validate player token ──────
+        const playerSess = msg.token && playerSessions.get(msg.token);
+        if (!playerSess) {
+          sendTo(ws, { type: 'error', code: 'NOT_REGISTERED', message: 'You must be logged in to join. Please register or login first.' });
+          break;
+        }
+        // Use the callsign from the account — not whatever the client sent
+        const account = playerAccounts[playerSess.username];
+        const verifiedCallsign = account ? account.callsign : playerSess.callsign;
+
         // Password check
         if (room.password && room.password !== msg.password) {
           sendTo(ws, { type: 'error', code: 'WRONG_PASSWORD', message: 'Incorrect password.' }); break;
@@ -719,7 +730,7 @@ wss.on('connection', (ws) => {
         roomCode = code;
         const team = ['red','blue'].includes(msg.team) ? msg.team : 'red';
         const reqRole = msg.role || 'Assault';
-        const incomingCallsign = (msg.callsign || 'SOLDIER').toUpperCase().slice(0, 12);
+        const incomingCallsign = verifiedCallsign.toUpperCase().slice(0, 12);
 
         // ── Duplicate detection: if same callsign already in room, replace their session ──
         const existingPlayer = Object.values(room.players).find(p => p.callsign === incomingCallsign);
