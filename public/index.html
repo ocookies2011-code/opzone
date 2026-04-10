@@ -1109,17 +1109,19 @@ function filterLoginMaps(){
   const maps=q?_allMaps.filter(m=>m.name.toLowerCase().includes(q)||m.code.toLowerCase().includes(q)):_allMaps;
   renderMapCards(maps,'map-cards-li');
 }
+// Map registry — avoids inline JSON in onclick (double quotes break HTML attribute parsing)
+const _mapRegistry={};
+
 function renderMapCards(maps,id){
   const el=document.getElementById(id);if(!el)return;
   if(!maps.length){el.innerHTML='<div class="map-empty">No maps found</div>';return;}
   el.innerHTML=maps.map(function(m){
-    const ar=JSON.stringify(m.allowedRoles||null);
-    const rl=JSON.stringify(m.roleLimits||null);
+    _mapRegistry[m.code]=m; // store by code so onclick just passes code string
     const nm=esc(m.name);
-    const oc="selectMap('"+m.code+"','"+nm+"',"+m.hasPassword+",this,"+ar+","+rl+")";
     const roles=m.allowedRoles?'<span style="font-size:8px;color:var(--gold);font-family:Share Tech Mono,monospace">'+m.allowedRoles.join(' · ')+'</span>':'';
     const lock=m.hasPassword?'<span class="mc-lock">🔒</span>':'';
-    return '<div class="map-card" onclick="'+oc+'">'
+    const forLogin=(id==='map-cards-li')?'true':'false';
+    return '<div class="map-card" data-code="'+m.code+'" data-login="'+forLogin+'" onclick="handleMapCardClick(this)">'
       +'<div class="mc-name">'+nm+' <span style="font-size:9px;color:var(--dim)">'+m.code+'</span></div>'
       +'<div class="mc-meta">'
       +'<span class="mc-badge red">🔴 '+m.redCount+'</span>'
@@ -1128,6 +1130,19 @@ function renderMapCards(maps,id){
       +lock+roles+'</div></div>';
   }).join('');
 }
+
+function handleMapCardClick(cardEl){
+  const code=cardEl.dataset.code;
+  const isLogin=cardEl.dataset.login==='true';
+  const m=_mapRegistry[code];
+  if(!m)return;
+  if(isLogin){
+    liSelectMap(m.code,m.name,m.hasPassword,cardEl,m.allowedRoles||null,m.roleLimits||null);
+  } else {
+    selectMap(m.code,m.name,m.hasPassword,cardEl,m.allowedRoles||null,m.roleLimits||null);
+  }
+}
+
 async function loadMaps(){
   try{
     const r=await fetch('/api/maps');_allMaps=await r.json();
