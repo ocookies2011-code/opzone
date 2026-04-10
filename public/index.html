@@ -2389,77 +2389,27 @@ setInterval(()=>{
 },5000);
 
 // ════════════════════════════════════════════════════════════════
-// WAKE LOCK — keep screen on during gameplay
+// WAKE LOCK — handled in globals above
 // ════════════════════════════════════════════════════════════════
-let wakeLock=null;
 
-// Silent audio keepalive — most reliable cross-platform method to
-// prevent the browser from suspending GPS when the screen locks.
-// A looping silent AudioContext node keeps the audio session alive
-// which in turn keeps the page active on both iOS Safari and Android Chrome.
+// Silent audio keepalive — keeps browser from suspending GPS when screen locks
 let _audioCtx=null,_audioNode=null;
 function startSilentAudio(){
   try{
-    if(_audioCtx)return; // already running
+    if(_audioCtx)return;
     _audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-    // Create a silent oscillator with zero gain — keeps audio session open
     const osc=_audioCtx.createOscillator();
     const gain=_audioCtx.createGain();
-    gain.gain.value=0.001; // near-silent, not truly 0 (some browsers suspend at exactly 0)
+    gain.gain.value=0.001;
     osc.connect(gain);gain.connect(_audioCtx.destination);
-    osc.start();
-    _audioNode=osc;
-  }catch(e){/* AudioContext not available — fall back to wake lock only */}
+    osc.start();_audioNode=osc;
+  }catch(e){}
 }
 function stopSilentAudio(){
   try{if(_audioNode)_audioNode.stop();if(_audioCtx)_audioCtx.close();}catch{}
   _audioCtx=null;_audioNode=null;
 }
-
-async function requestWakeLock(){
-  try{
-    if('wakeLock' in navigator){
-      if(wakeLock)try{await wakeLock.release();}catch{}
-      wakeLock=await navigator.wakeLock.request('screen');
-      wakeLock.addEventListener('release',()=>{
-        wakeLock=null;
-        // Re-acquire if still in game and tab is visible
-        if(document.visibilityState==='visible'&&document.getElementById('gapp').classList.contains('visible')){
-          setTimeout(requestWakeLock,2000);
-        }
-      });
-    }
-  }catch(e){/* wake lock not supported or denied — silent audio will keep GPS alive */}
-  // Start silent audio keepalive (works on screen lock where wake lock fails)
-  startSilentAudio();
-  // Register periodic background sync for Android Chrome
-  if(swReg&&'periodicSync' in swReg){
-    swReg.periodicSync.register('gps-keepalive',{minInterval:15000}).catch(()=>{});
-  }
-  // Send player context to SW
-  notifySW({
-    type:'PLAYER_CONTEXT',
-    roomCode, playerToken,
-    wsEndpoint:(location.protocol==='https:'?'wss':'ws')+'://'+location.host,
-    lastGPS:myLat?{lat:myLat,lng:myLng,ts:Date.now()}:null
-  });
-}
-async function releaseWakeLock(){
-  if(wakeLock){try{await wakeLock.release();}catch{}wakeLock=null;}
-  stopSilentAudio();
-}
-// Visibility change — screen unlock / tab switch back
-document.addEventListener('visibilitychange',async()=>{
-  if(document.visibilityState==='visible'&&document.getElementById('gapp').classList.contains('visible')){
-    await requestWakeLock();
-    // Ask SW for cached GPS position accumulated while screen was locked
-    notifySW({type:'PAGE_WAKE'});
-    // Re-send last known position immediately
-    if(ws&&ws.readyState===1&&myLat)sendWS({type:'location',lat:myLat,lng:myLng,heading:0});
-    // Restart GPS watch in case OS killed it during lock
-    if(_gpsWatchId==null)startGPS();
-  }
-});
+// Visibility change reacquire + GPS handled in globals above
 
 // ════════════════════════════════════════════════════════════════
 // SESSION PERSISTENCE — survive page refresh
@@ -2545,12 +2495,12 @@ function tryRestoreSession(){
 const _origJoin=joinGame;
 window.joinGame=function(){
   _origJoin();
-  setTimeout(saveSession,500); // save after WS connects
-  requestWakeLock();
+  setTimeout(saveSession,500);
+  startSilentAudio(); // GPS keepalive audio — wake lock handled by prompt
 };
 const _origLeave=leaveGame;
 window.leaveGame=function(){
-  clearSession();releaseWakeLock();_origLeave();
+  clearSession();releaseWakeLock();stopSilentAudio();_origLeave();
 };
 
 // On load: try to restore session first, else show home
