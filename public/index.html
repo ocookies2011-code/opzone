@@ -474,6 +474,104 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .rank-badge.sgt{background:rgba(0,196,255,.12);color:var(--accent);border:1px solid rgba(0,196,255,.3)}
 .from-role{font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-left:4px;letter-spacing:.5px}
 
+
+/* ── Map HUD Overlay — field info directly on map ──────────── */
+.map-hud{
+  position:absolute;inset:0;pointer-events:none;z-index:900;
+  display:flex;flex-direction:column;justify-content:space-between;
+  padding:8px;
+}
+.map-hud.hidden{display:none}
+
+/* Top-left: team/status/role */
+.mh-topleft{
+  display:flex;align-items:center;gap:5px;
+  pointer-events:none;
+}
+.mh-team-pill{
+  font-family:'Share Tech Mono',monospace;font-size:9px;font-weight:700;
+  padding:3px 8px;border-radius:2px;letter-spacing:2px;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+}
+.mh-team-pill.red{background:rgba(255,42,42,.25);border:1px solid rgba(255,42,42,.4);color:var(--red)}
+.mh-team-pill.blue{background:rgba(42,127,255,.25);border:1px solid rgba(42,127,255,.4);color:var(--blue)}
+.mh-status-pill{
+  font-family:'Share Tech Mono',monospace;font-size:8px;
+  padding:2px 7px;border-radius:2px;letter-spacing:1px;
+  background:rgba(0,0,0,.65);backdrop-filter:blur(4px);
+}
+.mh-status-pill.alive{border:1px solid rgba(0,204,102,.4);color:var(--green)}
+.mh-status-pill.dead{border:1px solid rgba(255,42,42,.4);color:var(--red)}
+.mh-status-pill.medic{border:1px solid rgba(255,170,0,.4);color:var(--warn)}
+.mh-role{
+  font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);
+  letter-spacing:1px;
+  background:rgba(0,0,0,.55);padding:2px 6px;border-radius:2px;
+  backdrop-filter:blur(4px);
+}
+
+/* Top-right: GPS status + coords */
+.mh-topright{
+  position:absolute;top:8px;right:8px;
+  display:flex;flex-direction:column;align-items:flex-end;gap:3px;
+}
+.mh-gps-row{display:flex;align-items:center;gap:5px}
+.mh-gps-pulse{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--green);animation:ping 1.5s ease-out infinite;
+}
+.mh-gps-pulse.off{background:var(--red);animation:none}
+.mh-gps-txt{
+  font-family:'Share Tech Mono',monospace;font-size:8px;
+  color:var(--accent);letter-spacing:1px;
+  background:rgba(0,0,0,.65);padding:2px 6px;border-radius:2px;
+  backdrop-filter:blur(4px);
+}
+.mh-coords{
+  font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);
+  background:rgba(0,0,0,.55);padding:1px 6px;border-radius:2px;
+  backdrop-filter:blur(4px);letter-spacing:.5px;
+}
+
+/* Bottom bar */
+.mh-bottom{
+  display:flex;flex-direction:column;gap:4px;
+  pointer-events:auto;
+}
+.mh-score{
+  display:flex;align-items:center;gap:8px;
+  font-family:'Orbitron',monospace;font-size:13px;font-weight:700;
+  background:rgba(0,0,0,.7);padding:5px 10px;border-radius:4px;
+  backdrop-filter:blur(6px);align-self:center;
+  border:1px solid rgba(255,255,255,.06);
+}
+.mh-score-red{color:var(--red)}
+.mh-score-sep{color:var(--dim);font-size:10px}
+.mh-score-blue{color:var(--blue)}
+.mh-order{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--gold);letter-spacing:1px;
+  background:rgba(0,0,0,.72);padding:5px 10px;border-radius:3px;
+  backdrop-filter:blur(6px);border-left:2px solid var(--gold);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  max-width:100%;
+}
+.mh-actions{
+  display:flex;gap:5px;
+}
+.mh-btn{
+  flex:1;padding:9px 4px;border-radius:4px;font-size:10px;font-weight:700;
+  letter-spacing:.5px;cursor:pointer;border:1px solid;
+  font-family:'Rajdhani',sans-serif;transition:all .15s;
+  backdrop-filter:blur(6px);
+}
+.mh-btn.medic{background:rgba(255,170,0,.15);border-color:rgba(255,170,0,.4);color:var(--warn)}
+.mh-btn.medic:active{background:rgba(255,170,0,.3)}
+.mh-btn.alive{background:rgba(0,204,102,.15);border-color:rgba(0,204,102,.4);color:var(--green)}
+.mh-btn.alive:active{background:rgba(0,204,102,.3)}
+.mh-btn.support{background:rgba(42,127,255,.15);border-color:rgba(42,127,255,.4);color:var(--blue)}
+.mh-btn.support:active{background:rgba(42,127,255,.3)}
+
 </style>
 </head>
 <body>
@@ -683,7 +781,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
     <div class="gt" data-s="comms" onclick="switchTab(this)"><div class="ico">📡</div>COMMS<div class="nbadge" id="nb-cm"></div></div>
     <div class="gt" data-s="status" onclick="switchTab(this)"><div class="ico">⚡</div>STATUS</div>
     <div class="gt" data-s="kit" onclick="switchTab(this)"><div class="ico">🔫</div>KIT</div>
-    <div class="gt" data-s="field" onclick="switchTab(this)"><div class="ico">📡</div>FIELD</div>
+
     <div class="gt leave-btn" onclick="leaveGame()" style="color:var(--red);flex:0 0 52px"><div class="ico">🚪</div>LEAVE</div>
   </div>
 
@@ -706,6 +804,38 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
       <div class="team-hud"><div class="thud r">🔴 <span id="hud-red">0</span></div><div class="thud b">🔵 <span id="hud-blue">0</span></div></div>
       <div class="compass-box">🧭</div>
       <div class="gps-box"><div>LAT <span class="gv" id="i-lat">—</span></div><div>LNG <span class="gv" id="i-lng">—</span></div><div>ACC <span class="gv" id="i-acc">—</span></div></div>
+
+      <!-- ── Map HUD overlay — field info directly on map ── -->
+      <div class="map-hud" id="map-hud">
+        <!-- Top-left: team + status + role -->
+        <div class="mh-topleft">
+          <div class="mh-team-pill" id="mh-team-pill">—</div>
+          <div class="mh-status-pill" id="mh-status-pill">—</div>
+          <div class="mh-role" id="mh-role-lbl">—</div>
+        </div>
+        <!-- Top-right: GPS pulse + coords -->
+        <div class="mh-topright">
+          <div class="mh-gps-row">
+            <div class="mh-gps-pulse" id="mh-gps-pulse"></div>
+            <span class="mh-gps-txt" id="mh-gps-txt">ACQUIRING…</span>
+          </div>
+          <div class="mh-coords" id="mh-coords">—</div>
+        </div>
+        <!-- Bottom: score + last order + quick actions -->
+        <div class="mh-bottom">
+          <div class="mh-score">
+            <span class="mh-score-red">🔴 <span id="mh-score-red">0</span></span>
+            <span class="mh-score-sep">:</span>
+            <span class="mh-score-blue">🔵 <span id="mh-score-blue">0</span></span>
+          </div>
+          <div class="mh-order" id="mh-order">Awaiting orders…</div>
+          <div class="mh-actions">
+            <button class="mh-btn medic" onclick="setStatus('medic')">🚨 MEDIC</button>
+            <button class="mh-btn alive" onclick="setStatus('alive')">✓ ALIVE</button>
+            <button class="mh-btn support" onclick="setStatus('support')">⚡ SUPPORT</button>
+          </div>
+        </div>
+      </div>
       <div class="tile-sw">
         <div class="tsb on" data-tile="osm" onclick="switchTile('osm',this)">OSM</div>
         <div class="tsb" data-tile="sat" onclick="switchTile('sat',this)">SAT</div>
@@ -2036,6 +2166,7 @@ function onGPS(pos){
   notifySW({type:'GPS_UPDATE',lat:myLat,lng:myLng,heading:0});
   // If field mode is active, update the display immediately on each GPS fix
   if(_fieldActive)updateFieldMode();
+  updateMapHUD();
 }
 function onGPSErr(e){toast('GPS: '+(['','Denied','Unavailable','Timeout'][e.code]||'Error'),'warn');}
 
@@ -2407,7 +2538,7 @@ function handle(msg){
 // ════════════════════════════════════════════════════════════════
 // RENDER
 // ════════════════════════════════════════════════════════════════
-function renderAll(){renderSquad();renderOrders();renderObj();updHud();updLobbyRoster();}
+function renderAll(){renderSquad();renderOrders();renderObj();updHud();updLobbyRoster();updateMapHUD();}
 
 function updLobbyRoster(){
   const el=document.getElementById('lobby-roster');if(!el)return;
@@ -2620,6 +2751,46 @@ function renderObj(){
   // Show the obj bar only when there are visible objectives
   const bar=document.getElementById('obj-bar-wrap');
   if(bar)bar.style.display=visible.length?'block':'none';
+}
+
+// ── Map HUD — updates the overlay on the main map tab ──────────
+function updateMapHUD(){
+  // Team pill
+  const teamPill=document.getElementById('mh-team-pill');
+  if(teamPill){
+    teamPill.textContent=myTeam?myTeam.toUpperCase():'—';
+    teamPill.className='mh-team-pill '+(myTeam||'');
+  }
+  // Status pill
+  const statusPill=document.getElementById('mh-status-pill');
+  if(statusPill){
+    statusPill.textContent=(myStatus||'alive').toUpperCase();
+    statusPill.className='mh-status-pill '+(myStatus||'alive');
+  }
+  // Role
+  const roleEl=document.getElementById('mh-role-lbl');
+  if(roleEl)roleEl.textContent=(myRole||'OPERATOR').toUpperCase();
+  // GPS pulse + text
+  const pulse=document.getElementById('mh-gps-pulse');
+  const gpsTxt=document.getElementById('mh-gps-txt');
+  const wsOk=ws&&ws.readyState===1;
+  const hasGPS=myLat!=null;
+  if(pulse)pulse.className='mh-gps-pulse'+(hasGPS&&wsOk?'':' off');
+  if(gpsTxt)gpsTxt.textContent=hasGPS?(wsOk?'GPS LIVE':'GPS — NO SERVER'):'ACQUIRING…';
+  // Coords
+  const coordEl=document.getElementById('mh-coords');
+  if(coordEl)coordEl.textContent=myLat?`${myLat.toFixed(5)}, ${myLng.toFixed(5)}`:'—';
+  // Scores
+  const sr=document.getElementById('mh-score-red');
+  const sb=document.getElementById('mh-score-blue');
+  if(sr)sr.textContent=currentScores?.red??0;
+  if(sb)sb.textContent=currentScores?.blue??0;
+  // Last order
+  const orderEl=document.getElementById('mh-order');
+  if(orderEl&&orders&&orders.length){
+    const last=orders[orders.length-1];
+    orderEl.textContent=(last.rank?last.rank.toUpperCase()+': ':'')+last.text;
+  }
 }
 
 function updHud(){
@@ -3000,6 +3171,18 @@ function stopGPSKeepalive(){
 // SESSION PERSISTENCE — survive page refresh
 // ════════════════════════════════════════════════════════════════
 const SESSION_KEY='sa_player_session';
+
+// Persistent device token — stays on this device forever across sessions
+// Prevents the same device showing up twice on the map
+function getDeviceToken(){
+  let tok=localStorage.getItem('zgt_device_token');
+  if(!tok){
+    tok='dev_'+Math.random().toString(36).slice(2,10)+'_'+Date.now().toString(36);
+    localStorage.setItem('zgt_device_token',tok);
+  }
+  return tok;
+}
+const DEVICE_TOKEN=getDeviceToken();
 
 function saveSession(){
   if(!roomCode||!myCallsign)return;
