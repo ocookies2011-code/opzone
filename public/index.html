@@ -10,92 +10,32 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
-:root{--bg:#080b0f;--bg2:#0d1117;--panel:#111720;--panel2:#192030;--border:#1e2d3d;--red:#ff2a2a;--red-d:rgba(255,42,42,.15);--blue:#2a7fff;--blue-d:rgba(42,127,255,.15);--gold:#e8c84a;--gold2:#c8a820;--text:#c8d8e8;--dim:#4a6070;--green:#00cc66;--warn:#ffaa00}
+:root{--bg:#04060a;--bg2:#07090f;--panel:#0a1018;--panel2:#101820;--border:#152030;--red:#ff2a2a;--red-d:rgba(255,42,42,.15);--blue:#2a7fff;--blue-d:rgba(42,127,255,.15);--gold:#e8c84a;--gold2:#c8a820;--text:#b8ccd8;--dim:#3a5060;--green:#00cc66;--warn:#ffaa00;--accent:#00c4ff}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{height:100%;height:-webkit-fill-available}
-body{min-height:100%;min-height:-webkit-fill-available;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif}
 
+/* ─── ARES ALPHA AMBIENT ─── */
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,196,255,.012) 3px,rgba(0,196,255,.012) 4px);pointer-events:none;z-index:9999}
 /* ─── HOME ─── */
 #home{height:100%;overflow-y:auto;display:block}
 #home.hidden{display:none!important}
-
-/* === CINEMATIC HERO === */
-.hp-hero-main{position:relative;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px 60px;text-align:center;overflow:hidden;background:#020509}
-.hp-hero-canvas{position:absolute;inset:0;z-index:0}
-.hp-hero-vignette{position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse 80% 70% at 50% 50%,transparent 0%,rgba(2,5,9,.7) 70%,rgba(2,5,9,.97) 100%)}
-.hp-hero-grid{position:absolute;inset:0;z-index:1;background-image:linear-gradient(rgba(232,200,74,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(232,200,74,.03) 1px,transparent 1px);background-size:40px 40px;animation:gridDrift 20s linear infinite}
-@keyframes gridDrift{0%{background-position:0 0}100%{background-position:40px 40px}}
-.hp-hero-content{position:relative;z-index:2;max-width:800px}
-.hp-hero-eyebrow{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;margin-bottom:20px;opacity:.8;display:flex;align-items:center;justify-content:center;gap:12px}
-.hp-hero-eyebrow::before,.hp-hero-eyebrow::after{content:'';flex:1;max-width:60px;height:1px;background:linear-gradient(90deg,transparent,var(--gold))}
-.hp-hero-eyebrow::after{background:linear-gradient(90deg,var(--gold),transparent)}
-.hp-logo-main{font-family:'Orbitron',monospace;font-size:clamp(28px,8vw,72px);font-weight:900;color:#fff;letter-spacing:4px;line-height:1;margin-bottom:6px;text-shadow:0 0 60px rgba(232,200,74,.5),0 0 120px rgba(232,200,74,.2)}
-.hp-logo-main .accent{color:var(--gold)}
-.hp-logo-sub{font-family:'Orbitron',monospace;font-size:clamp(12px,3vw,20px);font-weight:400;color:rgba(200,216,232,.6);letter-spacing:8px;text-transform:uppercase;margin-bottom:28px}
-.hp-hero-desc{font-size:clamp(13px,2vw,17px);color:rgba(200,216,232,.65);line-height:1.7;max-width:540px;margin:0 auto 36px;font-weight:400}
-.hp-hero-ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:48px}
-.hp-cta-primary{background:var(--gold);color:#000;border:none;border-radius:4px;padding:14px 32px;font-family:'Orbitron',monospace;font-size:13px;font-weight:700;letter-spacing:3px;cursor:pointer;transition:all .25s;text-transform:uppercase;box-shadow:0 0 30px rgba(232,200,74,.4)}
-.hp-cta-primary:hover{background:#f5d855;box-shadow:0 0 50px rgba(232,200,74,.6);transform:translateY(-2px)}
-.hp-cta-secondary{background:transparent;color:var(--text);border:1px solid rgba(200,216,232,.25);border-radius:4px;padding:14px 28px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .25s;text-transform:uppercase}
-.hp-cta-secondary:hover{border-color:var(--gold);color:var(--gold)}
-.hp-hero-stats{display:flex;gap:32px;justify-content:center;flex-wrap:wrap}
-.hp-hstat{text-align:center}
-.hp-hstat-num{font-family:'Orbitron',monospace;font-size:clamp(20px,4vw,36px);font-weight:900;color:var(--gold);line-height:1}
-.hp-hstat-lbl{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-top:4px}
-.hp-hero-scroll{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);z-index:2;display:flex;flex-direction:column;align-items:center;gap:6px;animation:bounce 2s infinite}
-.hp-hero-scroll-line{width:1px;height:32px;background:linear-gradient(to bottom,var(--gold),transparent)}
-@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-6px)}}
-
-/* === GAME MODE SHOWCASE === */
-.hp-modes{padding:60px 20px;background:#05080c;position:relative}
-.hp-modes::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
-.hp-section-title{font-family:'Orbitron',monospace;font-size:clamp(14px,3vw,22px);font-weight:900;color:var(--text);letter-spacing:4px;text-align:center;margin-bottom:8px;text-transform:uppercase}
-.hp-section-sub{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--dim);text-align:center;margin-bottom:36px;text-transform:uppercase}
-.hp-modes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;max-width:1000px;margin:0 auto}
-.hp-mode-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:20px 18px;position:relative;overflow:hidden;cursor:pointer;transition:all .25s}
-.hp-mode-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),transparent);transform:scaleX(0);transition:transform .3s;transform-origin:left}
-.hp-mode-card:hover{border-color:rgba(232,200,74,.4);transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.4)}
-.hp-mode-card:hover::before{transform:scaleX(1)}
-.hp-mode-icon{font-size:28px;margin-bottom:10px}
-.hp-mode-name{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:6px}
-.hp-mode-desc{font-size:12px;color:var(--dim);line-height:1.55}
-.hp-mode-badge{position:absolute;top:12px;right:12px;font-family:'Share Tech Mono',monospace;font-size:8px;padding:2px 6px;border-radius:2px;border:1px solid var(--gold);color:var(--gold);letter-spacing:1px}
-
-/* === FEATURES === */
-.hp-features-section{padding:60px 20px;background:var(--bg2)}
-.hp-features-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;max-width:960px;margin:0 auto}
-.hp-feat{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:20px 16px;text-align:center;transition:all .2s}
-.hp-feat:hover{border-color:rgba(232,200,74,.3);transform:translateY(-2px)}
-.hp-feat-icon{font-size:28px;margin-bottom:10px}
-.hp-feat-title{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:6px}
-.hp-feat-desc{font-size:12px;color:var(--dim);line-height:1.5}
-
-/* === LEADERBOARD TEASER === */
-.hp-lb{padding:60px 20px;background:#05080c;position:relative}
-.hp-lb-table{max-width:640px;margin:0 auto;background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden}
-.hp-lb-row{display:grid;grid-template-columns:36px 1fr 80px 60px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);font-family:'Share Tech Mono',monospace;font-size:12px}
-.hp-lb-row:last-child{border-bottom:none}
-.hp-lb-row.hdr{background:var(--panel2);font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase}
-.hp-lb-rank{color:var(--gold);font-weight:700;font-family:'Orbitron',monospace}
-.hp-lb-name{color:var(--text);font-weight:600}
-.hp-lb-xp{color:var(--gold);text-align:right}
-.hp-lb-kd{color:var(--green);text-align:right}
-.hp-lb-medal{font-size:14px}
-
-/* === JOIN SECTION === */
-.hp-join{background:var(--panel);border-top:1px solid var(--border);padding:36px 20px;text-align:center}
-.hp-join-title{font-family:'Orbitron',monospace;font-size:18px;font-weight:700;color:var(--text);letter-spacing:3px;margin-bottom:22px}
-
-/* Legacy compact hero for sub-pages */
-.hp-hero{background:linear-gradient(180deg,#060a0e 0%,#0a1520 60%,var(--bg) 100%);padding:60px 20px 40px;text-align:center;position:relative;overflow:hidden}
-.hp-logo{font-family:'Orbitron',monospace;font-size:clamp(22px,6vw,46px);font-weight:900;color:var(--gold);letter-spacing:6px;text-shadow:0 0 40px rgba(232,200,74,.4);line-height:1.1}
+.hp-hero{background:linear-gradient(180deg,#020408 0%,#050e18 50%,var(--bg) 100%);padding:60px 20px 40px;text-align:center;position:relative;overflow:hidden}
+.hp-hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,196,255,.015) 3px,rgba(0,196,255,.015) 4px),radial-gradient(ellipse 100% 60% at 50% 0%,rgba(0,196,255,.05) 0%,transparent 70%);pointer-events:none}
+.hp-logo{font-family:'Orbitron',monospace;font-size:clamp(22px,6vw,46px);font-weight:900;color:var(--gold);letter-spacing:6px;text-shadow:0 0 40px rgba(232,200,74,.5),0 0 80px rgba(232,200,74,.15),0 2px 0 rgba(0,0,0,.8);line-height:1.1}
 .hp-logo span{color:var(--text);opacity:.7}
 .hp-tagline{font-size:clamp(11px,2.5vw,16px);letter-spacing:3px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace;margin-top:8px}
 .hp-by{font-size:11px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-top:5px;opacity:.6}
+.hp-features{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;padding:36px 20px;max-width:960px;margin:0 auto}
+.hp-feat{background:linear-gradient(180deg,rgba(16,24,32,.6) 0%,rgba(8,12,20,.8) 100%);border:1px solid rgba(0,196,255,.1);border-radius:4px;padding:18px;text-align:center}
+.hp-feat-icon{font-size:30px;margin-bottom:8px}
+.hp-feat-title{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:6px}
+.hp-feat-desc{font-size:12px;color:var(--dim);line-height:1.5}
+.hp-join{background:var(--panel);border-top:1px solid var(--border);padding:36px 20px;text-align:center}
+.hp-join-title{font-family:'Orbitron',monospace;font-size:18px;font-weight:700;color:var(--text);letter-spacing:3px;margin-bottom:22px}
 .map-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;max-width:960px;margin:0 auto 26px;text-align:left}
-.map-card{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:14px 16px;cursor:pointer;transition:all .2s}
-.map-card:hover{border-color:var(--gold);transform:translateY(-2px)}
-.map-card.selected{border-color:var(--gold);box-shadow:0 0 12px rgba(232,200,74,.2)}
+.map-card{background:linear-gradient(180deg,rgba(16,24,32,.8) 0%,rgba(10,16,24,.9) 100%);border:1px solid rgba(0,196,255,.1);border-radius:3px;padding:14px 16px;cursor:pointer;transition:all .2s}
+.map-card:hover{border-color:rgba(0,196,255,.4);transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,196,255,.1)}
+.map-card.selected{border-color:var(--accent);box-shadow:0 0 16px rgba(0,196,255,.2)}
 .mc-name{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:6px}
 .mc-meta{font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .mc-badge{padding:2px 6px;border-radius:2px;font-size:8px;font-weight:700;letter-spacing:1px}
@@ -103,7 +43,7 @@ body{min-height:100%;min-height:-webkit-fill-available;background:var(--bg);colo
 .mc-badge.blue{background:var(--blue-d);color:var(--blue);border:1px solid rgba(42,127,255,.3)}
 .mc-lock{color:var(--warn)}
 .map-empty{text-align:center;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:11px;padding:20px;max-width:960px;margin:0 auto}
-.join-form{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:22px;max-width:400px;margin:0 auto;display:flex;flex-direction:column;gap:13px}
+.join-form{background:linear-gradient(180deg,rgba(10,16,24,.95) 0%,rgba(6,9,14,.98) 100%);border:1px solid rgba(0,196,255,.15);border-radius:4px;padding:22px;max-width:400px;margin:0 auto;display:flex;flex-direction:column;gap:13px;box-shadow:0 4px 30px rgba(0,0,0,.6)}
 .jf-title{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:2px;color:var(--gold);text-align:center;border-bottom:1px solid var(--border);padding-bottom:10px}
 .jf-sel{background:var(--bg);border:1px solid var(--gold);border-radius:4px;padding:7px 11px;font-size:11px;font-family:'Share Tech Mono',monospace;color:var(--gold);text-align:center}
 .fl{font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace;margin-bottom:3px}
@@ -125,8 +65,8 @@ body{min-height:100%;min-height:-webkit-fill-available;background:var(--bg);colo
 .hp-footer a:hover{color:var(--text)}
 
 /* ─── NAV BAR ─── */
-.hn-bar{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:50px;background:rgba(8,11,15,.97);border-bottom:1px solid rgba(232,200,74,.15);position:sticky;top:0;z-index:200;flex-shrink:0}
-.hn-logo{font-family:'Orbitron',monospace;font-size:13px;font-weight:900;color:var(--gold);letter-spacing:3px;white-space:nowrap;text-shadow:0 0 20px rgba(232,200,74,.3)}
+.hn-bar{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:50px;background:rgba(4,6,10,.98);border-bottom:1px solid rgba(0,196,255,.15);box-shadow:0 2px 20px rgba(0,0,0,.7),0 0 0 0 transparent;position:sticky;top:0;z-index:200;flex-shrink:0}
+.hn-logo{font-family:'Orbitron',monospace;font-size:13px;font-weight:900;color:var(--gold);letter-spacing:3px;white-space:nowrap;text-shadow:0 0 20px rgba(232,200,74,.4),0 0 40px rgba(232,200,74,.15)}
 .hn-logo span{color:rgba(200,216,232,.55);font-weight:400}
 .hn-ver{font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace;letter-spacing:1px;margin-left:4px;vertical-align:middle}
 .hn-links{display:flex;gap:2px;align-items:center;flex-wrap:nowrap}
@@ -139,14 +79,14 @@ body{min-height:100%;min-height:-webkit-fill-available;background:var(--bg);colo
 /* ─── PAGE STRUCTURE ─── */
 .hp-page{display:none}
 .hp-page.active{display:block}
-.hp-hero-compact{background:linear-gradient(160deg,#05080c 0%,#09121e 60%,#05080c 100%);padding:36px 24px 30px;text-align:center;border-bottom:1px solid rgba(232,200,74,.1);position:relative;overflow:hidden}
-.hp-hero-compact::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 100% at 50% 0%,rgba(232,200,74,.05) 0%,transparent 70%);pointer-events:none}
+.hp-hero-compact{background:linear-gradient(160deg,#020407 0%,#050d18 60%,#020407 100%);padding:36px 24px 30px;text-align:center;border-bottom:1px solid rgba(232,200,74,.1);position:relative;overflow:hidden}
+.hp-hero-compact::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 100% at 50% 0%,rgba(0,196,255,.06) 0%,transparent 70%),repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,196,255,.01) 3px,rgba(0,196,255,.01) 4px);pointer-events:none}
 .hp-hero-compact .hp-logo{font-size:clamp(20px,5vw,36px);letter-spacing:3px;margin-bottom:6px;position:relative}
 .hp-hero-compact .hp-tagline{font-size:11px;letter-spacing:2px;color:var(--dim);margin:0;position:relative}
 
 /* ─── HERO PREVIEW MOCKUP ─── */
 .hp-preview{display:flex;justify-content:center;margin-top:32px}
-.hp-preview-screen{background:#0a1218;border:1px solid var(--gold2);border-radius:12px;width:min(360px,90vw);overflow:hidden;box-shadow:0 0 40px rgba(232,200,74,.15)}
+.hp-preview-screen{background:#050a10;border:1px solid rgba(0,196,255,.3);border-radius:6px;width:min(360px,90vw);overflow:hidden;box-shadow:0 0 40px rgba(0,196,255,.15),0 0 80px rgba(0,0,0,.8)}
 .hp-preview-hdr{background:var(--panel);padding:8px 14px;display:flex;align-items:center;border-bottom:2px solid var(--gold2)}
 .hp-preview-nav{display:flex;background:var(--panel);border-bottom:1px solid var(--border)}
 .hp-pn{flex:1;text-align:center;font-size:8px;font-weight:700;letter-spacing:.5px;padding:7px 0;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace}
@@ -163,7 +103,7 @@ body{min-height:100%;min-height:-webkit-fill-available;background:var(--bg);colo
 .hp-pm-hud{position:absolute;top:6px;right:6px;background:rgba(8,12,15,.9);border:1px solid var(--border);border-radius:4px;padding:3px 7px;display:flex;gap:8px;font-size:9px;font-family:'Share Tech Mono',monospace}
 .r-hud{color:var(--red);font-weight:700}
 .b-hud{color:var(--blue);font-weight:700}
-.hp-preview-bar{background:rgba(0,196,255,.08);border-top:1px solid rgba(0,196,255,.2);padding:6px 14px;font-family:'Share Tech Mono',monospace;font-size:8px;color:#00c4ff;text-align:center;letter-spacing:1px}
+.hp-preview-bar{background:rgba(0,196,255,.06);border-top:1px solid rgba(0,196,255,.15);padding:6px 14px;font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--accent);text-align:center;letter-spacing:1px;text-shadow:0 0 8px rgba(0,196,255,.5)}
 
 /* ─── HELP/GUIDE SECTION ─── */
 .help-section{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 18px}
@@ -185,7 +125,7 @@ body{min-height:100%;min-height:-webkit-fill-available;background:var(--bg);colo
 /* ─── GAME APP ─── *//* ─── GAME APP ─── */
 #gapp{display:none;flex-direction:column;position:fixed;inset:0}
 #gapp.visible{display:flex}
-.hdr{height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:var(--panel);border-bottom:2px solid var(--gold2);flex-shrink:0;z-index:100}
+.hdr{height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:linear-gradient(90deg,rgba(4,6,10,.99) 0%,rgba(10,16,24,.98) 50%,rgba(4,6,10,.99) 100%);border-bottom:1px solid rgba(0,196,255,.2);box-shadow:0 2px 20px rgba(0,0,0,.7);flex-shrink:0;z-index:100}
 .hlogo{font-family:'Orbitron',monospace;font-size:13px;font-weight:900;color:var(--gold);letter-spacing:2px;text-shadow:0 0 10px rgba(232,200,74,.4);line-height:1;cursor:pointer}
 .hsub{font-size:7px;color:var(--dim);letter-spacing:1px;font-family:'Share Tech Mono',monospace;margin-top:1px}
 .hright{display:flex;align-items:center;gap:8px}
@@ -200,10 +140,10 @@ body{min-height:100%;min-height:-webkit-fill-available;background:var(--bg);colo
 .tbnr.blue{background:linear-gradient(90deg,rgba(42,127,255,.25),rgba(42,127,255,.08),rgba(42,127,255,.25));color:var(--blue);border-bottom:1px solid rgba(42,127,255,.3)}
 
 /* NAV */
-.gnav{height:54px;display:flex;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
+.gnav{height:54px;display:flex;background:rgba(6,9,14,.98);border-bottom:1px solid rgba(0,196,255,.1);flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.5)}
 .gt{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;color:var(--dim);border-bottom:2px solid transparent;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;position:relative;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
 .gt .ico{font-size:17px;line-height:1;pointer-events:none}
-.gt.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(232,200,74,.06)}
+.gt.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(0,196,255,.06)}
 .nbadge{position:absolute;top:4px;right:calc(50% - 18px);background:var(--red);color:#fff;border-radius:8px;font-size:7px;padding:1px 4px;font-family:'Share Tech Mono',monospace;display:none}
 .nbadge.on{display:block}
 
@@ -282,10 +222,10 @@ body{min-height:100%;min-height:-webkit-fill-available;background:var(--bg);colo
 .squad-wrap{padding:10px;display:flex;flex-direction:column;gap:8px}
 .sec-t{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:2px}
 .sq-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
-.sq-stat{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:7px 4px;text-align:center}
+.sq-stat{background:linear-gradient(180deg,rgba(16,24,32,.6) 0%,rgba(8,12,20,.8) 100%);border:1px solid rgba(0,196,255,.1);border-radius:3px;padding:7px 4px;text-align:center}
 .sq-num{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;line-height:1}
 .sq-lbl{font-size:8px;letter-spacing:1px;color:var(--dim);text-transform:uppercase;margin-top:2px}
-.pc{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:9px 11px;display:flex;align-items:center;gap:9px;cursor:pointer}
+.pc{background:linear-gradient(90deg,rgba(10,16,24,.9) 0%,rgba(8,12,20,.8) 100%);border:1px solid rgba(0,196,255,.1);border-radius:3px;padding:9px 11px;display:flex;align-items:center;gap:9px;cursor:pointer}
 .pc.down{border-color:rgba(100,40,40,.5);background:rgba(40,10,10,.4)}
 .pc.medic-c{animation:mwarn 1.5s infinite}
 @keyframes mwarn{0%,100%{border-color:var(--warn);box-shadow:none}50%{border-color:var(--warn);box-shadow:0 0 8px rgba(255,170,0,.3)}}
@@ -306,7 +246,7 @@ body{min-height:100%;min-height:-webkit-fill-available;background:var(--bg);colo
 
 /* COMMS */
 .feed{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:5px;-webkit-overflow-scrolling:touch}
-.oc{background:var(--panel);border:1px solid var(--border);border-left:3px solid;border-radius:4px;padding:8px 11px}
+.oc{background:rgba(8,12,20,.85);border:1px solid rgba(0,196,255,.08);border-left:3px solid;border-radius:3px;padding:8px 11px}
 .oc.high{border-left-color:var(--red)}.oc.normal{border-left-color:var(--blue)}.oc.low{border-left-color:var(--dim)}
 .oh{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
 .of{font-size:9px;font-family:'Share Tech Mono',monospace;letter-spacing:1px}
@@ -338,12 +278,12 @@ body{min-height:100%;min-height:-webkit-fill-available;background:var(--bg);colo
 .sb2.dead{border-color:var(--red);color:var(--red)}.sb2.dead.on,.sb2.dead:hover{background:rgba(255,42,42,.15)}
 .sb2.medic{border-color:var(--warn);color:var(--warn)}.sb2.medic.on,.sb2.medic:hover{background:rgba(255,170,0,.15)}
 .sb2.support{border-color:var(--blue);color:var(--blue)}.sb2.support.on,.sb2.support:hover{background:rgba(42,127,255,.15)}
-.gps-panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:11px;font-family:'Share Tech Mono',monospace;font-size:10px;line-height:2}
+.gps-panel{background:rgba(8,12,20,.9);border:1px solid rgba(0,196,255,.12);border-radius:3px;padding:11px;font-family:'Share Tech Mono',monospace;font-size:10px;line-height:2}
 .gps-r{display:flex;justify-content:space-between}
 .gps-k{color:var(--dim)}.gps-v2{color:var(--gold)}
 .pg{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:6px}
-.pkc{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:9px 5px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
-.pkc:hover{border-color:var(--gold);background:rgba(232,200,74,.05)}
+.pkc{background:linear-gradient(180deg,rgba(16,24,32,.7) 0%,rgba(8,12,20,.85) 100%);border:1px solid rgba(0,196,255,.1);border-radius:3px;padding:9px 5px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.pkc:hover{border-color:rgba(0,196,255,.35);background:rgba(0,196,255,.04)}
 .pkc.cd{opacity:.45;cursor:not-allowed}
 .pki{font-size:21px;margin-bottom:2px}
 .pkn{font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:'Share Tech Mono',monospace}
@@ -383,178 +323,83 @@ body{min-height:100%;min-height:-webkit-fill-available;background:var(--bg);colo
 .pov-sub{font-size:12px;color:var(--text);letter-spacing:2px;font-family:'Share Tech Mono',monospace}
 
 ::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+/* ── Round Timer Strip ──────────────────────────────────────── */
+.round-timer-strip{height:3px;background:rgba(0,196,255,.08);position:relative;flex-shrink:0}
+.round-timer-bar{height:100%;background:linear-gradient(90deg,var(--accent),rgba(0,196,255,.5));transition:width .5s linear;width:0%}
+.round-timer-lbl{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--accent);letter-spacing:1px;white-space:nowrap;text-shadow:0 0 6px var(--accent)}
 
-/* ══════════════════════════════════════════
-   SAFE AREA (notch / home bar)
-══════════════════════════════════════════ */
-.hn-bar{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
-.gftr{padding-bottom:max(8px,env(safe-area-inset-bottom))}
-.gbar{padding-top:max(0px,env(safe-area-inset-top))}
-.cbar{padding-bottom:max(8px,env(safe-area-inset-bottom))}
+/* ── Score HUD ──────────────────────────────────────────────── */
+.score-hud{display:flex;align-items:center;gap:3px;font-family:'Orbitron',monospace;font-size:13px;font-weight:900}
+.sh-r{color:var(--red);text-shadow:0 0 8px rgba(255,42,42,.5)}
+.sh-sep{color:var(--dim);font-size:10px}
+.sh-b{color:var(--blue);text-shadow:0 0 8px rgba(42,127,255,.5)}
 
-/* ══════════════════════════════════════════
-   TABLET  ≤ 768px
-══════════════════════════════════════════ */
-@media(max-width:768px){
-  /* hero */
-  .hp-hero-main{padding:70px 16px 48px}
-  .hp-logo-main{font-size:clamp(26px,10vw,52px);letter-spacing:2px}
-  .hp-logo-sub{font-size:14px;letter-spacing:4px}
-  .hp-hero-desc{font-size:14px}
-  .hp-hero-ctas{gap:8px}
-  .hp-cta-primary,.hp-cta-secondary{padding:13px 20px;font-size:11px;min-height:44px}
-  .hp-hero-stats{gap:20px}
-  .hp-hstat-num{font-size:clamp(18px,5vw,30px)}
+/* ── Wake Lock Pill ─────────────────────────────────────────── */
+.wake-pill{font-family:'Share Tech Mono',monospace;font-size:8px;padding:2px 7px;border-radius:2px;border:1px solid var(--dim);color:var(--dim);cursor:pointer;transition:all .2s;white-space:nowrap;user-select:none}
+.wake-pill:hover{border-color:var(--green);color:var(--green)}
 
-  /* modes grid */
-  .hp-modes-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
-  .hp-modes,.hp-features-section,.hp-lb{padding:40px 16px}
+/* ── Modal / Permission Prompt ──────────────────────────────── */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:8000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.modal-ov.show{display:flex}
+.modal-box{background:linear-gradient(180deg,var(--panel2) 0%,var(--panel) 100%);border:1px solid rgba(0,196,255,.25);border-radius:6px;padding:28px 24px;max-width:380px;width:100%;display:flex;flex-direction:column;gap:14px;box-shadow:0 0 60px rgba(0,0,0,.9),0 0 30px rgba(0,196,255,.08)}
+.modal-icon{font-size:38px;text-align:center}
+.modal-title{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;color:var(--gold);letter-spacing:3px;text-align:center;text-shadow:0 0 20px rgba(232,200,74,.4)}
+.modal-body{font-size:13px;color:var(--text);line-height:1.6;text-align:center}
+.modal-note{font-size:11px;color:var(--accent);font-family:'Share Tech Mono',monospace;text-align:center;padding:6px 10px;background:rgba(0,196,255,.06);border:1px solid rgba(0,196,255,.15);border-radius:3px}
+.modal-tip{font-size:11px;color:var(--warn);line-height:1.7;background:rgba(255,170,0,.06);border:1px solid rgba(255,170,0,.2);border-radius:3px;padding:10px 12px}
+.modal-btns{display:flex;gap:8px;flex-direction:column}
+.modal-btn{padding:12px;border-radius:4px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;border:none;text-transform:uppercase;transition:all .2s}
+.modal-btn.accept{background:var(--green);color:#000}
+.modal-btn.accept:hover{background:#00ee77}
+.modal-btn.decline{background:transparent;border:1px solid var(--dim);color:var(--dim);font-size:10px}
+.modal-btn.decline:hover{border-color:var(--text);color:var(--text)}
 
-  /* features */
-  .hp-features-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+/* ── State Overlays (Lobby / Countdown / Ended) ─────────────── */
+.state-ov{position:fixed;inset:0;background:rgba(2,4,8,.93);z-index:5500;display:none;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(3px)}
+.state-ov.show{display:flex}
+.state-inner{display:flex;flex-direction:column;align-items:center;gap:14px;padding:30px 24px;text-align:center;max-width:340px}
+.state-chip{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:4px;color:var(--accent);border:1px solid rgba(0,196,255,.3);padding:3px 12px;border-radius:2px;text-shadow:0 0 8px var(--accent)}
+.warn-chip{color:var(--warn)!important;border-color:rgba(255,170,0,.4)!important;text-shadow:0 0 8px var(--warn)!important}
+.state-title{font-family:'Orbitron',monospace;font-size:32px;font-weight:900;color:var(--text);letter-spacing:4px;text-shadow:0 0 30px rgba(255,255,255,.1)}
+.state-game-type{font-family:'Share Tech Mono',monospace;font-size:14px;letter-spacing:3px;color:var(--gold);text-shadow:0 0 14px rgba(232,200,74,.4)}
+.state-sub{font-size:12px;color:var(--dim);letter-spacing:2px;font-family:'Share Tech Mono',monospace}
+.state-hint{font-size:10px;color:rgba(74,96,112,.6);letter-spacing:1px;font-family:'Share Tech Mono',monospace;margin-top:8px;animation:blink 2s infinite}
 
-  /* nav */
-  .hn-links{gap:4px}
-  .hn-link{font-size:9px;padding:5px 8px;letter-spacing:1px}
+/* Lobby roster */
+.lobby-roster{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:300px;margin-top:4px}
+.lr-chip{font-family:'Share Tech Mono',monospace;font-size:9px;padding:2px 8px;border-radius:2px;letter-spacing:1px}
+.lr-chip.red{background:var(--red-d);border:1px solid rgba(255,42,42,.3);color:var(--red)}
+.lr-chip.blue{background:var(--blue-d);border:1px solid rgba(42,127,255,.3);color:var(--blue)}
 
-  /* leaderboard table */
-  .hp-lb-row{padding:8px 10px;font-size:11px}
+/* Countdown overlay */
+.cd-inner{gap:10px}
+.cd-game-type{font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:3px;color:var(--warn);text-shadow:0 0 12px var(--warn)}
+.cd-number{font-family:'Orbitron',monospace;font-size:80px;font-weight:900;color:var(--gold);line-height:1;text-shadow:0 0 40px rgba(232,200,74,.5),0 0 80px rgba(232,200,74,.2);animation:cdPulse .25s ease-in-out infinite alternate}
+@keyframes cdPulse{from{transform:scale(1)}to{transform:scale(1.04)}}
+.cd-bar-wrap{width:220px;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.cd-bar{height:100%;background:linear-gradient(90deg,var(--gold),var(--warn));border-radius:2px;transition:width .25s linear}
 
-  /* join form */
-  .join-form{padding:16px}
-  .frow{flex-direction:column;gap:8px}
-  .map-cards{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+/* Game ended overlay */
+.ended-ov{background:rgba(2,4,8,.96)!important}
+.end-winner{font-family:'Orbitron',monospace;font-size:26px;font-weight:900;letter-spacing:3px;color:var(--gold);text-shadow:0 0 30px rgba(232,200,74,.5)}
+.end-scores{display:flex;gap:24px;align-items:center}
+.end-score-box{display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 24px;border-radius:4px}
+.end-score-box.red-end{background:var(--red-d);border:1px solid rgba(255,42,42,.25)}
+.end-score-box.blue-end{background:var(--blue-d);border:1px solid rgba(42,127,255,.25)}
+.end-score-num{font-family:'Orbitron',monospace;font-size:40px;font-weight:900;line-height:1}
+.red-end .end-score-num{color:var(--red)}
+.blue-end .end-score-num{color:var(--blue)}
+.end-score-lbl{font-size:9px;letter-spacing:3px;font-family:'Share Tech Mono',monospace;color:var(--dim)}
+.end-reason{font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace;letter-spacing:1px}
 
-  /* game app */
-  .gbar{gap:0}
-  .gt{flex:1;min-width:0;padding:7px 2px;font-size:8px;letter-spacing:0.5px}
-  .gt .ico{font-size:16px}
+/* ── Chain of Command Order Styles ──────────────────────────── */
+.oc.cmd-order{border-left-color:var(--gold)!important;background:rgba(232,200,74,.04)!important;border-color:rgba(232,200,74,.15)!important}
+.oc.sys-order{border-left-color:var(--accent)!important;background:rgba(0,196,255,.03)!important}
+.rank-badge{font-size:7px;font-family:'Share Tech Mono',monospace;font-weight:700;letter-spacing:1px;padding:1px 5px;border-radius:2px;margin-right:4px}
+.rank-badge.cmd{background:rgba(232,200,74,.2);color:var(--gold);border:1px solid rgba(232,200,74,.4)}
+.rank-badge.sgt{background:rgba(0,196,255,.12);color:var(--accent);border:1px solid rgba(0,196,255,.3)}
+.from-role{font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-left:4px;letter-spacing:.5px}
 
-  /* status tab */
-  .pg{grid-template-columns:repeat(3,1fr)}
-  .pkc{padding:8px 6px}
-  .pkn{font-size:9px}
-  .pko{font-size:7px;display:none}
-}
-
-/* ══════════════════════════════════════════
-   MOBILE  ≤ 480px
-══════════════════════════════════════════ */
-@media(max-width:480px){
-  /* hero */
-  .hp-hero-main{padding:60px 14px 40px}
-  .hp-logo-main{font-size:clamp(22px,9vw,44px);letter-spacing:1px}
-  .hp-logo-sub{font-size:12px;letter-spacing:3px}
-  .hp-hero-eyebrow{font-size:9px;letter-spacing:3px}
-  .hp-hero-desc{font-size:13px;margin-bottom:24px}
-  .hp-hero-ctas{flex-direction:column;align-items:stretch;gap:8px}
-  .hp-cta-primary,.hp-cta-secondary{width:100%;padding:14px;font-size:12px}
-  .hp-hero-stats{gap:14px}
-  .hp-hstat-num{font-size:24px}
-  .hp-hstat-lbl{font-size:8px}
-  .hp-hero-scroll{display:none}
-
-  /* sections */
-  .hp-modes,.hp-features-section,.hp-lb{padding:32px 12px}
-  .hp-section-title{font-size:16px;letter-spacing:2px}
-  .hp-modes-grid{grid-template-columns:1fr 1fr;gap:8px}
-  .hp-mode-card{padding:14px 12px}
-  .hp-mode-icon{font-size:22px;margin-bottom:6px}
-  .hp-mode-name{font-size:11px;letter-spacing:1px}
-  .hp-mode-desc{font-size:11px;display:none}
-  .hp-mode-badge{display:none}
-
-  .hp-features-grid{grid-template-columns:1fr 1fr}
-  .hp-feat{padding:14px 10px}
-  .hp-feat-icon{font-size:22px}
-  .hp-feat-title{font-size:10px;letter-spacing:1px}
-  .hp-feat-desc{display:none}
-
-  /* lb table */
-  .hp-lb-table{font-size:11px}
-  .hp-lb-row{grid-template-columns:28px 1fr 64px 50px;padding:8px 8px}
-
-  /* nav — compact */
-  .hn-bar{padding:8px 10px}
-  .hn-logo{font-size:10px;letter-spacing:1px}
-  .hn-ver{display:none}
-  .hn-links{gap:2px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
-  .hn-link{padding:5px 7px;font-size:8px;white-space:nowrap}
-
-  /* join form */
-  .hp-join-title{font-size:14px}
-  .join-form{padding:14px 12px;gap:10px}
-  .jbtn{font-size:13px;padding:13px}
-  .team-pick{flex-direction:column;gap:6px}
-  .tb{padding:12px;font-size:12px}
-  .map-cards{grid-template-columns:1fr}
-  .map-card{padding:12px}
-
-  /* game app in-game */
-  .gbar{gap:0}
-  .gt{padding:6px 0;font-size:7px;letter-spacing:0}
-  .gt .ico{font-size:18px}
-  .hdr .hlogo{font-size:9px;letter-spacing:1px}
-  .hsub{display:none}
-
-  /* status tab buttons — make them tap-friendly */
-  .sb2{min-height:48px;font-size:13px}
-  .pgrid,.sgrid{gap:8px}
-
-  /* perks — 2 col on small phones */
-  .pg{grid-template-columns:repeat(2,1fr)}
-  .pkc{padding:10px 8px}
-  .pko{display:none}
-
-  /* squad */
-  .pc{padding:8px 10px;gap:8px}
-  .pa{width:32px;height:32px;font-size:16px}
-  .pcall{font-size:12px}
-  .prole,.pco{font-size:9px}
-
-  /* comms */
-  .ci{font-size:14px;padding:10px 12px}
-  .txbtn{min-width:44px;min-height:44px}
-
-  /* kill modal */
-  #kill-modal > div{padding:18px 14px}
-
-  /* game timer */
-  #game-timer-display{font-size:36px}
-}
-
-/* ══════════════════════════════════════════
-   VERY SMALL  ≤ 360px
-══════════════════════════════════════════ */
-@media(max-width:360px){
-  .hp-logo-main{font-size:22px}
-  .hp-modes-grid{grid-template-columns:1fr}
-  .hp-features-grid{grid-template-columns:1fr}
-  .gt{font-size:6px}
-  .gt .ico{font-size:16px}
-}
-
-/* ══════════════════════════════════════════
-   LANDSCAPE PHONE
-══════════════════════════════════════════ */
-@media(max-height:500px) and (orientation:landscape){
-  .hp-hero-main{min-height:auto;padding:40px 20px 32px}
-  .hp-logo-main{font-size:28px}
-  .hp-logo-sub{font-size:11px}
-  .hp-hero-desc{display:none}
-  .hp-hero-stats{margin-bottom:0}
-  .hp-hero-scroll{display:none}
-  /* In-game: expand map area, shrink tab bar */
-  .gbar{gap:0}
-  .gt{padding:4px 0;font-size:7px}
-  .gt .ico{font-size:15px}
-}
-
-/* ══════════════════════════════════════════
-   MIN TAP TARGET ENFORCEMENT
-══════════════════════════════════════════ */
-.hn-link,.abtn,.jbtn,.abtn2,.sb2,.pkc,.tb,.txbtn{min-height:44px}
-.hp-cta-primary,.hp-cta-secondary{min-height:48px}
 </style>
 </head>
 <body>
@@ -579,77 +424,17 @@ body{min-height:100%;min-height:-webkit-fill-available;background:var(--bg);colo
 
   <!-- PLAY PAGE -->
   <div id="page-play" class="hp-page active">
-
-    <!-- ═══ CINEMATIC HERO ═══ -->
-    <div class="hp-hero-main">
-      <canvas class="hp-hero-canvas" id="hero-canvas"></canvas>
-      <div class="hp-hero-grid"></div>
-      <div class="hp-hero-vignette"></div>
-      <div class="hp-hero-content">
-        <div class="hp-hero-eyebrow">Real-Time Tactical Intelligence</div>
-        <div class="hp-logo-main">ZULU'S <span class="accent">GAME</span> TRACKER</div>
-        <div class="hp-logo-sub">v2.0 · Swindon Airsoft</div>
-        <p class="hp-hero-desc">GPS-powered battlefield command for serious airsoft players. Know where your squad is. Coordinate strikes. Dominate the field.</p>
-        <div class="hp-hero-ctas">
-          <button class="hp-cta-primary" onclick="document.getElementById('play-join-section').scrollIntoView({behavior:'smooth'})">⚡ DEPLOY NOW</button>
-          <button class="hp-cta-secondary" onclick="showPage('guide')">📖 PLAYER GUIDE</button>
-          <button class="hp-cta-secondary" onclick="showPage('register')">✚ CREATE ACCOUNT</button>
-        </div>
-        <div class="hp-hero-stats">
-          <div class="hp-hstat"><div class="hp-hstat-num" id="hstat-rooms">—</div><div class="hp-hstat-lbl">Active Maps</div></div>
-          <div class="hp-hstat"><div class="hp-hstat-num" id="hstat-players">—</div><div class="hp-hstat-lbl">Players Online</div></div>
-          <div class="hp-hstat"><div class="hp-hstat-num" id="hstat-registered">—</div><div class="hp-hstat-lbl">Registered</div></div>
-          <div class="hp-hstat"><div class="hp-hstat-num">6</div><div class="hp-hstat-lbl">Game Modes</div></div>
-        </div>
-      </div>
-      <div class="hp-hero-scroll"><div class="hp-hero-scroll-line"></div></div>
-    </div>
-
-    <!-- ═══ GAME MODES ═══ -->
-    <div class="hp-modes">
-      <div class="hp-section-title">Game Modes</div>
-      <div class="hp-section-sub">Six ways to fight</div>
-      <div class="hp-modes-grid" id="modes-grid">
-        <div class="hp-mode-card"><div class="hp-mode-badge">STANDARD</div><div class="hp-mode-icon">⚔️</div><div class="hp-mode-name">STANDARD</div><div class="hp-mode-desc">Classic free-play with full roles, unlimited respawns and all perks available.</div></div>
-        <div class="hp-mode-card"><div class="hp-mode-badge">LIMITED</div><div class="hp-mode-icon">💀</div><div class="hp-mode-name">ELIMINATION</div><div class="hp-mode-desc">Wipe out the enemy team. Bleed-out rules apply — reach your respawn zone or die permanently.</div></div>
-        <div class="hp-mode-card"><div class="hp-mode-badge">SCORE</div><div class="hp-mode-icon">🏴</div><div class="hp-mode-name">DOMINATION</div><div class="hp-mode-desc">Capture and hold objectives. Score points over time. Highest score when time expires wins.</div></div>
-        <div class="hp-mode-card"><div class="hp-mode-badge">SHRINK</div><div class="hp-mode-icon">🌀</div><div class="hp-mode-name">BATTLE ROYALE</div><div class="hp-mode-desc">Safe zone shrinks every few minutes. Step outside and you're eliminated. Last team standing wins.</div></div>
-        <div class="hp-mode-card"><div class="hp-mode-badge">TIMED</div><div class="hp-mode-icon">⏱️</div><div class="hp-mode-name">COUNTDOWN</div><div class="hp-mode-desc">Complete every objective before the clock hits zero. Failure means defeat — no second chances.</div></div>
-        <div class="hp-mode-card"><div class="hp-mode-badge">ESCORT</div><div class="hp-mode-icon">🛡️</div><div class="hp-mode-name">ESCORT</div><div class="hp-mode-desc">Attackers escort a VIP to extraction. Defenders must stop them at all costs.</div></div>
+    <div class="hp-hero-compact">
+      <div class="hp-logo">ZULU'S <span>GAME TRACKER</span></div>
+      <div class="hp-tagline">Real-Time Airsoft Tactical Intelligence</div>
+      <div style="display:inline-flex;align-items:center;gap:8px;margin-top:10px;background:rgba(232,200,74,.08);border:1px solid rgba(232,200,74,.25);border-radius:20px;padding:4px 14px">
+        <span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;animation:blink 2s infinite"></span>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:2px">v1.5</span>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:1px">· Swindon Airsoft</span>
       </div>
     </div>
 
-    <!-- ═══ FEATURES ═══ -->
-    <div class="hp-features-section">
-      <div class="hp-section-title">Built for the Field</div>
-      <div class="hp-section-sub">Everything your squad needs</div>
-      <div class="hp-features-grid">
-        <div class="hp-feat"><div class="hp-feat-icon">📡</div><div class="hp-feat-title">GPS TRACKING</div><div class="hp-feat-desc">Real-time squad positions on live map. Works offline. Auto-recovers GPS on reconnect.</div></div>
-        <div class="hp-feat"><div class="hp-feat-icon">🎯</div><div class="hp-feat-title">6 GAME MODES</div><div class="hp-feat-desc">Standard, Elimination, Domination, Battle Royale, Countdown and Escort.</div></div>
-        <div class="hp-feat"><div class="hp-feat-icon">🩹</div><div class="hp-feat-title">MEDIC SYSTEM</div><div class="hp-feat-desc">Bleed-out timers, proximity revives, respawn zones. Real field medic pressure.</div></div>
-        <div class="hp-feat"><div class="hp-feat-icon">⚡</div><div class="hp-feat-title">TACTICAL PERKS</div><div class="hp-feat-desc">UAV, EMP, Smoke, Intel Hack, Medkit and Air Support — team cooldowns enforced.</div></div>
-        <div class="hp-feat"><div class="hp-feat-icon">📢</div><div class="hp-feat-title">COMMS CHANNEL</div><div class="hp-feat-desc">Real-time order feed per team. High/Normal/Low priority. Admin broadcast to all.</div></div>
-        <div class="hp-feat"><div class="hp-feat-icon">🏆</div><div class="hp-feat-title">LEADERBOARD</div><div class="hp-feat-desc">XP-based rank progression. 13 ranks from Recruit to General. K/D and win tracking.</div></div>
-        <div class="hp-feat"><div class="hp-feat-icon">🗺️</div><div class="hp-feat-title">ADMIN ZONES</div><div class="hp-feat-desc">Respawn zones, objectives, hazard areas and boundaries all drawn by your site admin.</div></div>
-        <div class="hp-feat"><div class="hp-feat-icon">🔒</div><div class="hp-feat-title">ROLE LIMITS</div><div class="hp-feat-desc">Per-mode slot limits — 2 medics max in Domination, 1 Commander per team, etc.</div></div>
-      </div>
-    </div>
-
-    <!-- ═══ LEADERBOARD TEASER ═══ -->
-    <div class="hp-lb">
-      <div class="hp-section-title">Top Operators</div>
-      <div class="hp-section-sub">Live leaderboard · updated in real time</div>
-      <div class="hp-lb-table" id="hp-lb-table">
-        <div class="hp-lb-row hdr"><div></div><div>Callsign</div><div class="hp-lb-xp">XP</div><div class="hp-lb-kd">K/D</div></div>
-        <div class="hp-lb-row" style="text-align:center;grid-column:1/-1;padding:20px;color:var(--dim);font-family:Share Tech Mono,monospace;font-size:11px">Loading leaderboard…</div>
-      </div>
-      <div style="text-align:center;margin-top:16px">
-        <button class="hp-cta-secondary" onclick="showPage('register')">✚ Join the leaderboard — register free</button>
-      </div>
-    </div>
-
-    <!-- ═══ JOIN / DEPLOY SECTION ═══ -->
-    <div class="hp-join" id="play-join-section" style="padding-top:40px">
+    <div class="hp-join" style="padding-top:16px">
       <div class="hp-join-title">SELECT YOUR MAP</div>
       <div style="max-width:960px;margin:0 auto 12px">
         <input class="fi fi-lower" id="map-search" placeholder="🔍  Search maps…" oninput="filterMaps()" autocomplete="off" style="max-width:320px;font-size:13px;padding:9px 12px">
@@ -661,13 +446,9 @@ body{min-height:100%;min-height:-webkit-fill-available;background:var(--bg);colo
       <div class="join-form" id="join-form" style="display:none">
         <div class="jf-title">🎯 DEPLOY TO BATTLEFIELD</div>
         <div class="jf-sel" id="selected-map-display">—</div>
-        <div id="game-mode-badge-wrap" style="display:none;margin-bottom:10px;text-align:center">
-          <span id="game-mode-badge" style="display:inline-block;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--gold);background:rgba(232,200,74,.1);border:1px solid rgba(232,200,74,.3);border-radius:4px;padding:4px 12px"></span>
-        </div>
         <div><div class="fl">Callsign</div><input class="fi" id="inp-cs" maxlength="12" placeholder="GHOST" autocomplete="off"></div>
         <div class="frow">
-          <div style="flex:2">
-            <div class="fl">Role <span id="role-slots-info" style="color:var(--dim);font-size:9px;letter-spacing:1px"></span></div>
+          <div style="flex:2"><div class="fl">Role</div>
             <select class="fi fi-lower" id="inp-role">
               <option>Assault</option><option>Sniper</option><option>Support</option>
               <option>Medic</option><option>Scout</option><option>Commander</option>
@@ -813,8 +594,14 @@ body{min-height:100%;min-height:-webkit-fill-available;background:var(--bg);colo
 <div id="gapp">
   <div class="hdr">
     <div onclick="leaveGame()" style="cursor:pointer"><div class="hlogo">SWINDON AIRSOFT</div><div class="hsub">Tactical Tracker · by Chris Zulu</div></div>
-    <div class="hright"><div class="cpill off" id="cpill">● OFF</div><div class="gclk" id="gclk">00:00:00</div></div>
+    <div class="hright">
+      <div class="score-hud"><span class="sh-r" id="score-red">0</span><span class="sh-sep">:</span><span class="sh-b" id="score-blue">0</span></div>
+      <div class="cpill off" id="cpill">● OFF</div>
+      <div class="wake-pill" id="wake-pill" onclick="toggleWakeLock()" title="Keep screen on">💤 SCREEN</div>
+      <div class="gclk" id="gclk">00:00:00</div>
+    </div>
   </div>
+  <div class="round-timer-strip"><div class="round-timer-bar" id="round-timer-bar"></div><div class="round-timer-lbl" id="round-timer-lbl"></div></div>
   <div class="tbnr" id="tbnr">● RED TEAM</div>
   <div class="gnav">
     <div class="gt active" data-s="map" onclick="switchTab(this)"><div class="ico">🗺️</div>MAP</div>
@@ -910,20 +697,6 @@ body{min-height:100%;min-height:-webkit-fill-available;background:var(--bg);colo
           <div class="sgrid" style="grid-template-columns:1fr;gap:6px">
             <button class="sb2 medic" id="btn-medic" onclick="setStatus('medic')" style="padding:14px;font-size:14px;letter-spacing:2px">🚨 I AM DOWN — MEDIC NEEDED</button>
             <button class="sb2 support" id="btn-support" onclick="setStatus('support')">◈ NEED SUPPORT</button>
-            <button class="sb2" id="btn-kill" onclick="openKillReport()" style="background:rgba(255,160,0,.08);border:1px solid rgba(255,160,0,.35);color:#ffa000;display:none">💥 CONFIRM KILL</button>
-          </div>
-          <!-- Game timer display -->
-          <div id="game-timer-bar" style="display:none;margin-top:10px;background:rgba(232,200,74,.06);border:1px solid rgba(232,200,74,.3);border-radius:6px;padding:10px;text-align:center">
-            <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--dim);margin-bottom:4px">⏱ GAME TIMER</div>
-            <div id="game-timer-display" style="font-family:'Orbitron',monospace;font-size:28px;font-weight:700;color:var(--gold)">00:00</div>
-          </div>
-          <!-- Domination score -->
-          <div id="dom-score-bar" style="display:none;margin-top:10px;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px">
-            <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--dim);text-align:center;margin-bottom:8px">◈ DOMINATION SCORE</div>
-            <div style="display:flex;justify-content:space-around">
-              <div style="text-align:center"><div id="dom-score-red" style="font-family:'Orbitron',monospace;font-size:28px;font-weight:900;color:var(--red)">0</div><div style="font-size:9px;color:var(--dim);font-family:Share Tech Mono,monospace">RED</div></div>
-              <div style="text-align:center"><div id="dom-score-blue" style="font-family:'Orbitron',monospace;font-size:28px;font-weight:900;color:var(--blue)">0</div><div style="font-size:9px;color:var(--dim);font-family:Share Tech Mono,monospace">BLUE</div></div>
-            </div>
           </div>
         </div>
         <div class="gps-panel">
@@ -1006,18 +779,68 @@ body{min-height:100%;min-height:-webkit-fill-available;background:var(--bg);colo
   <div class="gftr">ZULU'S GAME TRACKER · by Chris Zulu · <a href="/admin">Admin</a></div>
 </div>
 
-<div id="pausedOv"><div class="pov-txt">⏸ GAME PAUSED</div><div class="pov-sub">Hold positions — await admin</div></div>
-<div id="kill-modal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.85);align-items:center;justify-content:center">
-  <div style="background:var(--panel);border:1px solid rgba(255,160,0,.5);border-radius:8px;padding:24px;max-width:320px;width:90%;text-align:center">
-    <div style="font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:#ffa000;letter-spacing:2px;margin-bottom:16px">💥 CONFIRM KILL</div>
-    <div style="font-size:12px;color:var(--dim);font-family:Share Tech Mono,monospace;margin-bottom:12px">Enter the callsign of the player you hit</div>
-    <input class="fi" id="kill-callsign-inp" placeholder="CALLSIGN" maxlength="12" style="text-align:center;font-size:14px;margin-bottom:12px">
-    <div style="display:flex;gap:8px">
-      <button class="jbtn" onclick="submitKillReport()" style="flex:1;background:rgba(255,160,0,.2);border-color:rgba(255,160,0,.5);color:#ffa000">CONFIRM</button>
-      <button class="abtn2" onclick="closeKillModal()" style="flex:0 0 80px">CANCEL</button>
+<!-- ── Wake Lock Permission Prompt ─────────────────────────── -->
+<div id="wakelock-prompt" class="modal-ov">
+  <div class="modal-box">
+    <div class="modal-icon">☀</div>
+    <div class="modal-title">KEEP SCREEN ON?</div>
+    <div class="modal-body">During a game your phone screen may lock, stopping GPS and disconnecting you from the battlefield.</div>
+    <div id="wl-support-msg" class="modal-note"></div>
+    <div id="wl-manual-tip" class="modal-tip" style="display:none">
+      📱 <b>Manual fix:</b> Go to <b>Settings → Display → Screen timeout</b> and set it to "Never" or the longest option. On Samsung: <b>Settings → Display → Screen timeout</b>. On iPhone: <b>Settings → Display & Brightness → Auto-Lock → Never</b>.
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn accept" onclick="acceptWakeLock()">☀ KEEP SCREEN ON</button>
+      <button class="modal-btn decline" onclick="declineWakeLock()">Skip</button>
     </div>
   </div>
 </div>
+
+<!-- ── Lobby Overlay ────────────────────────────────────────── -->
+<div id="lobby-overlay" class="state-ov">
+  <div class="state-inner">
+    <div class="state-chip">BRIEFING ROOM</div>
+    <div class="state-title">STAND BY</div>
+    <div class="state-game-type" id="lobby-game-type">Standard</div>
+    <div class="state-sub">Awaiting game start from command</div>
+    <div class="lobby-roster" id="lobby-roster"></div>
+    <div class="state-hint">Your map and comms are active below</div>
+  </div>
+</div>
+
+<!-- ── Countdown Overlay ────────────────────────────────────── -->
+<div id="countdown-overlay" class="state-ov">
+  <div class="state-inner cd-inner">
+    <div class="state-chip warn-chip">GAME STARTING</div>
+    <div class="cd-game-type" id="cd-game-type">STANDARD</div>
+    <div class="cd-number" id="cd-number">10</div>
+    <div class="cd-bar-wrap"><div class="cd-bar" id="cd-bar"></div></div>
+    <div class="state-sub">Take your positions!</div>
+  </div>
+</div>
+
+<!-- ── Game Ended Overlay ──────────────────────────────────── -->
+<div id="ended-overlay" class="state-ov ended-ov">
+  <div class="state-inner">
+    <div class="state-chip">GAME OVER</div>
+    <div class="end-winner" id="end-winner">DRAW</div>
+    <div class="end-scores">
+      <div class="end-score-box red-end">
+        <div class="end-score-num" id="end-red-score">0</div>
+        <div class="end-score-lbl">RED</div>
+      </div>
+      <div class="end-score-box blue-end">
+        <div class="end-score-num" id="end-blue-score">0</div>
+        <div class="end-score-lbl">BLUE</div>
+      </div>
+    </div>
+    <div class="end-reason" id="end-reason"></div>
+    <div class="state-hint">Awaiting next game from command</div>
+  </div>
+</div>
+
+<!-- ── Paused Overlay ─────────────────────────────────────── -->
+<div id="pausedOv"><div class="pov-txt">⏸ GAME PAUSED</div><div class="pov-sub">Hold positions — await admin</div></div>
 <div class="toast" id="toast-el"></div>
 
 <script>
@@ -1025,6 +848,82 @@ body{min-height:100%;min-height:-webkit-fill-available;background:var(--bg);colo
 // GLOBALS
 // ════════════════════════════════════════════════════════════════
 let ws=null,myId=null,myCallsign='SOLDIER',myTeam='red',myRole='Assault',myStatus='alive';
+
+// ── Game State Machine ─────────────────────────────────────────
+let currentGameState='lobby';    // lobby|countdown|active|ended
+let currentGameType='Standard';
+let currentScores={red:0,blue:0};
+let roundEndsAt=null,countdownEndsAt=null;
+let _roundTimerIv=null,_countdownIv=null;
+
+// ── Wake Lock ──────────────────────────────────────────────────
+let wakeLock=null;
+let wakeLockEnabled=false;
+let _wakeLockRetryTimer=null;
+
+async function requestWakeLock(){
+  if(!wakeLockEnabled)return;
+  try{
+    if('wakeLock' in navigator){
+      wakeLock=await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release',()=>{
+        wakeLock=null;
+        // Auto-reacquire when page becomes visible again
+        if(wakeLockEnabled)_wakeLockRetryTimer=setTimeout(requestWakeLock,1000);
+      });
+      updateWakeLockUI(true);
+    }
+  }catch(e){
+    updateWakeLockUI(false);
+  }
+}
+
+function releaseWakeLock(){
+  wakeLockEnabled=false;
+  if(wakeLock){wakeLock.release();wakeLock=null;}
+  if(_wakeLockRetryTimer){clearTimeout(_wakeLockRetryTimer);_wakeLockRetryTimer=null;}
+  updateWakeLockUI(false);
+}
+
+function updateWakeLockUI(active){
+  const pill=document.getElementById('wake-pill');
+  if(!pill)return;
+  pill.textContent=active?'☀ SCREEN ON':'💤 SCREEN';
+  pill.style.borderColor=active?'var(--green)':'var(--dim)';
+  pill.style.color=active?'var(--green)':'var(--dim)';
+  pill.title=active?'Screen will stay on — tap to disable':'Screen may turn off — tap to enable';
+}
+
+function toggleWakeLock(){
+  if(wakeLockEnabled){releaseWakeLock();}
+  else{wakeLockEnabled=true;requestWakeLock();}
+}
+
+// Re-acquire on tab focus (browser releases wake lock when tab hides)
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&wakeLockEnabled&&!wakeLock)requestWakeLock();
+});
+
+function showWakeLockPrompt(){
+  const hasNative='wakeLock' in navigator;
+  const ov=document.getElementById('wakelock-prompt');
+  if(!ov)return;
+  document.getElementById('wl-support-msg').textContent=hasNative
+    ?'Your browser supports automatic screen keep-on.'
+    :'Your browser doesn\u2019t support automatic screen keep-on. You\u2019ll need to disable screen lock manually in your phone settings.';
+  document.getElementById('wl-manual-tip').style.display=hasNative?'none':'block';
+  ov.classList.add('show');
+}
+
+function acceptWakeLock(){
+  document.getElementById('wakelock-prompt').classList.remove('show');
+  wakeLockEnabled=true;
+  requestWakeLock();
+}
+
+function declineWakeLock(){
+  document.getElementById('wakelock-prompt').classList.remove('show');
+}
 
 // ── Service Worker registration ────────────────────────────────
 let swReg=null;
@@ -1055,7 +954,6 @@ function notifySW(msg){
 }
 let roomCode='',roomPassword='',selectedMapCode='',selectedMapHasPassword=false;
 let players={},objectives=[],orders=[],zones=[],markers={},zoneLayers={},objMarkers={};
-let _gameMode='Standard',_domScore={red:0,blue:0},_gameTimerEndsAt=0,_gameTimerIv=null,_safeZone=null;
 let map=null,tileLayer=null;
 let myLat=null,myLng=null,myAcc=null;
 let myMarkerSet=false,uavActive=false,uavTimeout=null,empTimerIv=null;
@@ -1095,7 +993,6 @@ function perkFb(msg){const t=document.getElementById('perk-fb');if(!t)return;t.t
 // ════════════════════════════════════════════════════════════════
 let playerToken=sessionStorage.getItem('zgt_player_token')||'';
 let playerCallsign=sessionStorage.getItem('zgt_callsign')||'';
-let playerUsername=sessionStorage.getItem('zgt_username')||'';
 let liTeam='red', liSelectedMap='', liHasPassword=false;
 
 function showAcctTab(tab){showPage(tab==='join'?'play':tab==='help'?'guide':tab);}
@@ -1115,10 +1012,9 @@ async function doPlayerLogin(){
   const r=await fetch('/api/player/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pass})});
   const d=await r.json();
   if(!r.ok){err.textContent=d.error||'Login failed';err.classList.add('show');return;}
-  playerToken=d.token;playerCallsign=d.callsign;playerUsername=d.username||user;
+  playerToken=d.token;playerCallsign=d.callsign;
   sessionStorage.setItem('zgt_player_token',playerToken);
   sessionStorage.setItem('zgt_callsign',playerCallsign);
-  sessionStorage.setItem('zgt_username',playerUsername);
   // Pre-fill callsign in guest form too
   document.getElementById('inp-cs').value=playerCallsign;
   // Show map selection
@@ -1140,10 +1036,9 @@ async function doRegister(){
   const r=await fetch('/api/player/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pass,email,phone,address:addr,callsign:call})});
   const d=await r.json();
   if(!r.ok){err.textContent=d.error||'Registration failed';err.classList.add('show');return;}
-  playerToken=d.token;playerCallsign=d.callsign;playerUsername=d.username||user;
+  playerToken=d.token;playerCallsign=d.callsign;
   sessionStorage.setItem('zgt_player_token',playerToken);
   sessionStorage.setItem('zgt_callsign',playerCallsign);
-  sessionStorage.setItem('zgt_username',playerUsername);
   document.getElementById('inp-cs').value=playerCallsign;
   toast('✓ Account created! Welcome, '+playerCallsign,'ok');
   showPage('play');loadMaps();
@@ -1214,115 +1109,44 @@ function filterLoginMaps(){
   const maps=q?_allMaps.filter(m=>m.name.toLowerCase().includes(q)||m.code.toLowerCase().includes(q)):_allMaps;
   renderMapCards(maps,'map-cards-li');
 }
-const MODE_ICONS={'Standard':'⚔️','Elimination':'💀','Domination':'🏴','BattleRoyale':'🌀','Countdown':'⏱️','Escort':'🛡️'};
-
 function renderMapCards(maps,id){
   const el=document.getElementById(id);if(!el)return;
   if(!maps.length){el.innerHTML='<div class="map-empty">No maps found</div>';return;}
   el.innerHTML=maps.map(function(m){
     const ar=JSON.stringify(m.allowedRoles||null);
     const rl=JSON.stringify(m.roleLimits||null);
-    const gm=JSON.stringify(m.gameMode||'Standard');
     const nm=esc(m.name);
-    const oc="selectMap('"+m.code+"','"+nm+"',"+m.hasPassword+",this,"+ar+","+rl+","+gm+")";
+    const oc="selectMap('"+m.code+"','"+nm+"',"+m.hasPassword+",this,"+ar+","+rl+")";
+    const roles=m.allowedRoles?'<span style="font-size:8px;color:var(--gold);font-family:Share Tech Mono,monospace">'+m.allowedRoles.join(' · ')+'</span>':'';
     const lock=m.hasPassword?'<span class="mc-lock">🔒</span>':'';
-    const mode=m.gameMode&&m.gameMode!=='Standard'?'<span style="font-size:8px;color:var(--gold);font-family:Share Tech Mono,monospace;border:1px solid rgba(232,200,74,.3);padding:1px 5px;border-radius:2px">'+(MODE_ICONS[m.gameMode]||'')+'&nbsp;'+m.gameMode+'</span>':'';
     return '<div class="map-card" onclick="'+oc+'">'
       +'<div class="mc-name">'+nm+' <span style="font-size:9px;color:var(--dim)">'+m.code+'</span></div>'
       +'<div class="mc-meta">'
       +'<span class="mc-badge red">🔴 '+m.redCount+'</span>'
       +'<span class="mc-badge blue">🔵 '+m.blueCount+'</span>'
       +'<span style="font-size:9px;color:var(--dim)">'+m.playerCount+' online</span>'
-      +lock+mode+'</div></div>';
+      +lock+roles+'</div></div>';
   }).join('');
 }
-
 async function loadMaps(){
   try{
     const r=await fetch('/api/maps');_allMaps=await r.json();
     renderMapCards(_allMaps,'map-cards');
     renderMapCards(_allMaps,'map-cards-li');
   }catch{['map-cards','map-cards-li'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<div class="map-empty">Could not load maps</div>';});}
-  // Load hero stats
-  try{
-    const h=await fetch('/health');const hd=await h.json();
-    const rm=document.getElementById('hstat-rooms');const pl=document.getElementById('hstat-players');const rg=document.getElementById('hstat-registered');
-    if(rm)rm.textContent=hd.rooms||0;
-    // Count players across maps
-    if(pl)pl.textContent=(_allMaps||[]).reduce((a,m)=>a+(m.playerCount||0),0);
-    if(rg)rg.textContent=hd.players||0;
-  }catch{}
-  // Load leaderboard teaser
-  try{
-    const lb=await fetch('/api/leaderboard');const lbd=await lb.json();
-    const tbl=document.getElementById('hp-lb-table');
-    if(tbl&&lbd.length){
-      const medals=['🥇','🥈','🥉'];
-      const rows=lbd.slice(0,5).map(function(p,i){
-        return '<div class="hp-lb-row"><div class="hp-lb-rank">'+(medals[i]||('#'+(i+1)))+'</div>'
-          +'<div class="hp-lb-name">'+esc(p.callsign)+'<span style="font-size:9px;color:var(--dim);margin-left:6px">'+esc(p.rank)+'</span></div>'
-          +'<div class="hp-lb-xp">'+p.xp.toLocaleString()+'</div>'
-          +'<div class="hp-lb-kd">'+p.kd+'</div></div>';
-      }).join('');
-      tbl.innerHTML='<div class="hp-lb-row hdr"><div></div><div>Callsign</div><div class="hp-lb-xp">XP</div><div class="hp-lb-kd">K/D</div></div>'+rows;
-    }
-  }catch{}
-  // Hero canvas particle animation
-  initHeroCanvas();
 }
 
-function initHeroCanvas(){
-  const canvas=document.getElementById('hero-canvas');if(!canvas)return;
-  const ctx=canvas.getContext('2d');
-  function resize(){canvas.width=canvas.offsetWidth;canvas.height=canvas.offsetHeight;}
-  resize();window.addEventListener('resize',resize);
-  const particles=Array.from({length:60},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.5+0.3,vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.3,a:Math.random()}));
-  function draw(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    particles.forEach(function(p){
-      p.x+=p.vx;p.y+=p.vy;
-      if(p.x<0)p.x=canvas.width;if(p.x>canvas.width)p.x=0;
-      if(p.y<0)p.y=canvas.height;if(p.y>canvas.height)p.y=0;
-      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle='rgba(232,200,74,'+p.a.toFixed(2)+')';ctx.fill();
-    });
-    // Draw connections
-    for(let i=0;i<particles.length;i++){for(let j=i+1;j<particles.length;j++){
-      const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y;
-      const d=Math.sqrt(dx*dx+dy*dy);
-      if(d<120){ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.strokeStyle='rgba(232,200,74,'+(0.06*(1-d/120)).toFixed(3)+')';ctx.lineWidth=0.5;ctx.stroke();}
-    }}
-    requestAnimationFrame(draw);
-  }
-  draw();
-}
-
-function selectMap(code,name,hasPassword,cardEl,allowedRoles,roleLimits,gameMode){
+function selectMap(code,name,hasPassword,cardEl,allowedRoles,roleLimits){
   selectedMapCode=code;selectedMapHasPassword=hasPassword;
   document.getElementById('selected-map-display').textContent=name+' ('+code+')';
   document.getElementById('pw-field').style.display=hasPassword?'block':'none';
-  // Show game mode badge
-  const modeBadgeWrap=document.getElementById('game-mode-badge-wrap');
-  const modeBadge=document.getElementById('game-mode-badge');
-  if(modeBadgeWrap&&modeBadge&&gameMode&&gameMode!=='Standard'){
-    modeBadge.textContent=(MODE_ICONS[gameMode]||'')+'  '+gameMode+' Mode';
-    modeBadgeWrap.style.display='block';
-  } else if(modeBadgeWrap){modeBadgeWrap.style.display='none';}
-  // Update role selector with limits
   const roleEl=document.getElementById('inp-role');
-  const slotsInfo=document.getElementById('role-slots-info');
   const ALL_ROLES=['Assault','Sniper','Support','Medic','Scout','Commander'];
   const roles=allowedRoles||ALL_ROLES;
-  const map=_allMaps&&_allMaps.find(m=>m.code===code);
-  const currentCounts={}; // we don't have live counts on client so just show limits
   roleEl.innerHTML=roles.map(function(r){
-    const lim=roleLimits&&roleLimits[r]!=null;
-    const txt=r+(lim?' (max '+roleLimits[r]+')':'');
-    return '<option value="'+r+'">'+txt+'</option>';
+    const lim=roleLimits&&roleLimits[r]!=null?' (max '+roleLimits[r]+')':'';
+    return '<option value="'+r+'">'+r+lim+'</option>';
   }).join('');
-  if(slotsInfo&&roleLimits&&Object.keys(roleLimits).length>0){
-    slotsInfo.textContent='· '+Object.entries(roleLimits).map(function(e){return e[0]+': max '+e[1];}).join(', ');
-  } else if(slotsInfo){slotsInfo.textContent='';}
   // Show the join form and scroll it into view
   const form=document.getElementById('join-form');
   if(form){form.style.display='flex';form.scrollIntoView({behavior:'smooth',block:'start'});}
@@ -1353,7 +1177,13 @@ function joinGame(){
 
   initMap();startGPS();connectWS();
   myStatus='alive';updateStatusPanel();
-  const kb=document.getElementById('btn-kill');if(kb)kb.style.display='block';
+  // Show lobby overlay immediately (game starts in lobby state)
+  setTimeout(()=>{
+    const lobbyOv=document.getElementById('lobby-overlay');
+    if(lobbyOv)lobbyOv.classList.add('show');
+    // Wake lock prompt — slight delay so the user sees the game UI first
+    setTimeout(showWakeLockPrompt,800);
+  },400);
 }
 
 function leaveGame(){
@@ -1766,7 +1596,7 @@ function connectWS(){
   try{ws=new WebSocket(wsUrl());}catch{setTimeout(connectWS,4000);return;}
   ws.onopen=()=>{
     setConn(true);
-    sendWS({type:'join',callsign:myCallsign,team:myTeam,role:myRole,room:roomCode,password:roomPassword,username:playerUsername||null});
+    sendWS({type:'join',callsign:myCallsign,team:myTeam,role:myRole,room:roomCode,password:roomPassword});
     setInterval(()=>sendWS({type:'ping'}),25000);
   };
   ws.onmessage=e=>{let m;try{m=JSON.parse(e.data);}catch{return;}handle(m);};
@@ -1801,6 +1631,24 @@ function handle(msg){
       renderAll();
       if(myLat)sendWS({type:'location',lat:myLat,lng:myLng,heading:0});
       if(msg.room.gamePaused)document.getElementById('pausedOv').classList.add('show');
+      // Restore game state from server snapshot
+      if(msg.room.gameState){
+        currentGameState=msg.room.gameState;
+        currentGameType=msg.room.gameType||'Standard';
+        currentScores=msg.room.scores||{red:0,blue:0};
+        updateScoreDisplay();
+        updateLobbyHeader();
+        if(msg.room.gameState==='lobby'){
+          const lo=document.getElementById('lobby-overlay');if(lo)lo.classList.add('show');
+        } else if(msg.room.gameState==='countdown'&&msg.room.countdownEndsAt){
+          const co=document.getElementById('countdown-overlay');
+          if(co){co.classList.add('show');document.getElementById('cd-game-type').textContent=currentGameType.toUpperCase();runCountdown(msg.room.countdownEndsAt);}
+        } else if(msg.room.gameState==='active'){
+          startRoundTimerBar(msg.room.roundStartedAt,msg.room.roundEndsAt);
+        } else if(msg.room.gameState==='ended'){
+          const eo=document.getElementById('ended-overlay');if(eo)eo.classList.add('show');
+        }
+      }
       if(msg.room.mapTiles&&msg.room.mapTiles!=='osm'){const btn=document.querySelector(`[data-tile="${msg.room.mapTiles}"]`);if(btn)switchTile(msg.room.mapTiles,btn);}
       break;
 
@@ -2060,66 +1908,21 @@ function handle(msg){
       break;
     case 'game_paused':document.getElementById('pausedOv').classList.add('show');break;
     case 'game_resumed':document.getElementById('pausedOv').classList.remove('show');break;
-    case 'game_reset':{
-      Object.values(players).forEach(p=>p.status='alive');renderSquad();
-      Object.values(players).filter(p=>p.team===myTeam).forEach(p=>updMarker(p,p.id===myId));
-      // Reset score/timer
-      const dsb=document.getElementById('dom-score-bar');if(dsb)dsb.style.display='none';
-      const gtb=document.getElementById('game-timer-bar');if(gtb)gtb.style.display='none';
-      clearInterval(_gameTimerIv);
-      break;
-    }
-    case 'game_mode_changed':{
-      _gameMode=msg.gameMode||'Standard';
-      // Show kill button for all players
-      const kb=document.getElementById('btn-kill');if(kb)kb.style.display='block';
-      break;
-    }
-    case 'game_timer_start':{
-      _gameTimerEndsAt=msg.endsAt;
-      const gtb=document.getElementById('game-timer-bar');if(gtb)gtb.style.display='block';
-      clearInterval(_gameTimerIv);
-      _gameTimerIv=setInterval(function(){
-        const rem=Math.max(0,Math.ceil((_gameTimerEndsAt-Date.now())/1000));
-        const m=Math.floor(rem/60),s=rem%60;
-        const el=document.getElementById('game-timer-display');
-        if(el)el.textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
-        if(rem<=0){clearInterval(_gameTimerIv);if(el)el.textContent='TIME';}
-        if(rem<=30&&el)el.style.color='var(--red)';
-      },1000);
-      toast('⏱ Game timer started — '+Math.round(msg.durationMs/60000)+'min!','warn');
-      break;
-    }
-    case 'game_timer_end':{
-      clearInterval(_gameTimerIv);
-      const el=document.getElementById('game-timer-display');if(el){el.textContent='TIME';el.style.color='var(--red)';}
-      toast('⏱ TIME UP — Game over!','warn');
-      break;
-    }
-    case 'dom_score':{
-      _domScore=msg.score||{red:0,blue:0};
-      const dsb=document.getElementById('dom-score-bar');if(dsb)dsb.style.display='block';
-      const rs=document.getElementById('dom-score-red');const bs=document.getElementById('dom-score-blue');
-      if(rs)rs.textContent=_domScore.red||0;if(bs)bs.textContent=_domScore.blue||0;
-      break;
-    }
-    case 'kill_confirmed':{
-      if(msg.shooter!==myCallsign)toast('💥 '+esc(msg.shooter)+' eliminated '+esc(msg.target),'normal');
-      else toast('💥 Kill confirmed: '+esc(msg.target),'normal');
-      break;
-    }
-    case 'game_complete':{
-      const win=msg.winner;
-      const isWin=win===myTeam;
-      toast((isWin?'🏆 VICTORY':'☠ DEFEAT')+' — '+esc(msg.reason||''),'warn');
-      break;
-    }
-    case 'safezone_update':{
-      _safeZone=msg.safeZone;
-      // TODO: render safe zone ring on map
-      break;
-    }
+    case 'game_reset':Object.values(players).forEach(p=>p.status='alive');myStatus='alive';updateStatusPanel();renderSquad();Object.values(players).filter(p=>p.team===myTeam).forEach(p=>updMarker(p,p.id===myId));break;
     case 'map_tiles_changed':{const btn=document.querySelector(`[data-tile="${msg.tiles}"]`);if(btn)switchTile(msg.tiles,btn);break;}
+
+    // ── Game state machine ──────────────────────────────────────
+    case 'game_setup':
+      currentGameType=msg.gameType||'Standard';
+      updateLobbyHeader();break;
+
+    case 'game_state':
+      handleGameState(msg);break;
+
+    case 'score_update':
+      currentScores=msg.scores||{red:0,blue:0};
+      updateScoreDisplay();break;
+
     case 'kicked':alert('Removed: '+(msg.reason||'Kicked'));leaveGame();break;
   }
 }
@@ -2127,7 +1930,138 @@ function handle(msg){
 // ════════════════════════════════════════════════════════════════
 // RENDER
 // ════════════════════════════════════════════════════════════════
-function renderAll(){renderSquad();renderOrders();renderObj();updHud();}
+function renderAll(){renderSquad();renderOrders();renderObj();updHud();updLobbyRoster();}
+
+function updLobbyRoster(){
+  const el=document.getElementById('lobby-roster');if(!el)return;
+  const all=Object.values(players);
+  if(!all.length){el.innerHTML='<div style="font-size:10px;color:var(--dim);font-family:Share Tech Mono,monospace;letter-spacing:1px">Waiting for players…</div>';return;}
+  el.innerHTML=all.map(p=>`<div class="lr-chip ${p.team}">${p.callsign} <span style="opacity:.6;font-size:8px">${p.role}</span></div>`).join('');
+}
+
+// ════════════════════════════════════════════════════════════════
+// GAME STATE MACHINE — CLIENT SIDE
+// ════════════════════════════════════════════════════════════════
+function handleGameState(msg){
+  const prev=currentGameState;
+  currentGameState=msg.state;
+  currentGameType=msg.gameType||currentGameType;
+
+  // Clear timers
+  if(_roundTimerIv){clearInterval(_roundTimerIv);_roundTimerIv=null;}
+  if(_countdownIv){clearInterval(_countdownIv);_countdownIv=null;}
+
+  const lobbyOv=document.getElementById('lobby-overlay');
+  const cdOv=document.getElementById('countdown-overlay');
+  const endOv=document.getElementById('ended-overlay');
+  const pausedOv=document.getElementById('pausedOv');
+
+  // Hide all state overlays first
+  if(lobbyOv)lobbyOv.classList.remove('show');
+  if(cdOv)cdOv.classList.remove('show');
+  if(endOv)endOv.classList.remove('show');
+
+  switch(msg.state){
+    case 'lobby':
+      if(lobbyOv)lobbyOv.classList.add('show');
+      updateLobbyHeader();
+      stopRoundTimerBar();
+      break;
+
+    case 'countdown':
+      countdownEndsAt=msg.endsAt;
+      if(cdOv){
+        cdOv.classList.add('show');
+        document.getElementById('cd-game-type').textContent=currentGameType.toUpperCase();
+        runCountdown(msg.endsAt);
+      }
+      break;
+
+    case 'active':
+      roundEndsAt=msg.roundEndsAt||null;
+      currentScores={red:0,blue:0};
+      if(pausedOv)pausedOv.classList.remove('show');
+      updateScoreDisplay();
+      startRoundTimerBar(msg.roundStartedAt,msg.roundEndsAt);
+      toast('🔴 GAME ON — '+currentGameType+'!','ok');
+      // Revive self if we were dead from last round
+      if(myStatus==='dead'||myStatus==='ended'){myStatus='alive';updateStatusPanel();}
+      break;
+
+    case 'ended':
+      currentScores=msg.scores||currentScores;
+      if(endOv){
+        endOv.classList.add('show');
+        document.getElementById('end-red-score').textContent=currentScores.red||0;
+        document.getElementById('end-blue-score').textContent=currentScores.blue||0;
+        const winner=currentScores.red>currentScores.blue?'🔴 RED WINS!'
+          :currentScores.blue>currentScores.red?'🔵 BLUE WINS!'
+          :'⚖ DRAW!';
+        document.getElementById('end-winner').textContent=winner;
+        document.getElementById('end-reason').textContent=msg.reason||'Game Over';
+      }
+      stopRoundTimerBar();
+      break;
+  }
+}
+
+function runCountdown(endsAt){
+  const cdNum=document.getElementById('cd-number');
+  const cdBar=document.getElementById('cd-bar');
+  const total=Math.max(1,(endsAt-Date.now())/1000);
+  function tick(){
+    const rem=Math.max(0,(endsAt-Date.now())/1000);
+    if(cdNum)cdNum.textContent=Math.ceil(rem);
+    if(cdBar)cdBar.style.width=((rem/total)*100)+'%';
+    if(rem<=0){
+      if(_countdownIv){clearInterval(_countdownIv);_countdownIv=null;}
+      const cdOv=document.getElementById('countdown-overlay');
+      if(cdOv)cdOv.classList.remove('show');
+    }
+  }
+  tick();
+  _countdownIv=setInterval(tick,250);
+}
+
+function startRoundTimerBar(startedAt,endsAt){
+  const bar=document.getElementById('round-timer-bar');
+  const lbl=document.getElementById('round-timer-lbl');
+  if(!bar)return;
+  if(!endsAt){bar.style.width='100%';if(lbl)lbl.textContent='∞';return;}
+  const total=endsAt-startedAt;
+  function tick(){
+    const rem=Math.max(0,endsAt-Date.now());
+    bar.style.width=((rem/total)*100)+'%';
+    if(lbl){
+      const s=Math.ceil(rem/1000);
+      const m=Math.floor(s/60),sec=s%60;
+      lbl.textContent=m+':'+(sec<10?'0':'')+sec;
+    }
+    if(rem<=0&&_roundTimerIv){clearInterval(_roundTimerIv);_roundTimerIv=null;}
+  }
+  tick();
+  _roundTimerIv=setInterval(tick,500);
+}
+
+function stopRoundTimerBar(){
+  if(_roundTimerIv){clearInterval(_roundTimerIv);_roundTimerIv=null;}
+  const bar=document.getElementById('round-timer-bar');
+  const lbl=document.getElementById('round-timer-lbl');
+  if(bar)bar.style.width='0%';
+  if(lbl)lbl.textContent='';
+}
+
+function updateLobbyHeader(){
+  const el=document.getElementById('lobby-game-type');
+  if(el)el.textContent=currentGameType;
+}
+
+function updateScoreDisplay(){
+  const r=document.getElementById('score-red');
+  const b=document.getElementById('score-blue');
+  if(r)r.textContent=currentScores.red||0;
+  if(b)b.textContent=currentScores.blue||0;
+}
 
 function renderSquad(){
   const all=Object.values(players);
@@ -2169,9 +2103,22 @@ function focusP(id){const p=players[id];if(p&&p.lat&&p.team===myTeam&&map){switc
 function renderOrders(){
   const feed=document.getElementById('feed');if(!feed)return;
   const atBot=feed.scrollHeight-feed.scrollTop<=feed.clientHeight+60;
-  const tc=t=>t==='red'?'r':t==='blue'?'b':(t&&(t.includes('ADMIN')||t.includes('⭐')))?'adm':'sys';
+  const tc=t=>t==='red'?'r':t==='blue'?'b':(t&&(t.includes('ADMIN')||t.includes('⭐')||t.includes('COMMAND')))?'adm':'sys';
   const pc=p=>p==='high'?'h':p==='low'?'l':'n';
-  feed.innerHTML=orders.map(o=>{const t=new Date(o.ts);const ts=[t.getHours(),t.getMinutes()].map(x=>String(x).padStart(2,'0')).join(':');return `<div class="oc ${o.priority}"><div class="oh"><div><span class="pp ${pc(o.priority)}">${o.priority.toUpperCase()}</span><span class="of ${tc(o.team||o.from)}">${esc(o.from)}</span></div><div class="ots">${ts}</div></div><div class="otx">${esc(o.text)}</div></div>`;}).join('');
+  const rankBadge=o=>{
+    if(!o.fromRole)return '';
+    if(o.fromRank===1)return '<span class="rank-badge cmd">⭐ CMD</span>';
+    if(o.fromRank===2)return '<span class="rank-badge sgt">◈ SGT</span>';
+    return '';
+  };
+  feed.innerHTML=orders.map(o=>{
+    const t=new Date(o.ts);
+    const ts=[t.getHours(),t.getMinutes()].map(x=>String(x).padStart(2,'0')).join(':');
+    const isCmd=o.fromRank===1;
+    const isSys=!o.fromRole&&(o.from==='SYSTEM'||o.from==='INTEL'||o.from==='⭐ ADMIN'||o.from==='⭐ COMMAND'||o.from==='⭐ AIR CMD');
+    const cls='oc '+(o.priority)+(isCmd?' cmd-order':'')+(isSys?' sys-order':'');
+    return `<div class="${cls}"><div class="oh"><div>${rankBadge(o)}<span class="pp ${pc(o.priority)}">${o.priority.toUpperCase()}</span><span class="of ${tc(o.team||o.from)}">${esc(o.from)}</span>${o.fromRole?'<span class="from-role">'+esc(o.fromRole)+'</span>':''}</div><div class="ots">${ts}</div></div><div class="otx">${esc(o.text)}</div></div>`;
+  }).join('');
   if(atBot)feed.scrollTop=feed.scrollHeight;
 }
 
@@ -2192,22 +2139,6 @@ function updHud(){
   if(bEl)bEl.textContent=all.filter(p=>p.team==='blue').length;
 }
 function updBadge(){const b=document.getElementById('nb-cm');if(!b)return;if(unread>0){b.textContent=unread>9?'9+':unread;b.classList.add('on');}else b.classList.remove('on');}
-
-function openKillReport(){
-  const m=document.getElementById('kill-modal');
-  if(m){m.style.display='flex';const inp=document.getElementById('kill-callsign-inp');if(inp){inp.value='';inp.focus();}}
-}
-function closeKillModal(){
-  const m=document.getElementById('kill-modal');if(m)m.style.display='none';
-}
-function submitKillReport(){
-  const inp=document.getElementById('kill-callsign-inp');
-  const target=(inp&&inp.value.trim().toUpperCase())||'';
-  if(!target){toast('Enter a callsign','warn');return;}
-  sendWS({type:'kill_report',target});
-  closeKillModal();
-  toast('💥 Kill reported: '+target,'normal');
-}
 
 // ════════════════════════════════════════════════════════════════
 // ACTIONS
