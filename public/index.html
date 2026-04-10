@@ -184,7 +184,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .obj-bar-lbl{font-size:8px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace;margin-bottom:4px}
 .obj-list{display:flex;gap:5px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
 .obj-chip{flex-shrink:0;background:var(--panel2);border-radius:3px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;border:1px solid var(--warn)}
-.obj-chip.done{border-color:var(--green);opacity:.6}
+.obj-chip.done{border-color:var(--green)!important;background:rgba(0,204,102,.15)!important;color:var(--green)}
 .obj-chip.red-obj{border-color:var(--red)}
 .obj-chip.blue-obj{border-color:var(--blue)}
 .oc-dot{width:6px;height:6px;border-radius:50%;background:var(--warn);flex-shrink:0}
@@ -407,7 +407,28 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .modal-btn.decline{background:transparent;border:1px solid var(--dim);color:var(--dim);font-size:10px}
 .modal-btn.decline:hover{border-color:var(--text);color:var(--text)}
 
-/* ── State Overlays (Lobby / Countdown / Ended) ─────────────── */
+/* ── Lobby Banner (sits above map, non-blocking) ─────────────── */
+.lobby-banner{
+  position:fixed;top:0;left:0;right:0;z-index:5400;
+  height:28px;display:none;align-items:center;gap:10px;
+  padding:0 12px;
+  background:linear-gradient(90deg,rgba(2,4,8,.98),rgba(10,20,32,.96),rgba(2,4,8,.98));
+  border-bottom:1px solid rgba(232,200,74,.2);
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  box-shadow:0 2px 16px rgba(0,0,0,.6);
+}
+.lobby-banner.show{display:flex}
+.lb-left{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.lb-pulse{width:6px;height:6px;border-radius:50%;background:var(--warn);animation:blink .8s infinite;flex-shrink:0}
+.lb-chip{color:var(--warn);letter-spacing:3px;font-size:8px;border:1px solid rgba(255,170,0,.3);padding:1px 6px;border-radius:2px}
+.lb-type{color:var(--gold);letter-spacing:2px;font-size:9px}
+.lb-mid{flex:1;color:var(--dim);letter-spacing:1px;font-size:9px;text-align:center}
+.lb-right{display:flex;gap:5px;flex-shrink:0;max-width:300px;overflow:hidden}
+.lr-chip{font-family:'Share Tech Mono',monospace;font-size:8px;padding:1px 6px;border-radius:2px;letter-spacing:1px}
+.lr-chip.red{background:var(--red-d);border:1px solid rgba(255,42,42,.3);color:var(--red)}
+.lr-chip.blue{background:var(--blue-d);border:1px solid rgba(42,127,255,.3);color:var(--blue)}
+
+/* ── State Overlays (Countdown / Ended — these still block) ────── */
 .state-ov{position:fixed;inset:0;background:rgba(2,4,8,.93);z-index:5500;display:none;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(3px)}
 .state-ov.show{display:flex}
 .state-inner{display:flex;flex-direction:column;align-items:center;gap:14px;padding:30px 24px;text-align:center;max-width:340px}
@@ -417,12 +438,6 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .state-game-type{font-family:'Share Tech Mono',monospace;font-size:14px;letter-spacing:3px;color:var(--gold);text-shadow:0 0 14px rgba(232,200,74,.4)}
 .state-sub{font-size:12px;color:var(--dim);letter-spacing:2px;font-family:'Share Tech Mono',monospace}
 .state-hint{font-size:10px;color:rgba(74,96,112,.6);letter-spacing:1px;font-family:'Share Tech Mono',monospace;margin-top:8px;animation:blink 2s infinite}
-
-/* Lobby roster */
-.lobby-roster{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:300px;margin-top:4px}
-.lr-chip{font-family:'Share Tech Mono',monospace;font-size:9px;padding:2px 8px;border-radius:2px;letter-spacing:1px}
-.lr-chip.red{background:var(--red-d);border:1px solid rgba(255,42,42,.3);color:var(--red)}
-.lr-chip.blue{background:var(--blue-d);border:1px solid rgba(42,127,255,.3);color:var(--blue)}
 
 /* Countdown overlay */
 .cd-inner{gap:10px}
@@ -691,7 +706,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
         <div class="tsb" data-tile="topo" onclick="switchTile('topo',this)">TOPO</div>
         <div class="tsb" data-tile="dark" onclick="switchTile('dark',this)">DARK</div>
       </div>
-      <div class="obj-bar">
+      <div class="obj-bar" id="obj-bar-wrap">
         <div class="obj-bar-lbl">◈ OBJECTIVES</div>
         <div class="obj-list" id="obj-list"></div>
       </div>
@@ -916,16 +931,15 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   </div>
 </div>
 
-<!-- ── Lobby Overlay ────────────────────────────────────────── -->
-<div id="lobby-overlay" class="state-ov">
-  <div class="state-inner">
-    <div class="state-chip">BRIEFING ROOM</div>
-    <div class="state-title">STAND BY</div>
-    <div class="state-game-type" id="lobby-game-type">Standard</div>
-    <div class="state-sub">Awaiting game start from command</div>
-    <div class="lobby-roster" id="lobby-roster"></div>
-    <div class="state-hint">Your map and comms are active below</div>
+<!-- ── Lobby Banner (non-blocking — map still visible) ─────── -->
+<div id="lobby-overlay" class="lobby-banner">
+  <div class="lb-left">
+    <div class="lb-pulse"></div>
+    <span class="lb-chip">BRIEFING</span>
+    <span class="lb-type" id="lobby-game-type">Standard</span>
   </div>
+  <div class="lb-mid">AWAITING GAME START — Map &amp; Comms active</div>
+  <div class="lb-right" id="lobby-roster"></div>
 </div>
 
 <!-- ── Countdown Overlay ────────────────────────────────────── -->
@@ -2004,6 +2018,7 @@ function handle(msg){
         updateLobbyHeader();
         if(msg.room.gameState==='lobby'){
           const lo=document.getElementById('lobby-overlay');if(lo)lo.classList.add('show');
+          // Banner is non-blocking — map is still accessible
         } else if(msg.room.gameState==='countdown'&&msg.room.countdownEndsAt){
           const co=document.getElementById('countdown-overlay');
           if(co){co.classList.add('show');document.getElementById('cd-game-type').textContent=currentGameType.toUpperCase();runCountdown(msg.room.countdownEndsAt);}
@@ -2308,6 +2323,11 @@ function handle(msg){
       updateScoreDisplay();break;
 
     case 'kicked':alert('Removed: '+(msg.reason||'Kicked'));leaveGame();break;
+
+    case 'objectives_rearmed':
+      // All objectives reset — update local list
+      if(msg.objectives){objectives=msg.objectives;renderObj();refreshObjMarkers();}
+      toast('🔄 Objectives rearmed','ok');break;
   }
 }
 
@@ -2508,12 +2528,25 @@ function renderOrders(){
 
 function renderObj(){
   const list=document.getElementById('obj-list');if(!list)return;
+  const OBJ_ICONS={capture:'⚑',defend:'⬡',hold:'◉',eliminate:'✕',reach:'▲',vip:'★',custom:'◈'};
   const visible=objectives.filter(o=>o.team==='all'||o.team===myTeam);
   list.innerHTML=visible.map(o=>{
-    let cls='obj-chip';if(o.done)cls+=' done';
+    let cls='obj-chip';
+    if(o.done)cls+=' done';
     if(o.team==='red')cls+=' red-obj';else if(o.team==='blue')cls+=' blue-obj';
-    return `<div class="${cls}" onclick="toggleObj('${o.id}',${!o.done})"><div class="oc-dot"></div>${esc(o.text)}</div>`;
+    const icon=OBJ_ICONS[o.type]||'◈';
+    const capStr=o.captureTimeSec>0?' · '+o.captureTimeSec+'s':'';
+    const tooltip=o.description?` title="${o.description.replace(/"/g,"'")}"`:' title="'+esc(o.text)+'"';
+    return `<div class="${cls}" onclick="toggleObj('${o.id}',${!o.done})"${tooltip}>`+
+      `<div class="oc-dot"></div>`+
+      `<span style="opacity:.6;font-size:10px;margin-right:2px">${icon}</span>`+
+      `${esc(o.text)}${capStr}`+
+      `${o.done?'<span style="margin-left:5px;color:var(--green);font-size:10px">✓</span>':''}`+
+      `</div>`;
   }).join('');
+  // Show the obj bar only when there are visible objectives
+  const bar=document.getElementById('obj-bar-wrap');
+  if(bar)bar.style.display=visible.length?'block':'none';
 }
 
 function updHud(){
