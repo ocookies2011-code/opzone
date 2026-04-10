@@ -1822,22 +1822,42 @@ function handle(msg){
     case 'emp_scramble_enemies':{
       const et2=msg.enemyTeam;
       const dur2=msg.duration||30000;
+
+      // Merge server-supplied enemy snapshots into our players map so we
+      // have real (pre-scramble) positions even for enemies we couldn't see
+      if(msg.enemies&&msg.enemies.length){
+        msg.enemies.forEach(snap=>{
+          if(!players[snap.id])players[snap.id]=snap;
+          else Object.assign(players[snap.id],{lat:snap.lat,lng:snap.lng,heading:snap.heading});
+        });
+      }
+
+      // Mark all enemies as scrambled and place them at jittered positions
       Object.values(players).filter(p=>p.team===et2).forEach(p=>{
-        p._scrambled=true;p._scrambleUntil=Date.now()+dur2;
-        // If we have their last known position, make them visible (scrambled)
-        // Use a fake random initial position so it looks scattered
-        if(p.lat){
-          p._ghost=true; // temporarily visible as ghost
-          const jLat=p.lat+(Math.random()-.5)*0.003;
-          const jLng=p.lng+(Math.random()-.5)*0.003;
-          const fakePl=Object.assign({},p,{lat:jLat,lng:jLng});
-          if(markers[p.id])markers[p.id].setLatLng([jLat,jLng]);
-          else updMarker(fakePl,false);
+        p._scrambled=true;
+        p._scrambleUntil=Date.now()+dur2;
+        p._ghost=true;
+        // Use actual position if known, else put them near the caster
+        const baseLat=p.lat!=null?p.lat:myLat;
+        const baseLng=p.lng!=null?p.lng:myLng;
+        if(baseLat!=null){
+          // Scatter widely — up to ~200m random offset
+          const jLat=baseLat+(Math.random()-.5)*0.004;
+          const jLng=baseLng+(Math.random()-.5)*0.004;
+          if(markers[p.id]){
+            markers[p.id].setLatLng([jLat,jLng]);
+          } else {
+            updMarker(Object.assign({},p,{lat:jLat,lng:jLng}),false);
+          }
         }
       });
-      // Start continuous jitter for the duration
+
+      // Continuous jitter throughout the EMP duration
       startScrambleJitter(et2,dur2);
-      toast('⚡ EMP — Enemy GPS scrambled for '+Math.round(dur2/1000)+'s!','ok');
+      document.getElementById('uav-banner').textContent='⚡ EMP ACTIVE — Enemy GPS scrambled!';
+      document.getElementById('uav-banner').classList.add('show');
+      setTimeout(()=>document.getElementById('uav-banner').classList.remove('show'),Math.min(dur2,5000));
+      toast('⚡ EMP — Enemy positions scrambled for '+Math.round(dur2/1000)+'s!','ok');
       break;}
 
     case 'emp_scramble_end':
@@ -2210,14 +2230,29 @@ function updMarkerScrambled(id,lat,lng){
 function startScrambleJitter(enemyTeam,duration){
   if(scrambleInterval)clearInterval(scrambleInterval);
   const end=Date.now()+duration;
+  // Each enemy gets their own random anchor so they look scattered, not clustered
+  const anchors={};
+  Object.values(players).filter(p=>p.team===enemyTeam&&p._scrambled).forEach(p=>{
+    const baseLat=p.lat!=null?p.lat:myLat;
+    const baseLng=p.lng!=null?p.lng:myLng;
+    if(baseLat!=null){
+      anchors[p.id]={
+        lat:baseLat+(Math.random()-.5)*0.003,
+        lng:baseLng+(Math.random()-.5)*0.003
+      };
+    }
+  });
   scrambleInterval=setInterval(()=>{
     if(Date.now()>=end){clearInterval(scrambleInterval);scrambleInterval=null;return;}
-    Object.values(players).filter(p=>p.team===enemyTeam&&p._scrambled&&p.lat).forEach(p=>{
-      const jLat=p.lat+(Math.random()-.5)*0.001;
-      const jLng=p.lng+(Math.random()-.5)*0.001;
+    Object.values(players).filter(p=>p.team===enemyTeam&&p._scrambled).forEach(p=>{
+      const anchor=anchors[p.id];
+      if(!anchor)return;
+      // Small rapid jitter around each player's scattered anchor point
+      const jLat=anchor.lat+(Math.random()-.5)*0.0008;
+      const jLng=anchor.lng+(Math.random()-.5)*0.0008;
       updMarkerScrambled(p.id,jLat,jLng);
     });
-  },800);
+  },600);
 }
 
 // teamCooldowns[perk] = endsAt timestamp; set by server via 'team_cooldown' message
