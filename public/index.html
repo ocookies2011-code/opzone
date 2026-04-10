@@ -618,7 +618,15 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
       <div class="join-form" id="join-form" style="display:none">
         <div class="jf-title">🎯 DEPLOY TO BATTLEFIELD</div>
         <div class="jf-sel" id="selected-map-display">—</div>
-        <div><div class="fl">Callsign</div><input class="fi" id="inp-cs" maxlength="12" placeholder="GHOST" autocomplete="off"></div>
+        <div id="jf-logged-in" style="display:none">
+          <div class="fl">Deploying as</div>
+          <div style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--gold);letter-spacing:2px;padding:8px 0" id="jf-callsign-display">—</div>
+        </div>
+        <div id="jf-not-logged-in" style="text-align:center;padding:16px;background:rgba(255,170,0,.06);border:1px solid rgba(255,170,0,.2);border-radius:4px">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--warn);letter-spacing:1px;margin-bottom:10px">⚠ LOGIN REQUIRED TO JOIN</div>
+          <button class="jbtn" onclick="showPage('login')" style="background:var(--gold);color:#000;margin-bottom:6px">🔑 LOGIN</button>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim)">No account? <span onclick="showPage('register')" style="color:var(--gold);cursor:pointer">Register free</span></div>
+        </div>
         <div class="frow">
           <div style="flex:2"><div class="fl">Role</div>
             <select class="fi fi-lower" id="inp-role">
@@ -636,9 +644,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
         </div>
         <button class="jbtn" id="join-btn" onclick="joinGame()">⚡ DEPLOY TO BATTLEFIELD</button>
         <div class="hp-err" id="join-err"></div>
-        <div style="text-align:center;margin-top:8px;font-size:11px;color:var(--dim);font-family:Share Tech Mono,monospace">
-          Have an account? <span onclick="showPage('login')" style="color:var(--gold);cursor:pointer;text-decoration:underline">Login</span> to pre-fill your callsign
-        </div>
+
       </div>
     </div>
   </div>
@@ -1508,6 +1514,16 @@ let liTeam='red', liSelectedMap='', liHasPassword=false;
 
 function showAcctTab(tab){showPage(tab==='join'?'play':tab==='help'?'guide':tab);}
 function showPage(page){
+  // Update join form based on login state
+  const loggedIn=!!playerToken;
+  const jfLoggedIn=document.getElementById('jf-logged-in');
+  const jfNotLoggedIn=document.getElementById('jf-not-logged-in');
+  const joinBtn=document.getElementById('join-btn');
+  const callsignDisplay=document.getElementById('jf-callsign-display');
+  if(jfLoggedIn)jfLoggedIn.style.display=loggedIn?'block':'none';
+  if(jfNotLoggedIn)jfNotLoggedIn.style.display=loggedIn?'none':'block';
+  if(joinBtn)joinBtn.style.display=loggedIn?'block':'none';
+  if(callsignDisplay&&loggedIn)callsignDisplay.textContent=playerCallsign||'SOLDIER';
   ['play','register','login','guide','about'].forEach(p=>{
     const el=document.getElementById('page-'+p);if(el)el.style.display=p===page?'block':'none';
     const lnk=document.getElementById('hnl-'+p);if(lnk)lnk.classList.toggle('active',p===page);
@@ -1685,7 +1701,14 @@ function pickTeam(t){myTeam=t;document.getElementById('tbr').classList.toggle('s
 
 function joinGame(){
   if(!selectedMapCode){toast('Select a map first','warn');return;}
-  myCallsign=(document.getElementById('inp-cs').value.trim().toUpperCase()||'SOLDIER').slice(0,12);
+  // Must be logged in — registered accounts only
+  if(!playerToken){
+    toast('Please login or register first','warn');
+    showPage('login');
+    return;
+  }
+  // Use callsign from account — not a free-text input
+  myCallsign=playerCallsign||'SOLDIER';
   myRole=document.getElementById('inp-role').value;
   roomPassword=document.getElementById('inp-pw')?document.getElementById('inp-pw').value||'':'';
   roomCode=selectedMapCode;
@@ -1703,8 +1726,6 @@ function joinGame(){
 
   initMap();startGPS();connectWS();
   myStatus='alive';updateStatusPanel();
-  // Don't pre-show lobby — wait for server 'init' which carries real gameState.
-  // Show the prompt after WS has time to connect and init fires (~1.5s).
   setTimeout(showWakeLockPrompt,1500);
 }
 
@@ -2178,7 +2199,7 @@ function connectWS(){
   try{ws=new WebSocket(wsUrl());}catch{setTimeout(connectWS,4000);return;}
   ws.onopen=()=>{
     setConn(true);
-    sendWS({type:'join',callsign:myCallsign,team:myTeam,role:myRole,room:roomCode,password:roomPassword});
+    sendWS({type:'join',callsign:myCallsign,team:myTeam,role:myRole,room:roomCode,password:roomPassword,token:playerToken});
     setInterval(()=>sendWS({type:'ping'}),25000);
   };
   ws.onmessage=e=>{let m;try{m=JSON.parse(e.data);}catch{return;}handle(m);};
@@ -2236,6 +2257,16 @@ function handle(msg){
       break;
 
     case 'error':
+      if(msg.code==='NOT_REGISTERED'){
+        // Kick back to login page
+        if(document.getElementById('gapp').classList.contains('visible')){
+          document.getElementById('gapp').classList.remove('visible');
+          document.getElementById('home').classList.remove('hidden');
+        }
+        showPage('login');
+        toast('Please login to join','warn');
+        break;
+      }
       const je=document.getElementById('join-err');
       if(je){je.textContent=msg.message||'Error';je.classList.add('show');}
       toast(msg.message||'Error','err');
