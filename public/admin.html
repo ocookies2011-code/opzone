@@ -695,6 +695,180 @@ body::after{
 }
 .lm-respawn-btn:hover{background:rgba(0,255,136,.1)}
 
+
+/* ═══ MISSION BRIEFING EDITOR ══════════════════════════════════ */
+
+/* Objective type legend bar */
+.obj-type-legend{
+  display:flex;gap:6px;flex-wrap:wrap;
+  padding:10px 0;
+}
+.otl-item{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 10px;border-radius:2px;
+  border:1px solid rgba(0,196,255,.1);
+  background:rgba(0,0,0,.3);
+  font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1px;
+  color:var(--dim);
+}
+.otl-item.capture{border-color:rgba(232,200,74,.2);color:var(--gold)}
+.otl-item.defend{border-color:rgba(42,127,255,.2);color:var(--blue)}
+.otl-item.hold{border-color:rgba(0,255,136,.2);color:var(--green)}
+.otl-item.eliminate{border-color:rgba(255,42,42,.2);color:var(--red)}
+.otl-item.reach{border-color:rgba(204,68,255,.2);color:var(--purple)}
+.otl-item.vip{border-color:rgba(255,170,0,.2);color:var(--warn)}
+.otl-item.custom{border-color:rgba(0,196,255,.15);color:var(--accent)}
+.otl-icon{font-size:12px}
+.otl-desc{font-size:7px;color:var(--dim);margin-left:2px;display:none}
+@media(min-width:900px){.otl-desc{display:inline}}
+
+/* Builder panel */
+.obj-builder-panel{}
+.obj-builder-grid{
+  display:grid;
+  grid-template-columns:1.5fr 1fr 1fr;
+  gap:16px;
+}
+@media(max-width:900px){.obj-builder-grid{grid-template-columns:1fr;}}
+.obj-builder-col{display:flex;flex-direction:column}
+
+/* Description textarea */
+.obj-desc-ta{
+  resize:vertical;min-height:90px;max-height:160px;
+  font-size:12px;line-height:1.6;
+  font-family:'Rajdhani',sans-serif;
+}
+
+/* Objective type selector grid */
+.obj-type-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:4px;
+}
+.obj-type-btn{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:7px 4px;border-radius:2px;cursor:pointer;
+  border:1px solid rgba(0,196,255,.1);
+  background:rgba(0,0,0,.3);
+  transition:all .15s;
+  font-family:'Share Tech Mono',monospace;
+}
+.obj-type-btn:hover{border-color:rgba(0,196,255,.3);background:rgba(0,196,255,.05)}
+.obj-type-btn.sel{border-color:var(--gold);background:rgba(232,200,74,.08);color:var(--gold)}
+.otb-icon{font-size:14px;line-height:1}
+.otb-label{font-size:7px;letter-spacing:1px;color:inherit;text-align:center}
+
+/* Team pick row */
+.obj-team-pick{display:flex;gap:4px}
+.otm-btn{
+  flex:1;text-align:center;padding:7px 4px;border-radius:2px;cursor:pointer;
+  border:1px solid rgba(0,196,255,.15);
+  background:rgba(0,0,0,.3);
+  font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1px;
+  color:var(--dim);transition:all .15s;
+}
+.otm-btn.sel{border-color:var(--accent);color:var(--accent);background:rgba(0,196,255,.08)}
+.otm-btn.red.sel{border-color:var(--red);color:var(--red);background:var(--red-d)}
+.otm-btn.blue.sel{border-color:var(--blue);color:var(--blue);background:var(--blue-d)}
+
+/* Context hint */
+.obj-type-hint{
+  margin-top:8px;padding:8px 10px;
+  background:rgba(0,196,255,.04);border:1px solid rgba(0,196,255,.1);border-left:2px solid var(--accent);
+  border-radius:2px;
+  font-size:10px;color:var(--dim);line-height:1.6;
+  font-family:'Share Tech Mono',monospace;letter-spacing:.5px;
+}
+
+/* Objective card list */
+.obj-card{
+  display:flex;flex-direction:column;gap:0;
+  border:1px solid rgba(0,196,255,.1);border-radius:2px;
+  margin-bottom:8px;overflow:hidden;
+  transition:border-color .2s;
+}
+.obj-card:hover{border-color:rgba(0,196,255,.22)}
+.obj-card.type-capture{border-left:3px solid var(--gold)}
+.obj-card.type-defend{border-left:3px solid var(--blue)}
+.obj-card.type-hold{border-left:3px solid var(--green)}
+.obj-card.type-eliminate{border-left:3px solid var(--red)}
+.obj-card.type-reach{border-left:3px solid var(--purple)}
+.obj-card.type-vip{border-left:3px solid var(--warn)}
+.obj-card.type-custom{border-left:3px solid var(--accent)}
+.obj-card.team-red{border-right:3px solid rgba(255,42,42,.4)}
+.obj-card.team-blue{border-right:3px solid rgba(42,127,255,.4)}
+
+.obj-card-header{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 12px;
+  background:rgba(0,0,0,.3);
+  border-bottom:1px solid rgba(0,0,0,.4);
+}
+.obj-card-icon{
+  width:26px;height:26px;border-radius:2px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;
+  border:1px solid rgba(255,255,255,.08);
+}
+.obj-card-title{flex:1;font-size:13px;font-weight:700;letter-spacing:.5px;color:var(--text2)}
+.obj-card-meta{display:flex;align-items:center;gap:6px;flex-shrink:0}
+
+.obj-type-tag{
+  font-family:'Share Tech Mono',monospace;font-size:7px;letter-spacing:2px;
+  padding:2px 7px;border-radius:2px;font-weight:700;
+}
+.obj-type-tag.capture{background:rgba(232,200,74,.12);color:var(--gold);border:1px solid rgba(232,200,74,.25)}
+.obj-type-tag.defend{background:rgba(42,127,255,.1);color:var(--blue);border:1px solid rgba(42,127,255,.2)}
+.obj-type-tag.hold{background:rgba(0,255,136,.08);color:var(--green);border:1px solid rgba(0,255,136,.2)}
+.obj-type-tag.eliminate{background:rgba(255,42,42,.1);color:var(--red);border:1px solid rgba(255,42,42,.2)}
+.obj-type-tag.reach{background:rgba(204,68,255,.1);color:var(--purple);border:1px solid rgba(204,68,255,.2)}
+.obj-type-tag.vip{background:rgba(255,170,0,.1);color:var(--warn);border:1px solid rgba(255,170,0,.2)}
+.obj-type-tag.custom{background:rgba(0,196,255,.06);color:var(--accent);border:1px solid rgba(0,196,255,.15)}
+
+.obj-team-tag{font-family:'Share Tech Mono',monospace;font-size:7px;letter-spacing:1px;padding:2px 6px;border-radius:2px}
+.obj-team-tag.all{background:rgba(255,255,255,.05);color:var(--dim);border:1px solid rgba(255,255,255,.08)}
+.obj-team-tag.red{background:var(--red-d);color:var(--red);border:1px solid rgba(255,42,42,.2)}
+.obj-team-tag.blue{background:var(--blue-d);color:var(--blue);border:1px solid rgba(42,127,255,.2)}
+
+.obj-card-body{padding:8px 12px;background:rgba(0,0,0,.15)}
+.obj-card-desc{font-size:11px;color:var(--dim);line-height:1.6;margin-bottom:6px}
+.obj-card-params{display:flex;gap:12px;flex-wrap:wrap}
+.obj-param{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:.5px}
+.obj-param span{color:var(--text);font-weight:700}
+
+.obj-card-footer{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 12px;
+  background:rgba(0,0,0,.25);
+  border-top:1px solid rgba(0,0,0,.3);
+}
+.obj-pos{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);flex:1;letter-spacing:.5px}
+.obj-done-pill{font-family:'Share Tech Mono',monospace;font-size:7px;letter-spacing:2px;padding:2px 7px;border-radius:2px}
+.obj-done-pill.done{background:rgba(0,255,136,.08);color:var(--green);border:1px solid rgba(0,255,136,.2)}
+.obj-done-pill.pending{background:rgba(255,170,0,.06);color:var(--warn);border:1px solid rgba(255,170,0,.15)}
+.obj-edit-btn,.obj-del-btn{padding:3px 9px;border-radius:2px;font-size:8px;cursor:pointer;font-family:'Share Tech Mono',monospace;letter-spacing:1px;border:1px solid;background:transparent;transition:all .15s}
+.obj-edit-btn{border-color:rgba(0,196,255,.25);color:var(--accent)}.obj-edit-btn:hover{background:rgba(0,196,255,.08)}
+.obj-del-btn{border-color:rgba(255,42,42,.2);color:rgba(255,42,42,.6)}.obj-del-btn:hover{background:rgba(255,42,42,.08);color:var(--red)}
+
+/* ═══ MILITARY COMMAND CENTER — overview tweaks ══════════════════ */
+/* Pulsing active map indicator */
+@keyframes mapPulse{0%,100%{box-shadow:0 0 0 0 rgba(0,255,136,.2)}50%{box-shadow:0 0 0 6px rgba(0,255,136,0)}}
+.rcard.has-players{animation:mapPulse 3s ease-out infinite}
+
+/* Corner bracket decoration on panels */
+.ap::after{
+  content:'';position:absolute;bottom:0;right:0;
+  width:16px;height:16px;
+  border-bottom:1px solid rgba(0,196,255,.15);
+  border-right:1px solid rgba(0,196,255,.15);
+  pointer-events:none;
+}
+
+/* Hexagonal stat indicator */
+.sc-hex{
+  position:absolute;top:-1px;left:50%;transform:translateX(-50%);
+  font-family:'Share Tech Mono',monospace;font-size:7px;letter-spacing:2px;
+  color:rgba(0,196,255,.3);padding:0 4px;background:var(--bg);
+}
+
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:rgba(0,0,0,.3)}
 ::-webkit-scrollbar-thumb{background:rgba(0,196,255,.15);border-radius:2px}
@@ -1196,27 +1370,102 @@ body::after{
       </div>
 
       <!-- OBJECTIVES -->
+      <!-- OBJECTIVES — Mission Briefing Editor -->
       <div id="view-objectives" class="sh">
+
+        <!-- Map selector -->
         <div class="ap">
-          <div class="aph"><div class="apt">◈ Manage Objectives</div></div>
-          <div class="apb">
-            <div class="rsr"><label>MAP:</label><select class="asel" id="obj-room" style="flex:1" onchange="loadObjs()"></select></div>
-            <div style="font-size:9px;letter-spacing:2px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-bottom:8px">ADD NEW OBJECTIVE</div>
-            <div class="form-grid" style="grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:14px">
-              <div class="form-field"><div class="form-label">Objective Name</div><input class="ai" id="obj-new-txt" placeholder="e.g. Capture the flag base" maxlength="80"></div>
-              <div class="form-field"><div class="form-label">Assign Team</div>
-                <select class="asel" id="obj-new-team" style="width:100%;padding:8px">
-                  <option value="all">Both Teams</option>
-                  <option value="red">🔴 Red Only</option>
-                  <option value="blue">🔵 Blue Only</option>
-                </select>
-              </div>
-              <div class="form-field" style="justify-content:flex-end"><button class="abtn green-b" onclick="addObj()" style="width:100%;margin-top:20px">+ ADD</button></div>
-            </div>
-            <div style="font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-bottom:8px">Click on the zone editor map to add a GPS position to an objective after creation.</div>
-            <div id="obj-list-admin"><div class="empty">Select a map</div></div>
+          <div class="aph">
+            <div class="apt">Mission Briefing Editor</div>
+            <select class="asel" id="obj-room" style="min-width:160px" onchange="loadObjs()"><option value="">Select map…</option></select>
           </div>
         </div>
+
+        <!-- Objective type legend -->
+        <div class="obj-type-legend">
+          <div class="otl-item capture"><span class="otl-icon">⚑</span><span>CAPTURE</span><span class="otl-desc">Hold zone for X seconds</span></div>
+          <div class="otl-item defend"><span class="otl-icon">⬡</span><span>DEFEND</span><span class="otl-desc">Stop enemy capturing</span></div>
+          <div class="otl-item hold"><span class="otl-icon">◉</span><span>HOLD</span><span class="otl-desc">Stay in zone for duration</span></div>
+          <div class="otl-item eliminate"><span class="otl-icon">✕</span><span>ELIMINATE</span><span class="otl-desc">Kill all enemies in zone</span></div>
+          <div class="otl-item reach"><span class="otl-icon">▲</span><span>REACH</span><span class="otl-desc">First to arrive wins</span></div>
+          <div class="otl-item vip"><span class="otl-icon">★</span><span>VIP</span><span class="otl-desc">Escort / assassinate VIP</span></div>
+          <div class="otl-item custom"><span class="otl-icon">◈</span><span>CUSTOM</span><span class="otl-desc">Free-form description</span></div>
+        </div>
+
+        <!-- Add objective form -->
+        <div class="ap obj-builder-panel">
+          <div class="aph"><div class="apt">Add New Objective</div></div>
+          <div class="apb">
+            <div class="obj-builder-grid">
+
+              <!-- Col 1: Name + Description -->
+              <div class="obj-builder-col">
+                <div class="form-field">
+                  <div class="form-label">Objective Name / Call Sign</div>
+                  <input class="ai" id="obj-new-txt" placeholder="e.g. Alpha Point — Main Compound" maxlength="80">
+                </div>
+                <div class="form-field" style="margin-top:8px">
+                  <div class="form-label">Briefing Description (shown to players)</div>
+                  <textarea class="ai obj-desc-ta" id="obj-new-desc" placeholder="e.g. Red team must occupy the main compound for 60 seconds. Blue team defends at all costs. First capture wins the round." maxlength="300"></textarea>
+                </div>
+              </div>
+
+              <!-- Col 2: Type + Team -->
+              <div class="obj-builder-col">
+                <div class="form-field">
+                  <div class="form-label">Objective Type</div>
+                  <div class="obj-type-grid" id="obj-type-grid">
+                    <div class="obj-type-btn sel" data-type="capture" onclick="selObjType(this)"><span class="otb-icon">⚑</span><span class="otb-label">CAPTURE</span></div>
+                    <div class="obj-type-btn" data-type="defend" onclick="selObjType(this)"><span class="otb-icon">⬡</span><span class="otb-label">DEFEND</span></div>
+                    <div class="obj-type-btn" data-type="hold" onclick="selObjType(this)"><span class="otb-icon">◉</span><span class="otb-label">HOLD</span></div>
+                    <div class="obj-type-btn" data-type="eliminate" onclick="selObjType(this)"><span class="otb-icon">✕</span><span class="otb-label">ELIM</span></div>
+                    <div class="obj-type-btn" data-type="reach" onclick="selObjType(this)"><span class="otb-icon">▲</span><span class="otb-label">REACH</span></div>
+                    <div class="obj-type-btn" data-type="vip" onclick="selObjType(this)"><span class="otb-icon">★</span><span class="otb-label">VIP</span></div>
+                    <div class="obj-type-btn" data-type="custom" onclick="selObjType(this)"><span class="otb-icon">◈</span><span class="otb-label">CUSTOM</span></div>
+                  </div>
+                </div>
+                <div class="form-field" style="margin-top:10px">
+                  <div class="form-label">Assigned Team</div>
+                  <div class="obj-team-pick">
+                    <div class="otm-btn sel" data-team="all" onclick="selObjTeam(this)">ALL TEAMS</div>
+                    <div class="otm-btn red" data-team="red" onclick="selObjTeam(this)">🔴 RED</div>
+                    <div class="otm-btn blue" data-team="blue" onclick="selObjTeam(this)">🔵 BLUE</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Col 3: Parameters -->
+              <div class="obj-builder-col">
+                <div class="form-field">
+                  <div class="form-label">Capture / Hold Time (seconds, 0 = instant)</div>
+                  <input class="ai" id="obj-new-captime" type="number" min="0" max="3600" value="0" placeholder="0 = instant">
+                </div>
+                <div class="form-field" style="margin-top:8px">
+                  <div class="form-label">Points on Completion</div>
+                  <input class="ai" id="obj-new-score" type="number" min="0" max="100" value="1">
+                </div>
+                <!-- Context hint — updates based on type selection -->
+                <div class="obj-type-hint" id="obj-type-hint">
+                  Hold the zone for the specified time to capture it.
+                </div>
+                <button class="abtn green-b" onclick="addObj()" style="width:100%;margin-top:12px;letter-spacing:3px">+ ADD OBJECTIVE</button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Live objective list -->
+        <div class="ap">
+          <div class="aph">
+            <div class="apt">Active Objectives</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);letter-spacing:1px" id="obj-count">—</div>
+          </div>
+          <div class="apb" style="padding:10px">
+            <div id="obj-list-admin"><div class="empty">Select a map above</div></div>
+          </div>
+        </div>
+
       </div>
 
       <!-- SAVED MAPS -->
@@ -1763,7 +2012,7 @@ function renderRooms(){
 }
 
 function populateSelects(){
-  const selIds=['lm-room','ap-room','ze-room','br-room','obj-room','save-src-room'];
+  const selIds=['lm-room','ze-room','obj-room','save-src-room'];
   selIds.forEach(id=>{
     const el=document.getElementById(id);if(!el)return;
     const prev=el.value;
@@ -2153,28 +2402,18 @@ function openLiveMap(code){sv(document.querySelector('[data-v="livemap"]'));setT
 // ════════════════════════════════════════════════════════════════
 // ADMIN PERKS
 // ════════════════════════════════════════════════════════════════
-async function adminPerk(perk,team){
-  const code=document.getElementById('ap-room').value;if(!code){toast('Select a map first','err');return;}
-  if(perk==='god_eye'){openLiveMap(code);toast("👁 God's Eye — live map active",'ok');return;}
+// lmPerk — fires a perk on the currently selected live map
+async function lmPerk(perk,team){
+  const code=lmCode();if(!code){toast('Select a map first','err');return;}
   if(perk==='blackout'&&!confirm('Deploy BLACKOUT to all players?'))return;
-  if(perk.includes('eliminate')&&!confirm(`Eliminate ${team?team.toUpperCase():'team'}?`))return;
+  if(perk==='eliminate_team'&&!confirm(`Eliminate ${team?team.toUpperCase():'team'} team?`))return;
   const body={perk};if(team)body.team=team;
   const r=await apiFetch(`/api/admin/rooms/${code}/perk`,{method:'POST',body:JSON.stringify(body)});
-  if(r.ok){
-    const d=await r.json();toast(d.message||'Perk deployed','ok');showAprResult(perk,d.message||'Deployed');
-    if(perk==='ceasefire'){
-      const sb=document.getElementById('ceasefire-start-btn');
-      const eb=document.getElementById('ceasefire-end-btn');
-      if(sb)sb.style.display='none';if(eb)eb.style.display='';
-    }
-  } else{const d=await r.json().catch(()=>({error:'Error'}));toast(d.error||'Error','err');}
+  if(r.ok){const d=await r.json();toast(d.message||perk+' deployed','ok');}
+  else{const d=await r.json().catch(()=>({error:'Error'}));toast(d.error||'Error','err');}
 }
-function showAprResult(perk,msg){const el=document.getElementById('apr-'+perk);if(!el)return;el.textContent='✓ '+msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),6000);}
-async function endCeasefire(){
-  const code=document.getElementById('ap-room').value;if(!code){toast('Select a map','err');return;}
-  const r=await apiFetch(`/api/admin/rooms/${code}/ceasefire-end`,{method:'POST'});
-  if(r.ok){toast('⚔ Game resumed','ok');const sb=document.getElementById('ceasefire-start-btn');const eb=document.getElementById('ceasefire-end-btn');if(sb)sb.style.display='';if(eb)eb.style.display='none';}
-}
+// adminPerk kept as alias for any legacy calls
+async function adminPerk(perk,team){return lmPerk(perk,team);}
 
 // ════════════════════════════════════════════════════════════════
 // MAP MANAGEMENT
@@ -2208,8 +2447,8 @@ async function kickP(rc,pid,name){if(!confirm('Kick '+name+'?'))return;const r=a
 async function pauseAll2(){if(!confirm('Pause ALL maps?'))return;for(const r of roomsData)await apiFetch(`/api/admin/rooms/${r.code}/pause`,{method:'POST'});toast('All paused','ok');loadData();}
 async function resumeAll2(){for(const r of roomsData)await apiFetch(`/api/admin/rooms/${r.code}/resume`,{method:'POST'});toast('All resumed','ok');loadData();}
 async function resetAll2(){if(!confirm('Respawn all players everywhere?'))return;for(const r of roomsData)await apiFetch(`/api/admin/rooms/${r.code}/reset`,{method:'POST'});toast('All reset','ok');loadData();}
-async function broadcastAll2(){const txt=document.getElementById('ba-txt').value.trim();if(!txt){toast('Enter message','err');return;}const r=await apiFetch('/api/admin/broadcast-all',{method:'POST',body:JSON.stringify({text:txt,priority:document.getElementById('ba-prio').value})});if(r.ok){toast('Broadcast sent','ok');document.getElementById('ba-txt').value='';}else toast('Error','err');}
-async function broadcastRoom(){const code=document.getElementById('br-room').value;const txt=document.getElementById('br-txt').value.trim();if(!txt){toast('Enter message','err');return;}const r=await apiFetch(`/api/admin/rooms/${code}/broadcast`,{method:'POST',body:JSON.stringify({text:txt,priority:document.getElementById('br-prio').value})});if(r.ok){toast('Sent to '+code,'ok');document.getElementById('br-txt').value='';}else toast('Error','err');}
+async function broadcastAll2(){const txt=prompt('Broadcast to ALL maps:');if(!txt)return;const r=await apiFetch('/api/admin/broadcast-all',{method:'POST',body:JSON.stringify({text:txt,priority:'high'})});if(r.ok)toast('📢 Broadcast sent to all maps','ok');else toast('Error','err');}
+async function broadcastRoom(){/* replaced by lmBcast on live map */}
 
 // ════════════════════════════════════════════════════════════════
 // ZONE EDITOR
@@ -2302,43 +2541,134 @@ async function clearAllZonesAdmin(){const code=document.getElementById('ze-room'
 // ════════════════════════════════════════════════════════════════
 // OBJECTIVES
 // ════════════════════════════════════════════════════════════════
+// ── Objective type metadata ──────────────────────────────────────
+const OBJ_TYPES={
+  capture:{icon:'⚑',label:'CAPTURE',color:'var(--gold)',hint:'Players must occupy the linked zone for the specified hold time to capture it. Enemies can contest by entering the zone (resets timer).'},
+  defend:{icon:'⬡',label:'DEFEND',color:'var(--blue)',hint:'Assigned team must prevent the enemy from capturing the zone. Objective fails if enemy holds zone for the capture time.'},
+  hold:{icon:'◉',label:'HOLD',color:'var(--green)',hint:'Assigned team must remain in the zone for the full hold duration without leaving. Any exit resets the timer.'},
+  eliminate:{icon:'✕',label:'ELIMINATE',color:'var(--red)',hint:'All enemy players within the linked zone must be eliminated. Remaining count shown to all players.'},
+  reach:{icon:'▲',label:'REACH',color:'var(--purple)',hint:'First team to have a player enter the zone wins this objective. No hold time required — pure race.'},
+  vip:{icon:'★',label:'VIP',color:'var(--warn)',hint:'Special role objective. Red VIP must be escorted to the zone / Blue team must prevent this. Configure via briefing text.'},
+  custom:{icon:'◈',label:'CUSTOM',color:'var(--accent)',hint:'Free-form objective. Use the briefing description to set any rules. Manually mark complete on the live map.'},
+};
+
+let _objNewType='capture';
+let _objNewTeam='all';
+
+function selObjType(el){
+  document.querySelectorAll('#obj-type-grid .obj-type-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  _objNewType=el.dataset.type;
+  const hint=document.getElementById('obj-type-hint');
+  if(hint)hint.textContent=OBJ_TYPES[_objNewType]?.hint||'';
+}
+function selObjTeam(el){
+  document.querySelectorAll('.otm-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  _objNewTeam=el.dataset.team;
+}
+
 async function loadObjs(){
   const code=document.getElementById('obj-room').value;if(!code)return;
   const r=await apiFetch(`/api/admin/rooms/${code}`);if(!r.ok)return;
   const d=await r.json();
   const el=document.getElementById('obj-list-admin');
-  if(!d.objectives||!d.objectives.length){el.innerHTML='<div class="empty">No objectives for this map</div>';return;}
-  const teamCls={all:'all-obj',red:'red-obj',blue:'blue-obj'};
-  const teamBadge={all:'<span class="obj-team-badge all">BOTH TEAMS</span>',red:'<span class="obj-team-badge red">🔴 RED ONLY</span>',blue:'<span class="obj-team-badge blue">🔵 BLUE ONLY</span>'};
-  el.innerHTML=`<div class="obj-list-admin">`+d.objectives.map(o=>`
-    <div class="obj-item ${teamCls[o.team]||'all-obj'}">
-      <div class="obj-txt-display">${esc(o.text)}</div>
-      ${teamBadge[o.team]||teamBadge.all}
-      ${o.lat?`<span style="font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace">📍 ${o.lat.toFixed(4)},${o.lng.toFixed(4)}</span>`:'<span style="font-size:8px;color:var(--dim);font-family:\'Share Tech Mono\',monospace">No position</span>'}
-      <span class="obj-done-badge ${o.done?'yes':'no'}">${o.done?'✓ DONE':'PENDING'}</span>
-      <button class="obj-edit" onclick="editObjName('${code}','${o.id}','${esc(o.text)}','${o.team}')">✏️ EDIT</button>
-      <button class="obj-del" onclick="delObj('${code}','${o.id}')">DEL</button>
-    </div>`).join('')+`</div>`;
+  const countEl=document.getElementById('obj-count');
+  const objs=d.objectives||[];
+  if(countEl)countEl.textContent=objs.length+' objective'+(objs.length!==1?'s':'');
+  if(!objs.length){el.innerHTML='<div class="empty">No objectives — add one above</div>';return;}
+  el.innerHTML=objs.map(o=>{
+    const t=OBJ_TYPES[o.type]||OBJ_TYPES.custom;
+    const capStr=o.captureTimeSec>0?o.captureTimeSec+'s hold':'Instant';
+    const scoreStr=o.scoreValue!=null?o.scoreValue+' pt'+(o.scoreValue!==1?'s':''):'1 pt';
+    const posStr=o.lat?`📍 ${o.lat.toFixed(4)}, ${o.lng.toFixed(4)}`:'No position set';
+    return `<div class="obj-card type-${o.type||'custom'} team-${o.team||'all'}">
+      <div class="obj-card-header">
+        <div class="obj-card-icon" style="background:${t.color}18;border-color:${t.color}30;color:${t.color}">${t.icon}</div>
+        <div class="obj-card-title">${esc(o.text)}</div>
+        <div class="obj-card-meta">
+          <span class="obj-type-tag ${o.type||'custom'}">${t.label}</span>
+          <span class="obj-team-tag ${o.team||'all'}">${o.team==='red'?'🔴 RED':o.team==='blue'?'🔵 BLUE':'ALL'}</span>
+        </div>
+      </div>
+      ${o.description?`<div class="obj-card-body"><div class="obj-card-desc">${esc(o.description)}</div><div class="obj-card-params"><span class="obj-param">Hold: <span>${capStr}</span></span><span class="obj-param">Points: <span>${scoreStr}</span></span></div></div>`:''}
+      <div class="obj-card-footer">
+        <span class="obj-pos">${posStr}</span>
+        <span class="obj-done-pill ${o.done?'done':'pending'}">${o.done?'✓ COMPLETE':'PENDING'}</span>
+        <button class="obj-edit-btn" onclick="openEditObj('${code}','${o.id}')">✏ EDIT</button>
+        <button class="obj-del-btn" onclick="delObj('${code}','${o.id}')">✕</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 async function addObj(){
-  const code=document.getElementById('obj-room').value;if(!code){toast('Select a map','err');return;}
+  const code=document.getElementById('obj-room').value;if(!code){toast('Select a map first','err');return;}
   const txt=document.getElementById('obj-new-txt').value.trim();if(!txt){toast('Enter objective name','err');return;}
-  const team=document.getElementById('obj-new-team').value;
-  const r=await apiFetch(`/api/admin/rooms/${code}/objectives`,{method:'POST',body:JSON.stringify({text:txt,team})});
-  if(r.ok){toast('✓ Objective added','ok');document.getElementById('obj-new-txt').value='';loadObjs();}else toast('Error','err');
+  const desc=document.getElementById('obj-new-desc').value.trim();
+  const captime=parseInt(document.getElementById('obj-new-captime').value)||0;
+  const score=parseInt(document.getElementById('obj-new-score').value)||1;
+  const body={text:txt,description:desc,team:_objNewTeam,type:_objNewType,captureTimeSec:captime,scoreValue:score};
+  const r=await apiFetch(`/api/admin/rooms/${code}/objectives`,{method:'POST',body:JSON.stringify(body)});
+  if(r.ok){
+    toast('✓ Objective added','ok');
+    document.getElementById('obj-new-txt').value='';
+    document.getElementById('obj-new-desc').value='';
+    loadObjs();
+  }else toast('Error adding objective','err');
 }
 
-async function editObjName(code,id,currentName,currentTeam){
-  const newName=prompt('Objective name:',currentName);if(newName===null)return;
-  const teams=['all','red','blue'];const teamNames=['Both Teams','Red Only','Blue Only'];
-  const teamIdx=parseInt(prompt('Team (0=Both, 1=Red only, 2=Blue only):',teams.indexOf(currentTeam)))||0;
-  const newTeam=teams[Math.max(0,Math.min(2,teamIdx))];
-  const r=await apiFetch(`/api/admin/rooms/${code}/objectives/${id}`,{method:'PUT',body:JSON.stringify({text:newName,team:newTeam})});
-  if(r.ok){toast('Objective updated','ok');loadObjs();}else toast('Error','err');
+function openEditObj(code,id){
+  // Build a proper edit modal
+  const modal=document.getElementById('obj-edit-modal');
+  if(!modal)return;
+  modal.dataset.code=code;modal.dataset.id=id;
+  // Fetch current obj data from rendered card
+  apiFetch(`/api/admin/rooms/${code}`).then(r=>r.json()).then(d=>{
+    const o=d.objectives.find(x=>x.id===id);if(!o)return;
+    document.getElementById('oe-txt').value=o.text||'';
+    document.getElementById('oe-desc').value=o.description||'';
+    document.getElementById('oe-captime').value=o.captureTimeSec||0;
+    document.getElementById('oe-score').value=o.scoreValue!=null?o.scoreValue:1;
+    // Set type buttons
+    document.querySelectorAll('#oe-type-grid .obj-type-btn').forEach(b=>{
+      b.classList.toggle('sel',b.dataset.type===(o.type||'custom'));
+    });
+    modal.dataset.type=o.type||'custom';
+    // Set team buttons
+    document.querySelectorAll('#oe-team-pick .otm-btn').forEach(b=>{
+      b.classList.toggle('sel',b.dataset.team===(o.team||'all'));
+      if(b.dataset.team===(o.team||'all'))b.classList.add('sel');
+    });
+    modal.dataset.team=o.team||'all';
+    modal.classList.add('show');
+  });
 }
 
-async function delObj(code,id){const r=await apiFetch(`/api/admin/rooms/${code}/objectives/${id}`,{method:'DELETE'});if(r.ok){toast('Removed','ok');loadObjs();}else toast('Error','err');}
+async function saveEditObj(){
+  const modal=document.getElementById('obj-edit-modal');
+  const code=modal.dataset.code,id=modal.dataset.id;
+  const body={
+    text:document.getElementById('oe-txt').value.trim(),
+    description:document.getElementById('oe-desc').value.trim(),
+    type:modal.dataset.type,
+    team:modal.dataset.team,
+    captureTimeSec:parseInt(document.getElementById('oe-captime').value)||0,
+    scoreValue:parseInt(document.getElementById('oe-score').value)||1,
+  };
+  if(!body.text){toast('Name required','err');return;}
+  const r=await apiFetch(`/api/admin/rooms/${code}/objectives/${id}`,{method:'PUT',body:JSON.stringify(body)});
+  if(r.ok){toast('Objective updated','ok');modal.classList.remove('show');loadObjs();}else toast('Error','err');
+}
+
+async function delObj(code,id){
+  if(!confirm('Remove this objective?'))return;
+  const r=await apiFetch(`/api/admin/rooms/${code}/objectives/${id}`,{method:'DELETE'});
+  if(r.ok){toast('Removed','ok');loadObjs();}else toast('Error','err');
+}
+
+// Keep legacy alias
+async function editObjName(code,id){openEditObj(code,id);}
 
 // ════════════════════════════════════════════════════════════════
 // SAVED MAPS
@@ -2518,8 +2848,7 @@ document.addEventListener('keydown',e=>{
     const id=document.activeElement?.id;
     if(id==='new-map-name'||id==='new-map-code')createMap();
     else if(id==='obj-new-txt')addObj();
-    else if(id==='br-txt')broadcastRoom();
-    else if(id==='ba-txt')broadcastAll2();
+    // broadcast inputs now on live map (lmBcast)
     else if(id==='save-map-name')saveMap();
     else if(id==='sa-sites'||id==='sa-pass')createSiteAdmin();
     else if(id==='pw-confirm')changeAdminPassword();
@@ -2682,6 +3011,59 @@ function updateLmStatus(room){
   document.getElementById('lm-status').textContent=ps.length+' players · '+((room.zones||[]).length)+' zones · '+state+score+' · WS LIVE';
 }
 </script>
+
+<!-- Objective Edit Modal -->
+<div class="admin-modal" id="obj-edit-modal">
+  <div class="admin-modal-box" style="max-width:540px">
+    <div class="admin-modal-title">◈ EDIT OBJECTIVE</div>
+
+    <div class="admin-modal-field">
+      <div class="admin-modal-label">Objective Name</div>
+      <input class="ai" id="oe-txt" maxlength="80" placeholder="Objective name / call sign">
+    </div>
+    <div class="admin-modal-field">
+      <div class="admin-modal-label">Briefing Description</div>
+      <textarea class="ai obj-desc-ta" id="oe-desc" maxlength="300" placeholder="Describe the rules for this objective…"></textarea>
+    </div>
+
+    <div class="admin-modal-field">
+      <div class="admin-modal-label">Type</div>
+      <div class="obj-type-grid" id="oe-type-grid">
+        <div class="obj-type-btn sel" data-type="capture" onclick="this.closest('[id]').dataset.type=this.dataset.type;document.querySelectorAll('#oe-type-grid .obj-type-btn').forEach(b=>b.classList.toggle('sel',b===this))"><span class="otb-icon">⚑</span><span class="otb-label">CAPTURE</span></div>
+        <div class="obj-type-btn" data-type="defend" onclick="this.closest('[id]').dataset.type=this.dataset.type;document.querySelectorAll('#oe-type-grid .obj-type-btn').forEach(b=>b.classList.toggle('sel',b===this))"><span class="otb-icon">⬡</span><span class="otb-label">DEFEND</span></div>
+        <div class="obj-type-btn" data-type="hold" onclick="this.closest('[id]').dataset.type=this.dataset.type;document.querySelectorAll('#oe-type-grid .obj-type-btn').forEach(b=>b.classList.toggle('sel',b===this))"><span class="otb-icon">◉</span><span class="otb-label">HOLD</span></div>
+        <div class="obj-type-btn" data-type="eliminate" onclick="this.closest('[id]').dataset.type=this.dataset.type;document.querySelectorAll('#oe-type-grid .obj-type-btn').forEach(b=>b.classList.toggle('sel',b===this))"><span class="otb-icon">✕</span><span class="otb-label">ELIM</span></div>
+        <div class="obj-type-btn" data-type="reach" onclick="this.closest('[id]').dataset.type=this.dataset.type;document.querySelectorAll('#oe-type-grid .obj-type-btn').forEach(b=>b.classList.toggle('sel',b===this))"><span class="otb-icon">▲</span><span class="otb-label">REACH</span></div>
+        <div class="obj-type-btn" data-type="vip" onclick="this.closest('[id]').dataset.type=this.dataset.type;document.querySelectorAll('#oe-type-grid .obj-type-btn').forEach(b=>b.classList.toggle('sel',b===this))"><span class="otb-icon">★</span><span class="otb-label">VIP</span></div>
+        <div class="obj-type-btn" data-type="custom" onclick="this.closest('[id]').dataset.type=this.dataset.type;document.querySelectorAll('#oe-type-grid .obj-type-btn').forEach(b=>b.classList.toggle('sel',b===this))"><span class="otb-icon">◈</span><span class="otb-label">CUSTOM</span></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+      <div class="admin-modal-field">
+        <div class="admin-modal-label">Team</div>
+        <div class="obj-team-pick" id="oe-team-pick">
+          <div class="otm-btn sel" data-team="all" onclick="document.getElementById('obj-edit-modal').dataset.team=this.dataset.team;document.querySelectorAll('#oe-team-pick .otm-btn').forEach(b=>b.classList.toggle('sel',b===this))">ALL</div>
+          <div class="otm-btn red" data-team="red" onclick="document.getElementById('obj-edit-modal').dataset.team=this.dataset.team;document.querySelectorAll('#oe-team-pick .otm-btn').forEach(b=>b.classList.toggle('sel',b===this))">🔴</div>
+          <div class="otm-btn blue" data-team="blue" onclick="document.getElementById('obj-edit-modal').dataset.team=this.dataset.team;document.querySelectorAll('#oe-team-pick .otm-btn').forEach(b=>b.classList.toggle('sel',b===this))">🔵</div>
+        </div>
+      </div>
+      <div class="admin-modal-field">
+        <div class="admin-modal-label">Hold Time (sec)</div>
+        <input class="ai" id="oe-captime" type="number" min="0" max="3600" value="0">
+      </div>
+      <div class="admin-modal-field">
+        <div class="admin-modal-label">Points</div>
+        <input class="ai" id="oe-score" type="number" min="0" max="100" value="1">
+      </div>
+    </div>
+
+    <div class="admin-modal-btns">
+      <button class="abtn green-b" onclick="saveEditObj()">✓ SAVE OBJECTIVE</button>
+      <button class="abtn" style="background:transparent;border:1px solid var(--border2);color:var(--dim)" onclick="document.getElementById('obj-edit-modal').classList.remove('show')">CANCEL</button>
+    </div>
+  </div>
+</div>
 
 <!-- Game Setup Modal -->
 <div class="admin-modal" id="game-setup-modal">
