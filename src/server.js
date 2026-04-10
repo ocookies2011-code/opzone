@@ -1263,10 +1263,21 @@ app.post('/api/admin/rooms/:code/objectives', adminAuth, (req, res) => {
   const obj = {
     id: uuidv4(),
     text: (req.body.text || 'Objective').slice(0, 100),
-    team: req.body.team || 'all',   // 'red' | 'blue' | 'all'
+    description: (req.body.description || '').slice(0, 300),
+    team: req.body.team || 'all',
+    // Objective type: capture | defend | eliminate | reach | hold | custom
+    type: req.body.type || 'capture',
+    // How long (seconds) team must be in zone to capture/hold. 0 = instant flag touch
+    captureTimeSec: parseInt(req.body.captureTimeSec) || 0,
+    // Points awarded on completion
+    scoreValue: parseInt(req.body.scoreValue) || 1,
+    // Which zones are linked to this objective (array of zone IDs)
+    linkedZones: req.body.linkedZones || [],
     lat: req.body.lat || null,
     lng: req.body.lng || null,
     done: false,
+    progress: 0,          // 0-100 capture progress (updated by clients/server)
+    capturingTeam: null,  // team currently capturing
     createdAt: Date.now(),
   };
   room.objectives.push(obj);
@@ -1281,7 +1292,12 @@ app.put('/api/admin/rooms/:code/objectives/:objId', adminAuth, (req, res) => {
   const obj = room.objectives.find(o => o.id === req.params.objId);
   if (!obj) return res.status(404).json({ error: 'Objective not found' });
   if (req.body.text !== undefined) obj.text = req.body.text.slice(0, 100);
+  if (req.body.description !== undefined) obj.description = req.body.description.slice(0, 300);
   if (req.body.team !== undefined) obj.team = req.body.team;
+  if (req.body.type !== undefined) obj.type = req.body.type;
+  if (req.body.captureTimeSec !== undefined) obj.captureTimeSec = parseInt(req.body.captureTimeSec) || 0;
+  if (req.body.scoreValue !== undefined) obj.scoreValue = parseInt(req.body.scoreValue) || 1;
+  if (req.body.linkedZones !== undefined) obj.linkedZones = req.body.linkedZones;
   if (req.body.lat !== undefined) obj.lat = req.body.lat;
   if (req.body.lng !== undefined) obj.lng = req.body.lng;
   if (req.body.done !== undefined) obj.done = req.body.done;
