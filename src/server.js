@@ -555,12 +555,22 @@ const PERK_CONFIGS = {
       if (!room.empScramble) room.empScramble = {};
       const et = team === 'red' ? 'blue' : 'red';
 
-      // Scramble enemy locations on maps — send fake randomised positions
+      // Tell enemies their position is being scrambled
       enemies.forEach(e => {
         sendTo(e.ws, { type: 'emp_scramble_start', duration: EMP_DUR, from: caster.callsign });
       });
-      // Tell the caster's team to show scrambled enemy markers
-      broadcastTeam(room, team, { type: 'emp_scramble_enemies', duration: EMP_DUR, enemyTeam: et });
+
+      // Send caster's team ALL enemy positions (including those outside 100m) with last known
+      // coords so they can render scattered markers for ALL enemies, not just those in range
+      const allEnemies = Object.values(room.players).filter(p => p.team !== team);
+      const enemySnaps = allEnemies.map(p => ({
+        id: p.id, callsign: p.callsign, team: p.team, role: p.role, status: p.status,
+        lat: p.lat, lng: p.lng, heading: p.heading,
+      }));
+
+      // Tell the caster's team to show scrambled enemy markers — includes real positions
+      // so client can create ghost markers even for enemies that were previously hidden
+      broadcastTeam(room, team, { type: 'emp_scramble_enemies', duration: EMP_DUR, enemyTeam: et, enemies: enemySnaps });
       // Visual animation to own team only
       broadcastTeam(room, team, { type: 'perk_anim', perk: 'emp', lat: caster.lat, lng: caster.lng, callsign: caster.callsign, team });
 
