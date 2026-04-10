@@ -717,9 +717,30 @@ wss.on('connection', (ws) => {
           sendTo(ws, { type: 'error', code: 'WRONG_PASSWORD', message: 'Incorrect password.' }); break;
         }
         roomCode = code;
-        playerId = uuidv4();
         const team = ['red','blue'].includes(msg.team) ? msg.team : 'red';
         const reqRole = msg.role || 'Assault';
+        const incomingCallsign = (msg.callsign || 'SOLDIER').toUpperCase().slice(0, 12);
+
+        // ── Duplicate detection: if same callsign already in room, replace their session ──
+        const existingPlayer = Object.values(room.players).find(p => p.callsign === incomingCallsign);
+        if (existingPlayer) {
+          // Close the old WebSocket silently so they get removed
+          try {
+            existingPlayer.ws.close(1000, 'Replaced by new connection');
+          } catch(e) {}
+          // Reuse the same player ID so the map marker just updates instead of duplicating
+          playerId = existingPlayer.id;
+          // Update the player record with the new WS and reset connection
+          existingPlayer.ws = ws;
+          existingPlayer.team = team;
+          existingPlayer.role = reqRole;
+          existingPlayer.lastSeen = Date.now();
+          sendTo(ws, { type: 'init', playerId, room: roomSnapshotForTeam(room, team), roomCode });
+          broadcastTeam(room, team, { type: 'player_joined', player: playerPublic(existingPlayer) }, ws);
+          logEvent('player_reconnected', { roomCode, callsign: incomingCallsign, team });
+          break;
+        }
+
         // Check role limit
         if (room.roleLimits && room.roleLimits[reqRole] !== undefined) {
           const currentCount = Object.values(room.players).filter(p => p.role === reqRole).length;
@@ -728,7 +749,8 @@ wss.on('connection', (ws) => {
             break;
           }
         }
-        const player = { id: playerId, callsign: (msg.callsign||'SOLDIER').toUpperCase().slice(0,12), team, role: reqRole, status: 'alive', lat: null, lng: null, heading: 0, lastSeen: Date.now(), joinedAt: Date.now(), ws };
+        playerId = uuidv4();
+        const player = { id: playerId, callsign: incomingCallsign, team, role: reqRole, status: 'alive', lat: null, lng: null, heading: 0, lastSeen: Date.now(), joinedAt: Date.now(), ws };
         room.players[playerId] = player;
         sendTo(ws, { type: 'init', playerId, room: roomSnapshotForTeam(room, team), roomCode });
         broadcastTeam(room, team, { type: 'player_joined', player: playerPublic(player) }, ws);
