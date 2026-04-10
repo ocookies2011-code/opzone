@@ -299,6 +299,7 @@ body::after{content:'';position:fixed;top:0;left:0;right:0;height:280px;backgrou
       <div class="sbi super-only" data-v="players" onclick="sv(this)"><span class="sico">👥</span>Player Accounts</div>
       <div class="sbi" data-v="password" onclick="sv(this)"><span class="sico">🔑</span>Change Password</div>
       <div class="sbi super-only" data-v="databackup" onclick="sv(this)"><span class="sico">💿</span>Data Backup</div>
+      <div class="sbi super-only" data-v="database" onclick="sv(this)"><span class="sico">🗄</span>Database</div>
     </div>
 
     <div class="ac" id="adc">
@@ -528,6 +529,54 @@ body::after{content:'';position:fixed;top:0;left:0;right:0;height:280px;backgrou
       </div>
 
       <!-- BROADCAST -->
+      <!-- DATABASE PANEL -->
+      <div id="view-database" class="sh super-only">
+        <div class="ap">
+          <div class="aph"><div class="apt">◈ Database Status</div><button class="abtn sm" onclick="loadDbStatus()">REFRESH</button></div>
+          <div class="apb">
+            <div id="db-status-grid" class="sg" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px">
+              <div class="sc"><div class="sn" id="dbs-storage" style="font-size:14px">…</div><div class="sl">Storage</div></div>
+              <div class="sc"><div class="sn" id="dbs-rows" style="font-size:18px">…</div><div class="sl">DB Rows</div></div>
+              <div class="sc"><div class="sn" id="dbs-players" style="font-size:18px">…</div><div class="sl">Players</div></div>
+            </div>
+            <div id="db-status-detail" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);line-height:2;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:12px;margin-bottom:14px">Loading…</div>
+          </div>
+        </div>
+
+        <div class="ap">
+          <div class="aph"><div class="apt">◈ Run Database Migrations</div></div>
+          <div class="apb">
+            <div style="font-size:12px;color:var(--text);line-height:1.7;margin-bottom:14px">
+              Run this after connecting a new PostgreSQL database (Railway Postgres add-on) or after a server restart to ensure the <code style="background:var(--bg2);padding:1px 5px;border-radius:2px">kv_store</code> table exists and all current data is synced to the DB.
+            </div>
+            <div style="background:rgba(0,196,255,.06);border:1px solid rgba(0,196,255,.2);border-radius:4px;padding:12px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent);line-height:1.8;margin-bottom:14px">
+              <b>How to connect Railway Postgres:</b><br>
+              1. Railway dashboard → your project → Add Service → Database → PostgreSQL<br>
+              2. Railway auto-sets DATABASE_URL env var on your app service<br>
+              3. Redeploy the app (or click Force Reconnect below)<br>
+              4. Click Run Migrations to create tables and sync data
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="abtn green-b" onclick="runMigrations()">🗄 RUN MIGRATIONS</button>
+              <button class="abtn blue-b" onclick="forceDbReconnect()">🔌 FORCE RECONNECT</button>
+            </div>
+            <div id="migration-log" style="margin-top:14px;display:none;font-family:'Share Tech Mono',monospace;font-size:10px;line-height:2;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:12px"></div>
+          </div>
+        </div>
+
+        <div class="ap">
+          <div class="aph"><div class="apt">◈ Push All Data to Database</div></div>
+          <div class="apb">
+            <div style="font-size:12px;color:var(--text);line-height:1.7;margin-bottom:14px">
+              If data exists in file storage (e.g. from before PostgreSQL was connected) you can push it all to the database with the migration button above — it syncs rooms, maps, site admins and players automatically.
+            </div>
+            <div style="font-size:11px;color:var(--dim);font-family:'Share Tech Mono',monospace">
+              DATA_DIR: <span id="dbs-datadir">checking…</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div id="view-broadcast" class="sh">
         <div class="ap"><div class="aph"><div class="apt">◈ Broadcast to All Maps</div></div><div class="apb"><div class="brow"><input class="ai" id="ba-txt" placeholder="Message to ALL maps…" maxlength="200"><select class="asel" id="ba-prio"><option value="high">HIGH</option><option value="normal">NORMAL</option><option value="low">LOW</option></select><button class="abtn danger" onclick="broadcastAll2()">📢 ALL</button></div></div></div>
         <div class="ap"><div class="aph"><div class="apt">◈ Broadcast to Map</div></div><div class="apb"><div class="rsr"><label>MAP:</label><select class="asel" id="br-room" style="flex:1"></select></div><div class="brow"><input class="ai" id="br-txt" placeholder="Message for selected map…" maxlength="200"><select class="asel" id="br-prio"><option value="high">HIGH</option><option value="normal">NORMAL</option><option value="low">LOW</option></select><button class="abtn" onclick="broadcastRoom()">📡 SEND</button></div></div></div>
@@ -733,6 +782,105 @@ async function loadDataSummary(){
     (window._dataDir||'See DATA_DIR env var on Railway')+'</code>';
 }
 
+// ════════════════════════════════════════════════════════════════
+// DATABASE PANEL
+// ════════════════════════════════════════════════════════════════
+async function loadDbStatus(){
+  const detail=document.getElementById('db-status-detail');
+  const storageEl=document.getElementById('dbs-storage');
+  const rowsEl=document.getElementById('dbs-rows');
+  const playersEl=document.getElementById('dbs-players');
+  const datadirEl=document.getElementById('dbs-datadir');
+  if(detail)detail.textContent='Loading…';
+  try{
+    const r=await fetch('/health');
+    const d=await r.json();
+    if(storageEl){
+      storageEl.textContent=d.dbConnected?'🐘 PostgreSQL':'📁 File';
+      storageEl.style.color=d.dbConnected?'var(--green)':'var(--warn)';
+    }
+
+    const r2=await apiFetch('/api/admin/db-status');
+    if(!r2.ok){if(detail)detail.textContent='Failed to load DB status';return;}
+    const s=await r2.json();
+    if(rowsEl)rowsEl.textContent=s.kvRows!=null?s.kvRows:'N/A';
+    if(playersEl)playersEl.textContent=s.players||0;
+    if(datadirEl)datadirEl.textContent=s.databaseUrl||'Not set';
+
+    // Also update the pill in the header
+    const pill=document.getElementById('db-pill');
+    if(pill){
+      if(s.connected){
+        pill.textContent='🐘 PostgreSQL';
+        pill.style.borderColor='var(--green)';
+        pill.style.color='var(--green)';
+      } else {
+        pill.textContent='📁 File Storage';
+        pill.style.borderColor='var(--warn)';
+        pill.style.color='var(--warn)';
+      }
+    }
+
+    if(detail){
+      const rows=[
+        ['Connection',s.connected?'✓ Connected':'✗ Not connected'],
+        ['Storage',s.storage],
+        ['DATABASE_URL',s.databaseUrl],
+        ['PostgreSQL',s.pgVersion||'—'],
+        ['DB Rows',s.kvRows!=null?s.kvRows:'N/A (file mode)'],
+        ['Rooms',s.rooms],
+        ['Players',s.players],
+        ['Saved Maps',s.savedMaps],
+        ['Site Admins',s.siteAdmins],
+        ['Uptime',Math.floor(s.uptime/60)+'m '+s.uptime%60+'s'],
+      ];
+      detail.innerHTML=rows.map(([k,v])=>
+        `<span style="color:var(--dim)">${k}:</span> <span style="color:var(--text)">${v}</span><br>`
+      ).join('');
+      if(s.dbError)detail.innerHTML+='<span style="color:var(--red)">Error: '+s.dbError+'</span>';
+    }
+  }catch(e){
+    if(detail)detail.textContent='Error: '+e.message;
+  }
+}
+
+async function runMigrations(){
+  const log=document.getElementById('migration-log');
+  if(log){log.style.display='block';log.innerHTML='<span style="color:var(--accent)">Running migrations…</span>';}
+  try{
+    const r=await apiFetch('/api/admin/db-migrate',{method:'POST'});
+    const d=await r.json();
+    if(log){
+      if(d.results){
+        log.innerHTML=d.results.map(step=>
+          `<span style="color:${step.status==='ok'?'var(--green)':'var(--red)'}">
+            ${step.status==='ok'?'✓':'✗'} ${step.step}
+          </span><br>`
+        ).join('');
+        if(d.ok)log.innerHTML+='<br><span style="color:var(--green);font-weight:700">✓ All migrations completed successfully</span>';
+        else log.innerHTML+='<br><span style="color:var(--red)">✗ Migration failed: '+d.error+'</span>';
+      } else {
+        log.innerHTML='<span style="color:var(--red)">Error: '+(d.error||'Unknown error')+'</span>';
+      }
+    }
+    if(d.ok){toast('✓ Migrations complete','ok');loadDbStatus();}
+    else toast('Migration error — see log','err');
+  }catch(e){
+    if(log)log.innerHTML='<span style="color:var(--red)">Network error: '+e.message+'</span>';
+    toast('Migration failed','err');
+  }
+}
+
+async function forceDbReconnect(){
+  toast('Reconnecting to database…','ok');
+  try{
+    const r=await apiFetch('/api/admin/db-reconnect',{method:'POST'});
+    const d=await r.json();
+    if(r.ok){toast('✓ '+d.message,'ok');loadDbStatus();}
+    else toast('✗ '+d.error,'err');
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.getElementById('ls').classList.contains('h'))doLogin();});
 async function doLogout(){
   await apiFetch('/api/admin/logout',{method:'POST'}).catch(()=>{});
@@ -800,6 +948,7 @@ function sv(el){
   if(['objectives','broadcast','adminperks','maps'].includes(currentView))populateSelects();
   if(currentView==='players')loadPlayerAccounts();
   if(currentView==='databackup')loadDataSummary();
+  if(currentView==='database')loadDbStatus();
 }
 
 // ════════════════════════════════════════════════════════════════

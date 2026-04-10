@@ -1,13 +1,15 @@
 // ══════════════════════════════════════════════════════════════════════
-// Zulu's Game Tracker — Service Worker v2
+// Zulu's Game Tracker — Service Worker v3
+// Strategy: network-first for HTML (always get latest), cache for assets
 // GPS keepalive strategy for screen-locked devices
 // ══════════════════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'zgt-v7';
-const STATIC = ['/index.html', '/'];
+const CACHE_NAME = 'zgt-v10';
+// Only cache truly static assets — NOT index.html (it changes on every deploy)
+const PRECACHE = ['/sw.js'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(STATIC).catch(()=>{})));
+  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(PRECACHE).catch(()=>{})));
   self.skipWaiting();
 });
 
@@ -18,12 +20,28 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// Cache-first for our own pages, network-first for API
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
+
+  // Never intercept API or health calls
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/health')) return;
+  // Never intercept cross-origin
   if (url.origin !== location.origin) return;
+
+  // HTML pages — always network first, fall back to cache only if offline
+  if (url.pathname === '/' || url.pathname.endsWith('.html')) {
+    e.respondWith(
+      fetch(e.request).then(r => {
+        // Cache the fresh response for offline fallback
+        if (r.ok) caches.open(CACHE_NAME).then(c => c.put(e.request, r.clone()));
+        return r;
+      }).catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
+  // Everything else (leaflet, fonts, etc.) — cache first
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request).then(r => {
       if (r.ok) caches.open(CACHE_NAME).then(c => c.put(e.request, r.clone()));
@@ -33,19 +51,17 @@ self.addEventListener('fetch', e => {
 });
 
 // ── Shared state from the main page ──────────────────────────────────
-let lastGPS = null;       // { lat, lng, ts }
+let lastGPS = null;
 let roomCode = null;
-let wsEndpoint = null;    // wss://... for direct WS from SW (limited support)
-let playerToken = null;   // player session token
+let wsEndpoint = null;
+let playerToken = null;
 
-// ── Message from main page ────────────────────────────────────────────
 self.addEventListener('message', e => {
   const msg = e.data;
   if (!msg) return;
 
   if (msg.type === 'GPS_UPDATE') {
     lastGPS = { lat: msg.lat, lng: msg.lng, heading: msg.heading || 0, ts: Date.now() };
-    // Relay to ALL open clients (tabs/windows) so any active tab sends it to WS
     self.clients.matchAll({ includeUncontrolled: true, type: 'window' }).then(clients => {
       clients.forEach(c => c.postMessage({ type: 'SW_RELAY_GPS', ...lastGPS }));
     });
@@ -58,32 +74,24 @@ self.addEventListener('message', e => {
     lastGPS = msg.lastGPS || lastGPS;
   }
 
-  // When page wakes up, send it the cached GPS so it can immediately send to server
   if (msg.type === 'PAGE_WAKE') {
-    if (lastGPS && (Date.now() - lastGPS.ts) < 300000) { // within 5 mins
+    if (lastGPS && (Date.now() - lastGPS.ts) < 300000) {
       e.source.postMessage({ type: 'SW_CACHED_GPS', ...lastGPS });
     }
   }
 });
 
-// ── Periodic background sync ──────────────────────────────────────────
-// Android Chrome supports this — keeps SW alive to ping clients
 self.addEventListener('periodicsync', e => {
   if (e.tag === 'gps-keepalive') {
     e.waitUntil(
       self.clients.matchAll({ type: 'window' }).then(clients => {
-        if (clients.length > 0) {
-          // Tell active clients to send GPS
-          clients.forEach(c => c.postMessage({ type: 'SW_REQUEST_GPS' }));
-        }
+        clients.forEach(c => c.postMessage({ type: 'SW_REQUEST_GPS' }));
       })
     );
   }
 });
 
-// ── Push (if configured) can wake the SW on iOS ────────────────────
 self.addEventListener('push', () => {
-  // Dummy push handler — registering for push keeps SW alive on iOS 16.4+
   self.clients.matchAll({ type: 'window' }).then(clients => {
     clients.forEach(c => c.postMessage({ type: 'SW_REQUEST_GPS' }));
   });

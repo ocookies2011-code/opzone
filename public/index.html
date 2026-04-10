@@ -901,7 +901,29 @@ function toggleWakeLock(){
 
 // Re-acquire on tab focus (browser releases wake lock when tab hides)
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'&&wakeLockEnabled&&!wakeLock)requestWakeLock();
+  if(document.visibilityState==='visible'){
+    // Reacquire wake lock if it was released while page was hidden
+    if(wakeLockEnabled&&!wakeLock)requestWakeLock();
+
+    const inGame=document.getElementById('gapp').classList.contains('visible');
+    if(inGame){
+      // Tell SW we woke up — it will replay cached GPS if available
+      notifySW({type:'PAGE_WAKE'});
+
+      // If WS dropped while screen was locked, reconnect immediately
+      if(!ws||ws.readyState===WebSocket.CLOSED||ws.readyState===WebSocket.CLOSING){
+        setTimeout(connectWS,300);
+      }
+
+      // If GPS watch died (happens on some Android builds), restart it
+      if(typeof _gpsWatchId!=='undefined'&&_gpsWatchId==null)startGPS();
+
+      // Resend last known position right away so we appear on the map
+      if(ws&&ws.readyState===WebSocket.OPEN&&myLat){
+        sendWS({type:'location',lat:myLat,lng:myLng,heading:0});
+      }
+    }
+  }
 });
 
 function showWakeLockPrompt(){
@@ -991,8 +1013,8 @@ function perkFb(msg){const t=document.getElementById('perk-fb');if(!t)return;t.t
 // ════════════════════════════════════════════════════════════════
 // ACCOUNT SYSTEM — login, register, tab switching
 // ════════════════════════════════════════════════════════════════
-let playerToken=sessionStorage.getItem('zgt_player_token')||'';
-let playerCallsign=sessionStorage.getItem('zgt_callsign')||'';
+let playerToken=localStorage.getItem('zgt_player_token')||'';
+let playerCallsign=localStorage.getItem('zgt_callsign')||'';
 let liTeam='red', liSelectedMap='', liHasPassword=false;
 
 function showAcctTab(tab){showPage(tab==='join'?'play':tab==='help'?'guide':tab);}
@@ -1013,8 +1035,8 @@ async function doPlayerLogin(){
   const d=await r.json();
   if(!r.ok){err.textContent=d.error||'Login failed';err.classList.add('show');return;}
   playerToken=d.token;playerCallsign=d.callsign;
-  sessionStorage.setItem('zgt_player_token',playerToken);
-  sessionStorage.setItem('zgt_callsign',playerCallsign);
+  localStorage.setItem('zgt_player_token',playerToken);
+  localStorage.setItem('zgt_callsign',playerCallsign);
   // Pre-fill callsign in guest form too
   document.getElementById('inp-cs').value=playerCallsign;
   // Show map selection
@@ -1037,8 +1059,8 @@ async function doRegister(){
   const d=await r.json();
   if(!r.ok){err.textContent=d.error||'Registration failed';err.classList.add('show');return;}
   playerToken=d.token;playerCallsign=d.callsign;
-  sessionStorage.setItem('zgt_player_token',playerToken);
-  sessionStorage.setItem('zgt_callsign',playerCallsign);
+  localStorage.setItem('zgt_player_token',playerToken);
+  localStorage.setItem('zgt_callsign',playerCallsign);
   document.getElementById('inp-cs').value=playerCallsign;
   toast('✓ Account created! Welcome, '+playerCallsign,'ok');
   showPage('play');loadMaps();
@@ -2483,20 +2505,20 @@ function saveSession(){
     cooldowns: cooldownSnapshot,
     savedAt:Date.now()
   };
-  try{sessionStorage.setItem(SESSION_KEY,JSON.stringify(sess));}catch{}
+  try{localStorage.setItem(SESSION_KEY,JSON.stringify(sess));}catch{}
 }
 
 function clearSession(){
-  try{sessionStorage.removeItem(SESSION_KEY);}catch{}
+  try{localStorage.removeItem(SESSION_KEY);}catch{}
 }
 
 function tryRestoreSession(){
   try{
-    const raw=sessionStorage.getItem(SESSION_KEY);
+    const raw=localStorage.getItem(SESSION_KEY);
     if(!raw)return false;
     const sess=JSON.parse(raw);
     // Only restore if saved within last 4 hours
-    if(Date.now()-sess.savedAt>4*60*60*1000){clearSession();return false;}
+    if(Date.now()-sess.savedAt>8*60*60*1000){clearSession();return false;}
     // Check map still exists, then rejoin
     fetch('/api/maps').then(r=>r.json()).then(maps=>{
       const found=maps.find(m=>m.code===sess.roomCode);
@@ -2536,6 +2558,8 @@ function tryRestoreSession(){
         });
       }
       toast('📡 Reconnected to '+found.name,'ok');
+      startSilentAudio();
+      if(wakeLockEnabled)requestWakeLock();
     }).catch(()=>clearSession());
     return true;
   }catch{clearSession();return false;}
