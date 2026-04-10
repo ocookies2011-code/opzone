@@ -869,6 +869,121 @@ body::after{
   color:rgba(0,196,255,.3);padding:0 4px;background:var(--bg);
 }
 
+
+/* ═══ MISSION MAP — two-pane layout ════════════════════════════ */
+#view-objectives{display:none;flex-direction:column;gap:12px;height:100%}
+#view-objectives.active-view{display:flex}
+
+.obj-two-pane{
+  display:grid;
+  grid-template-columns:1fr 380px;
+  gap:12px;
+  flex:1;
+  min-height:0;
+  overflow:hidden;
+}
+@media(max-width:1100px){.obj-two-pane{grid-template-columns:1fr;}}
+
+/* Map pane */
+.obj-map-pane{
+  display:flex;flex-direction:column;
+  background:rgba(0,0,0,.4);
+  border:1px solid rgba(0,196,255,.12);
+  border-top:1px solid rgba(0,196,255,.22);
+  border-radius:2px;
+  overflow:hidden;
+  min-height:400px;
+}
+
+.obj-map-toolbar{
+  display:flex;align-items:center;gap:4px;
+  padding:6px 10px;flex-shrink:0;
+  background:rgba(0,0,0,.4);
+  border-bottom:1px solid rgba(0,196,255,.08);
+}
+.omt-btn{
+  padding:4px 10px;border-radius:2px;font-size:8px;font-weight:700;
+  font-family:'Share Tech Mono',monospace;letter-spacing:1px;
+  cursor:pointer;border:1px solid rgba(0,196,255,.2);
+  background:rgba(0,0,0,.3);color:var(--dim);transition:all .15s;
+}
+.omt-btn:hover{border-color:rgba(0,196,255,.4);color:var(--accent)}
+.omt-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(0,196,255,.1)}
+.omt-btn.danger-t{border-color:rgba(255,42,42,.25);color:rgba(255,42,42,.6)}
+.omt-btn.danger-t:hover{border-color:var(--red);color:var(--red);background:rgba(255,42,42,.08)}
+.omt-tile-row{display:flex;gap:3px}
+
+#obj-map{background:#020810}
+
+.obj-map-status{
+  flex-shrink:0;padding:5px 10px;
+  background:rgba(0,0,0,.5);
+  border-top:1px solid rgba(0,196,255,.06);
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--dim);letter-spacing:1px;text-align:center;
+}
+
+/* Form pane */
+.obj-form-pane{
+  display:flex;flex-direction:column;gap:10px;
+  overflow-y:auto;min-height:0;
+}
+
+/* Pin status indicator */
+.obj-pin-status{
+  padding:6px 10px;
+  background:rgba(0,196,255,.04);
+  border:1px solid rgba(0,196,255,.12);
+  border-left:2px solid rgba(0,196,255,.4);
+  border-radius:2px;
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:var(--dim);letter-spacing:.5px;
+}
+.obj-pin-status.has-pin{
+  border-left-color:var(--green);color:var(--green);
+  background:rgba(0,255,136,.04);border-color:rgba(0,255,136,.15);
+}
+.obj-pin-status.has-zone{
+  border-left-color:var(--gold);color:var(--gold);
+  background:rgba(232,200,74,.04);border-color:rgba(232,200,74,.15);
+}
+
+/* Objective marker on mission map */
+.om-marker{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Orbitron',monospace;font-size:11px;font-weight:900;
+  border:2px solid;cursor:pointer;
+}
+.om-marker.all{border-color:var(--accent);background:rgba(0,196,255,.2);color:var(--accent)}
+.om-marker.red{border-color:var(--red);background:rgba(255,42,42,.2);color:var(--red)}
+.om-marker.blue{border-color:var(--blue);background:rgba(42,127,255,.2);color:var(--blue)}
+
+/* Compact obj card for right pane */
+.obj-card-compact{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 10px;margin-bottom:5px;
+  background:rgba(0,0,0,.3);
+  border:1px solid rgba(0,196,255,.08);
+  border-radius:2px;cursor:pointer;transition:border-color .15s;
+}
+.obj-card-compact:hover{border-color:rgba(0,196,255,.22)}
+.obj-card-compact.selected{border-color:var(--gold);background:rgba(232,200,74,.04)}
+.occ-num{
+  width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Orbitron',monospace;font-size:10px;font-weight:900;
+  flex-shrink:0;
+}
+.occ-num.all{border:1px solid rgba(0,196,255,.4);color:var(--accent)}
+.occ-num.red{border:1px solid rgba(255,42,42,.4);color:var(--red)}
+.occ-num.blue{border:1px solid rgba(42,127,255,.4);color:var(--blue)}
+.occ-body{flex:1;min-width:0}
+.occ-name{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text2)}
+.occ-sub{font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace;letter-spacing:.5px;margin-top:2px}
+.occ-pin{font-size:9px;color:var(--green);font-family:'Share Tech Mono',monospace}
+.occ-nopin{font-size:9px;color:rgba(255,42,42,.5);font-family:'Share Tech Mono',monospace}
+
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:rgba(0,0,0,.3)}
 ::-webkit-scrollbar-thumb{background:rgba(0,196,255,.15);border-radius:2px}
@@ -1371,49 +1486,68 @@ body::after{
 
       <!-- OBJECTIVES -->
       <!-- OBJECTIVES — Mission Briefing Editor -->
+      <!-- MISSION BRIEFING / OBJECTIVES -->
       <div id="view-objectives" class="sh">
 
-        <!-- Map selector -->
-        <div class="ap">
+        <!-- Top bar: map selector + instructions -->
+        <div class="ap" style="flex-shrink:0">
           <div class="aph">
             <div class="apt">Mission Briefing Editor</div>
-            <select class="asel" id="obj-room" style="min-width:160px" onchange="loadObjs()"><option value="">Select map…</option></select>
+            <div style="display:flex;gap:8px;align-items:center">
+              <select class="asel" id="obj-room" style="min-width:180px" onchange="objMapLoad()"><option value="">Select map…</option></select>
+              <button class="abtn sm" onclick="objMapGPS()">📍 My Location</button>
+            </div>
+          </div>
+          <div style="padding:8px 14px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:1px;border-bottom:1px solid rgba(0,196,255,.06)">
+            <span style="color:var(--accent)">►</span> Click map to drop objective pin &nbsp;|&nbsp;
+            <span style="color:var(--gold)">►</span> Draw polygon or circle to set capture zone &nbsp;|&nbsp;
+            <span style="color:var(--dim)">Existing objectives shown as numbered pins</span>
           </div>
         </div>
 
-        <!-- Objective type legend -->
-        <div class="obj-type-legend">
-          <div class="otl-item capture"><span class="otl-icon">⚑</span><span>CAPTURE</span><span class="otl-desc">Hold zone for X seconds</span></div>
-          <div class="otl-item defend"><span class="otl-icon">⬡</span><span>DEFEND</span><span class="otl-desc">Stop enemy capturing</span></div>
-          <div class="otl-item hold"><span class="otl-icon">◉</span><span>HOLD</span><span class="otl-desc">Stay in zone for duration</span></div>
-          <div class="otl-item eliminate"><span class="otl-icon">✕</span><span>ELIMINATE</span><span class="otl-desc">Kill all enemies in zone</span></div>
-          <div class="otl-item reach"><span class="otl-icon">▲</span><span>REACH</span><span class="otl-desc">First to arrive wins</span></div>
-          <div class="otl-item vip"><span class="otl-icon">★</span><span>VIP</span><span class="otl-desc">Escort / assassinate VIP</span></div>
-          <div class="otl-item custom"><span class="otl-icon">◈</span><span>CUSTOM</span><span class="otl-desc">Free-form description</span></div>
-        </div>
+        <!-- Two-pane: Map left, form+list right -->
+        <div class="obj-two-pane">
 
-        <!-- Add objective form -->
-        <div class="ap obj-builder-panel">
-          <div class="aph"><div class="apt">Add New Objective</div></div>
-          <div class="apb">
-            <div class="obj-builder-grid">
-
-              <!-- Col 1: Name + Description -->
-              <div class="obj-builder-col">
-                <div class="form-field">
-                  <div class="form-label">Objective Name / Call Sign</div>
-                  <input class="ai" id="obj-new-txt" placeholder="e.g. Alpha Point — Main Compound" maxlength="80">
-                </div>
-                <div class="form-field" style="margin-top:8px">
-                  <div class="form-label">Briefing Description (shown to players)</div>
-                  <textarea class="ai obj-desc-ta" id="obj-new-desc" placeholder="e.g. Red team must occupy the main compound for 60 seconds. Blue team defends at all costs. First capture wins the round." maxlength="300"></textarea>
-                </div>
+          <!-- LEFT: Interactive map -->
+          <div class="obj-map-pane">
+            <div class="obj-map-toolbar">
+              <button class="omt-btn active" id="omt-pin" onclick="objToolPin()" title="Drop pin — sets objective GPS position">📍 PIN</button>
+              <button class="omt-btn" id="omt-poly" onclick="objToolPoly()" title="Draw polygon capture zone">⬡ ZONE</button>
+              <button class="omt-btn" id="omt-circle" onclick="objToolCircle()" title="Draw circle capture zone">◎ RADIUS</button>
+              <button class="omt-btn danger-t" onclick="objToolCancel()" title="Cancel drawing">✕ CANCEL</button>
+              <div style="flex:1"></div>
+              <div class="omt-tile-row">
+                <div class="mc-btn on" data-tile="osm" onclick="objMapTile('osm',this)">MAP</div>
+                <div class="mc-btn" data-tile="sat" onclick="objMapTile('sat',this)">SAT</div>
+                <div class="mc-btn" data-tile="dark" onclick="objMapTile('dark',this)">DARK</div>
               </div>
+            </div>
+            <div id="obj-map" style="flex:1;min-height:0"></div>
+            <!-- Drop feedback -->
+            <div class="obj-map-status" id="obj-map-status">Select a map to begin</div>
+          </div>
 
-              <!-- Col 2: Type + Team -->
-              <div class="obj-builder-col">
+          <!-- RIGHT: Form + list -->
+          <div class="obj-form-pane">
+
+            <!-- Add form -->
+            <div class="ap" style="flex-shrink:0">
+              <div class="aph"><div class="apt">New Objective</div></div>
+              <div class="apb" style="display:flex;flex-direction:column;gap:10px">
+
                 <div class="form-field">
-                  <div class="form-label">Objective Type</div>
+                  <div class="form-label">Name / Call Sign</div>
+                  <input class="ai" id="obj-new-txt" placeholder="e.g. Alpha Compound" maxlength="80">
+                </div>
+
+                <div class="form-field">
+                  <div class="form-label">Briefing (shown to players)</div>
+                  <textarea class="ai obj-desc-ta" id="obj-new-desc" placeholder="e.g. Red team must hold the compound for 60s. Blue defends." maxlength="300" style="min-height:70px"></textarea>
+                </div>
+
+                <!-- Type picker -->
+                <div class="form-field">
+                  <div class="form-label">Type</div>
                   <div class="obj-type-grid" id="obj-type-grid">
                     <div class="obj-type-btn sel" data-type="capture" onclick="selObjType(this)"><span class="otb-icon">⚑</span><span class="otb-label">CAPTURE</span></div>
                     <div class="obj-type-btn" data-type="defend" onclick="selObjType(this)"><span class="otb-icon">⬡</span><span class="otb-label">DEFEND</span></div>
@@ -1424,45 +1558,51 @@ body::after{
                     <div class="obj-type-btn" data-type="custom" onclick="selObjType(this)"><span class="otb-icon">◈</span><span class="otb-label">CUSTOM</span></div>
                   </div>
                 </div>
-                <div class="form-field" style="margin-top:10px">
-                  <div class="form-label">Assigned Team</div>
+
+                <!-- Team -->
+                <div class="form-field">
+                  <div class="form-label">Team</div>
                   <div class="obj-team-pick">
-                    <div class="otm-btn sel" data-team="all" onclick="selObjTeam(this)">ALL TEAMS</div>
+                    <div class="otm-btn sel" data-team="all" onclick="selObjTeam(this)">ALL</div>
                     <div class="otm-btn red" data-team="red" onclick="selObjTeam(this)">🔴 RED</div>
                     <div class="otm-btn blue" data-team="blue" onclick="selObjTeam(this)">🔵 BLUE</div>
                   </div>
                 </div>
-              </div>
 
-              <!-- Col 3: Parameters -->
-              <div class="obj-builder-col">
-                <div class="form-field">
-                  <div class="form-label">Capture / Hold Time (seconds, 0 = instant)</div>
-                  <input class="ai" id="obj-new-captime" type="number" min="0" max="3600" value="0" placeholder="0 = instant">
+                <!-- Parameters row -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                  <div class="form-field">
+                    <div class="form-label">Hold Time (sec)</div>
+                    <input class="ai" id="obj-new-captime" type="number" min="0" max="3600" value="0">
+                  </div>
+                  <div class="form-field">
+                    <div class="form-label">Points</div>
+                    <input class="ai" id="obj-new-score" type="number" min="0" max="100" value="1">
+                  </div>
                 </div>
-                <div class="form-field" style="margin-top:8px">
-                  <div class="form-label">Points on Completion</div>
-                  <input class="ai" id="obj-new-score" type="number" min="0" max="100" value="1">
-                </div>
-                <!-- Context hint — updates based on type selection -->
-                <div class="obj-type-hint" id="obj-type-hint">
-                  Hold the zone for the specified time to capture it.
-                </div>
-                <button class="abtn green-b" onclick="addObj()" style="width:100%;margin-top:12px;letter-spacing:3px">+ ADD OBJECTIVE</button>
-              </div>
 
+                <!-- Context hint -->
+                <div class="obj-type-hint" id="obj-type-hint">Hold the zone for the specified time to capture it.</div>
+
+                <!-- Pin status -->
+                <div class="obj-pin-status" id="obj-pin-status">📍 No position — click map to drop pin</div>
+
+                <button class="abtn green-b" onclick="addObj()" style="letter-spacing:2px">+ ADD OBJECTIVE</button>
+
+              </div>
             </div>
-          </div>
-        </div>
 
-        <!-- Live objective list -->
-        <div class="ap">
-          <div class="aph">
-            <div class="apt">Active Objectives</div>
-            <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);letter-spacing:1px" id="obj-count">—</div>
-          </div>
-          <div class="apb" style="padding:10px">
-            <div id="obj-list-admin"><div class="empty">Select a map above</div></div>
+            <!-- Objective list -->
+            <div class="ap" style="flex:1;min-height:0;display:flex;flex-direction:column">
+              <div class="aph">
+                <div class="apt">Active Objectives</div>
+                <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim)" id="obj-count">—</div>
+              </div>
+              <div style="flex:1;overflow-y:auto;padding:8px">
+                <div id="obj-list-admin"><div class="empty">Select a map</div></div>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -1905,6 +2045,13 @@ function sv(el){
   if(currentView==='savedmaps'){populateSelects();loadSavedMaps();}
   if(currentView==='siteadmins')loadSiteAdmins();
   if(['objectives','maps','savedmaps','zoneeditor'].includes(currentView))populateSelects();
+  // Objectives needs its own map init
+  if(currentView==='objectives'){
+    document.getElementById('view-objectives').classList.add('active-view');
+    setTimeout(()=>{if(objMap)objMap.invalidateSize();else if(document.getElementById('obj-room').value)initObjMap();},200);
+  } else {
+    document.getElementById('view-objectives').classList.remove('active-view');
+  }
   if(currentView==='players')loadPlayerAccounts();
   if(currentView==='databackup')loadDataSummary();
   if(currentView==='database')loadDbStatus();
@@ -2563,9 +2710,195 @@ function selObjType(el){
   if(hint)hint.textContent=OBJ_TYPES[_objNewType]?.hint||'';
 }
 function selObjTeam(el){
-  document.querySelectorAll('.otm-btn').forEach(b=>b.classList.remove('sel'));
+  document.querySelectorAll('#obj-type-grid ~ .obj-team-pick .otm-btn, .obj-team-pick .otm-btn').forEach(b=>b.classList.remove('sel'));
   el.classList.add('sel');
   _objNewTeam=el.dataset.team;
+}
+
+// ════════════════════════════════════════════════════════════════
+// MISSION MAP — interactive Leaflet map for placing objectives
+// ════════════════════════════════════════════════════════════════
+let objMap=null,objMapTileLayer=null;
+let objDrawLayer=null;    // FeatureGroup for drawn shapes
+let objMarkerLayer=null;  // FeatureGroup for objective pins
+let objPinMode=false;     // true = next click drops a pin
+let objPendingLat=null,objPendingLng=null;
+let objPendingZone=null;  // {type:'circle'|'polygon', latlngs, center, radius}
+let _objNewDcRef=null;
+
+function initObjMap(){
+  const container=document.getElementById('obj-map');
+  if(!container)return;
+  if(objMap){requestAnimationFrame(()=>objMap.invalidateSize());return;}
+  objMap=L.map('obj-map',{center:[51.56,-1.78],zoom:15,attributionControl:false,zoomControl:true});
+  objMapTileLayer=L.tileLayer(TILES.osm,{maxZoom:22}).addTo(objMap);
+  objDrawLayer=new L.FeatureGroup().addTo(objMap);
+  objMarkerLayer=new L.FeatureGroup().addTo(objMap);
+
+  // Click = drop pin (when in pin mode)
+  objMap.on('click',e=>{
+    if(!objPinMode)return;
+    objPendingLat=e.latlng.lat;
+    objPendingLng=e.latlng.lng;
+    // Visual temp marker
+    objDrawLayer.clearLayers();
+    L.marker([objPendingLat,objPendingLng],{
+      icon:L.divIcon({className:'',html:'<div style="width:16px;height:16px;border-radius:50%;background:rgba(232,200,74,.8);border:2px solid #e8c84a;box-shadow:0 0 8px rgba(232,200,74,.6)"></div>',iconSize:[16,16],iconAnchor:[8,8]})
+    }).addTo(objDrawLayer);
+    objPinMode=false;
+    document.getElementById('omt-pin').classList.remove('active');
+    updateObjPinStatus();
+    setObjMapStatus('📍 Pin dropped — fill in the form and click Add Objective');
+  });
+
+  // Zone drawn via leaflet-draw
+  objMap.on(L.Draw.Event.CREATED,e=>{
+    objDrawLayer.clearLayers();
+    objDrawLayer.addLayer(e.layer);
+    cancelObjDraw();
+    const t=e.layerType;
+    if(t==='circle'){
+      const c=e.layer.getLatLng();
+      objPendingZone={type:'circle',center:[c.lat,c.lng],radius:Math.round(e.layer.getRadius()),latlngs:[]};
+      if(!objPendingLat){objPendingLat=c.lat;objPendingLng=c.lng;}
+    } else if(t==='polygon'){
+      const ll=e.layer.getLatLngs()[0].map(p=>[p.lat,p.lng]);
+      const centre=e.layer.getBounds().getCenter();
+      objPendingZone={type:'polygon',center:[centre.lat,centre.lng],latlngs:ll,radius:null};
+      if(!objPendingLat){objPendingLat=centre.lat;objPendingLng=centre.lng;}
+    }
+    updateObjPinStatus();
+    setObjMapStatus('✓ Zone drawn — fill in the form and click Add Objective');
+  });
+
+  requestAnimationFrame(()=>objMap.invalidateSize());
+}
+
+function setObjMapStatus(txt){const el=document.getElementById('obj-map-status');if(el)el.textContent=txt;}
+
+function updateObjPinStatus(){
+  const el=document.getElementById('obj-pin-status');if(!el)return;
+  if(objPendingZone){
+    const z=objPendingZone;
+    const desc=z.type==='circle'?`Circle zone · ${z.radius}m radius`:`Polygon zone · ${z.latlngs.length} points`;
+    el.textContent='⬡ '+desc+` @ ${objPendingLat.toFixed(5)}, ${objPendingLng.toFixed(5)}`;
+    el.className='obj-pin-status has-zone';
+  } else if(objPendingLat!=null){
+    el.textContent=`📍 Pin at ${objPendingLat.toFixed(5)}, ${objPendingLng.toFixed(5)}`;
+    el.className='obj-pin-status has-pin';
+  } else {
+    el.textContent='📍 No position — click PIN then click map, or draw a ZONE';
+    el.className='obj-pin-status';
+  }
+}
+
+function objToolPin(){
+  objPinMode=!objPinMode;
+  cancelObjDraw();
+  document.getElementById('omt-pin').classList.toggle('active',objPinMode);
+  document.getElementById('omt-poly').classList.remove('active');
+  document.getElementById('omt-circle').classList.remove('active');
+  setObjMapStatus(objPinMode?'Click on the map to drop the objective pin…':'Pin mode cancelled');
+}
+
+function objToolPoly(){
+  objPinMode=false;
+  document.getElementById('omt-pin').classList.remove('active');
+  document.getElementById('omt-poly').classList.add('active');
+  document.getElementById('omt-circle').classList.remove('active');
+  if(!objMap)return;
+  cancelObjDraw();
+  const dc=new L.Control.Draw({draw:{polygon:{shapeOptions:{color:'#e8c84a',fillOpacity:.15}},polyline:false,rectangle:false,circle:false,marker:false,circlemarker:false},edit:false});
+  objMap.addControl(dc);_objNewDcRef=dc;
+  new L.Draw.Polygon(objMap,dc.options.draw.polygon).enable();
+  setObjMapStatus('Click to draw polygon zone vertices — double-click to finish');
+}
+
+function objToolCircle(){
+  objPinMode=false;
+  document.getElementById('omt-pin').classList.remove('active');
+  document.getElementById('omt-poly').classList.remove('active');
+  document.getElementById('omt-circle').classList.add('active');
+  if(!objMap)return;
+  cancelObjDraw();
+  const dc=new L.Control.Draw({draw:{circle:{shapeOptions:{color:'#e8c84a',fillOpacity:.15}},polygon:false,polyline:false,rectangle:false,marker:false,circlemarker:false},edit:false});
+  objMap.addControl(dc);_objNewDcRef=dc;
+  new L.Draw.Circle(objMap,dc.options.draw.circle).enable();
+  setObjMapStatus('Click map centre, then drag to set zone radius');
+}
+
+function cancelObjDraw(){
+  if(_objNewDcRef){try{objMap.removeControl(_objNewDcRef);}catch{}; _objNewDcRef=null;}
+  document.getElementById('omt-poly').classList.remove('active');
+  document.getElementById('omt-circle').classList.remove('active');
+}
+function objToolCancel(){
+  objPinMode=false;
+  cancelObjDraw();
+  document.getElementById('omt-pin').classList.remove('active');
+  setObjMapStatus('Drawing cancelled');
+}
+
+function objMapTile(key,el){
+  document.querySelectorAll('.omt-tile-row .mc-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  if(objMapTileLayer)objMap.removeLayer(objMapTileLayer);
+  objMapTileLayer=L.tileLayer(TILES[key],{maxZoom:22}).addTo(objMap);
+}
+
+function objMapGPS(){
+  if(!objMap||!navigator.geolocation)return;
+  navigator.geolocation.getCurrentPosition(pos=>{
+    objMap.setView([pos.coords.latitude,pos.coords.longitude],17);
+    setObjMapStatus('Centred on your GPS location');
+  },()=>toast('GPS not available','warn'),{enableHighAccuracy:true,timeout:8000});
+}
+
+async function objMapLoad(){
+  const code=document.getElementById('obj-room').value;if(!code)return;
+  if(!objMap)initObjMap();
+  await loadObjs();
+  // Load existing zones onto map as context
+  const r=await apiFetch(`/api/admin/rooms/${code}`);if(!r.ok)return;
+  const d=await r.json();
+  // Render zones as faint context layers
+  d.zones&&d.zones.forEach(z=>{
+    if(z.shape==='circle'&&z.center){
+      L.circle(z.center,{radius:z.radius,color:z.color||'#666',fillOpacity:.08,weight:1,dashArray:'4 4'}).addTo(objMarkerLayer);
+    } else if(z.latlngs&&z.latlngs.length>2){
+      L.polygon(z.latlngs,{color:z.color||'#666',fillOpacity:.06,weight:1,dashArray:'4 4'}).addTo(objMarkerLayer);
+    }
+  });
+  setObjMapStatus('Map loaded — click PIN or draw a ZONE to position objectives');
+}
+
+function renderObjMarkers(objs){
+  objMarkerLayer.clearLayers();
+  objs.forEach((o,i)=>{
+    if(o.lat==null)return;
+    const t=OBJ_TYPES[o.type]||OBJ_TYPES.custom;
+    const teamCol=o.team==='red'?'#ff2a2a':o.team==='blue'?'#2a7fff':'#00d4ff';
+    const icon=L.divIcon({
+      className:'',
+      html:`<div style="width:30px;height:30px;border-radius:50%;background:${teamCol}22;border:2px solid ${teamCol};display:flex;align-items:center;justify-content:center;font-family:Orbitron,monospace;font-size:11px;font-weight:900;color:${teamCol};cursor:pointer;box-shadow:0 0 8px ${teamCol}44">${i+1}</div>`,
+      iconSize:[30,30],iconAnchor:[15,15],
+    });
+    const marker=L.marker([o.lat,o.lng],{icon}).addTo(objMarkerLayer);
+    marker.bindTooltip(`<b>${o.text}</b><br>${t.icon} ${t.label}${o.captureTimeSec>0?' · '+o.captureTimeSec+'s':''}`,{className:'zone-tip',permanent:false});
+    // If has zone, draw it
+    if(o.zone){
+      const z=o.zone;
+      if(z.type==='circle'&&z.center){
+        L.circle(z.center,{radius:z.radius,color:teamCol,fillOpacity:.12,weight:2}).addTo(objMarkerLayer);
+      } else if(z.latlngs&&z.latlngs.length>2){
+        L.polygon(z.latlngs,{color:teamCol,fillOpacity:.1,weight:2}).addTo(objMarkerLayer);
+      }
+    }
+  });
+  // Fit map to markers if any exist
+  if(objMarkerLayer.getLayers().length>0){
+    try{objMap.fitBounds(objMarkerLayer.getBounds().pad(.2));}catch{}
+  }
 }
 
 async function loadObjs(){
@@ -2577,29 +2910,35 @@ async function loadObjs(){
   const objs=d.objectives||[];
   if(countEl)countEl.textContent=objs.length+' objective'+(objs.length!==1?'s':'');
   if(!objs.length){el.innerHTML='<div class="empty">No objectives — add one above</div>';return;}
-  el.innerHTML=objs.map(o=>{
+  // Compact cards for side panel
+  el.innerHTML=objs.map((o,i)=>{
     const t=OBJ_TYPES[o.type]||OBJ_TYPES.custom;
     const capStr=o.captureTimeSec>0?o.captureTimeSec+'s hold':'Instant';
-    const scoreStr=o.scoreValue!=null?o.scoreValue+' pt'+(o.scoreValue!==1?'s':''):'1 pt';
-    const posStr=o.lat?`📍 ${o.lat.toFixed(4)}, ${o.lng.toFixed(4)}`:'No position set';
-    return `<div class="obj-card type-${o.type||'custom'} team-${o.team||'all'}">
-      <div class="obj-card-header">
-        <div class="obj-card-icon" style="background:${t.color}18;border-color:${t.color}30;color:${t.color}">${t.icon}</div>
-        <div class="obj-card-title">${esc(o.text)}</div>
-        <div class="obj-card-meta">
-          <span class="obj-type-tag ${o.type||'custom'}">${t.label}</span>
-          <span class="obj-team-tag ${o.team||'all'}">${o.team==='red'?'🔴 RED':o.team==='blue'?'🔵 BLUE':'ALL'}</span>
-        </div>
+    const pinStr=o.lat
+      ?`<span class="occ-pin">📍 ${o.lat.toFixed(4)}, ${o.lng.toFixed(4)}</span>`
+      :'<span class="occ-nopin">⚠ No position — click map to add</span>';
+    const flyClick=o.lat?`objFlyTo(${o.lat},${o.lng})`:'void(0)';
+    return `<div class="obj-card-compact" onclick="${flyClick}" style="${o.lat?'cursor:pointer':''}">
+      <div class="occ-num ${o.team||'all'}">${i+1}</div>
+      <div class="occ-body">
+        <div class="occ-name">${esc(o.text)}</div>
+        <div class="occ-sub">${t.icon} ${t.label} · ${o.team==='red'?'🔴 RED':o.team==='blue'?'🔵 BLUE':'ALL'} · ${capStr}</div>
+        ${pinStr}
+        ${o.description?`<div style="font-size:9px;color:var(--dim);margin-top:3px;line-height:1.5;font-family:Rajdhani,sans-serif">${esc(o.description.slice(0,80))}${o.description.length>80?'…':''}</div>`:''}
       </div>
-      ${o.description?`<div class="obj-card-body"><div class="obj-card-desc">${esc(o.description)}</div><div class="obj-card-params"><span class="obj-param">Hold: <span>${capStr}</span></span><span class="obj-param">Points: <span>${scoreStr}</span></span></div></div>`:''}
-      <div class="obj-card-footer">
-        <span class="obj-pos">${posStr}</span>
-        <span class="obj-done-pill ${o.done?'done':'pending'}">${o.done?'✓ COMPLETE':'PENDING'}</span>
-        <button class="obj-edit-btn" onclick="openEditObj('${code}','${o.id}')">✏ EDIT</button>
-        <button class="obj-del-btn" onclick="delObj('${code}','${o.id}')">✕</button>
+      <div style="display:flex;flex-direction:column;gap:3px;flex-shrink:0">
+        <button class="obj-edit-btn" onclick="event.stopPropagation();openEditObj('${code}','${o.id}')">✏</button>
+        <button class="obj-del-btn" onclick="event.stopPropagation();delObj('${code}','${o.id}')">✕</button>
       </div>
     </div>`;
   }).join('');
+  // Render numbered pins on the mission map
+  if(objMap)renderObjMarkers(objs);
+}
+
+function objFlyTo(lat,lng){
+  if(!objMap||lat==null)return;
+  objMap.setView([lat,lng],18,{animate:true,duration:.6});
 }
 
 async function addObj(){
@@ -2608,12 +2947,39 @@ async function addObj(){
   const desc=document.getElementById('obj-new-desc').value.trim();
   const captime=parseInt(document.getElementById('obj-new-captime').value)||0;
   const score=parseInt(document.getElementById('obj-new-score').value)||1;
-  const body={text:txt,description:desc,team:_objNewTeam,type:_objNewType,captureTimeSec:captime,scoreValue:score};
+  const body={
+    text:txt,description:desc,
+    team:_objNewTeam,type:_objNewType,
+    captureTimeSec:captime,scoreValue:score,
+    lat:objPendingLat,lng:objPendingLng,
+    zone:objPendingZone||null,
+  };
+  // If objective has a zone, also create it as a map zone so players see it
+  if(objPendingZone){
+    const teamColors={red:'#ff2a2a',blue:'#2a7fff',all:'#e8c84a'};
+    const zoneBody={
+      zoneType:'objective',
+      label:txt,
+      shape:objPendingZone.type,
+      latlngs:objPendingZone.latlngs||[],
+      center:objPendingZone.center||null,
+      radius:objPendingZone.radius||null,
+      color:teamColors[_objNewTeam]||'#e8c84a',
+      team:_objNewTeam,
+    };
+    await apiFetch(`/api/admin/rooms/${code}/zones`,{method:'POST',body:JSON.stringify(zoneBody)});
+  }
   const r=await apiFetch(`/api/admin/rooms/${code}/objectives`,{method:'POST',body:JSON.stringify(body)});
   if(r.ok){
-    toast('✓ Objective added','ok');
+    toast('✓ '+txt+' added','ok');
     document.getElementById('obj-new-txt').value='';
     document.getElementById('obj-new-desc').value='';
+    // Reset pin/zone
+    objPendingLat=null;objPendingLng=null;objPendingZone=null;
+    if(objDrawLayer)objDrawLayer.clearLayers();
+    objPinMode=false;
+    updateObjPinStatus();
+    setObjMapStatus('Objective added — drop next pin or draw next zone');
     loadObjs();
   }else toast('Error adding objective','err');
 }
