@@ -1783,6 +1783,7 @@ let liveMap=null,liveMapTile=null,liveMapMarkers={},liveMapZoneLayers={};
 let liveMapPlayers={};
 let adminWs=null,adminWsRoom=null;
 let zeMapTile=null; // zeMap/zeDrawLayer now use objMap/objDrawLayer aliases
+let _zoneToolActive=false; // true when startZDraw() triggered (vs obj tool)
 let selectedZT='respawn_red';
 let flareModeActive=false;
 const ZC={respawn_red:'#ff4444',respawn_blue:'#4488ff',objective:'#ffaa00',hazard:'#ff2a2a',safe:'#00cc66',boundary:'#e8c84a',custom:'#cc44ff'};
@@ -2610,21 +2611,12 @@ function initZeMap(){
   }
   zeMap=L.map('ze-map',{center:[51.56,-1.78],zoom:14,attributionControl:false});
   zeMapTile=L.tileLayer(TILES.osm,{maxZoom:20}).addTo(getZeMap());
-  getZeDrawLayer()=new L.FeatureGroup().addTo(getZeMap());
+  // objDrawLayer already initialised by initObjMap — no need to recreate
   // Force Leaflet to measure the container after the browser has painted
   requestAnimationFrame(()=>requestAnimationFrame(()=>getZeMap().invalidateSize()));
 
-  getZeMap().on(L.Draw.Event.CREATED,e=>{
-    const code=document.getElementById('obj-room').value;if(!code){toast('Select a map','err');return;}
-    const lbl=(document.getElementById('zlbl').value.trim()||selectedZT);
-    let body={zoneType:selectedZT,label:lbl,color:ZC[selectedZT]||'#cc44ff'};
-    if(e.layerType==='polygon'){body.shape='polygon';body.latlngs=e.layer.getLatLngs()[0].map(p=>[p.lat,p.lng]);}
-    else if(e.layerType==='circle'){const c=e.layer.getLatLng();body.shape='circle';body.center=[c.lat,c.lng];body.radius=e.layer.getRadius();}
-    apiFetch(`/api/admin/rooms/${code}/zones`,{method:'POST',body:JSON.stringify(body)}).then(async r=>{
-      if(r.ok){toast('✓ Zone added','ok');getZeDrawLayer().clearLayers();loadZones();}else toast('Error adding zone','err');
-    });
-    cancelZDraw();
-  });
+  // Zone CREATED is handled by the unified handler on objMap below
+  // (getZeMap() === objMap, so registering here would create a duplicate listener)
 }
 function selZT(el){document.querySelectorAll('.zt-opt').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');selectedZT=el.dataset.zt;}
 
@@ -2656,15 +2648,18 @@ async function saveCurMapTemplate(){
   else toast('Error saving template','err');
 }
 function startZDraw(shape){
-  if(!getZeMap()){toast('Map not ready','err');return;}cancelZDraw();
+  if(!objMap){toast('Select a map first, then use zone tools','err');return;}
+  _zoneToolActive=true;  // flag so CREATED handler saves immediately
+  cancelObjDraw();       // cancel any pending objective draw
+  cancelZDraw();
   const col=ZC[selectedZT]||'#cc44ff';const opts={color:col,fillColor:col,fillOpacity:.15,weight:2};
-  const dc=new L.Control.Draw({draw:{polygon:shape==='polygon'?{shapeOptions:opts,showArea:false}:false,circle:shape==='circle'?{shapeOptions:opts}:false,marker:false,circlemarker:false,rectangle:false,polyline:false},edit:{featureGroup:getZeDrawLayer(),edit:false,remove:false}});
-  getZeMap().addControl(dc);getZeMap()._dcRef=dc;
-  if(shape==='polygon')new L.Draw.Polygon(getZeMap(),dc.options.draw.polygon).enable();
-  if(shape==='circle')new L.Draw.Circle(getZeMap(),dc.options.draw.circle).enable();
+  const dc=new L.Control.Draw({draw:{polygon:shape==='polygon'?{shapeOptions:opts,showArea:false}:false,circle:shape==='circle'?{shapeOptions:opts}:false,marker:false,circlemarker:false,rectangle:false,polyline:false},edit:{featureGroup:objDrawLayer,edit:false,remove:false}});
+  objMap.addControl(dc);objMap._dcRef=dc;
+  if(shape==='polygon')new L.Draw.Polygon(objMap,dc.options.draw.polygon).enable();
+  if(shape==='circle')new L.Draw.Circle(objMap,dc.options.draw.circle).enable();
   toast('Click on map to draw · double-click to finish');
 }
-function cancelZDraw(){if(getZeMap()&&getZeMap()._dcRef){getZeMap().removeControl(getZeMap()._dcRef);getZeMap()._dcRef=null;}}
+function cancelZDraw(){_zoneToolActive=false;if(objMap&&objMap._dcRef){try{objMap.removeControl(objMap._dcRef);}catch{}objMap._dcRef=null;}}
 
 async function loadZones(){
   const code=document.getElementById('obj-room').value;if(!code)return;
@@ -2752,23 +2747,57 @@ function initObjMap(){
   });
 
   // Zone drawn via leaflet-draw
+  // ── Unified CREATED handler ───────────────────────────────────
+  // _zoneToolActive=true  → came from startZDraw (Red Spawn, Boundary, etc.) → save immediately
+  // _zoneToolActive=false → came from objToolPoly/Circle (objective zone)    → store as pending
   objMap.on(L.Draw.Event.CREATED,e=>{
-    objDrawLayer.clearLayers();
-    objDrawLayer.addLayer(e.layer);
     cancelObjDraw();
-    const t=e.layerType;
-    if(t==='circle'){
-      const c=e.layer.getLatLng();
-      objPendingZone={type:'circle',center:[c.lat,c.lng],radius:Math.round(e.layer.getRadius()),latlngs:[]};
-      if(!objPendingLat){objPendingLat=c.lat;objPendingLng=c.lng;}
-    } else if(t==='polygon'){
-      const ll=e.layer.getLatLngs()[0].map(p=>[p.lat,p.lng]);
-      const centre=e.layer.getBounds().getCenter();
-      objPendingZone={type:'polygon',center:[centre.lat,centre.lng],latlngs:ll,radius:null};
-      if(!objPendingLat){objPendingLat=centre.lat;objPendingLng=centre.lng;}
+    cancelZDraw();
+
+    if(_zoneToolActive){
+      // ── Zone Editor tool: save straight to server ──────────────
+      _zoneToolActive=false;
+      const code=document.getElementById('obj-room').value;
+      if(!code){toast('Select a map first','err');return;}
+      const lbl=(document.getElementById('zlbl').value.trim()||selectedZT);
+      let body={zoneType:selectedZT,label:lbl,color:ZC[selectedZT]||'#cc44ff'};
+      if(e.layerType==='polygon'){
+        body.shape='polygon';
+        body.latlngs=e.layer.getLatLngs()[0].map(p=>[p.lat,p.lng]);
+      } else if(e.layerType==='circle'){
+        const c=e.layer.getLatLng();
+        body.shape='circle';body.center=[c.lat,c.lng];body.radius=e.layer.getRadius();
+      }
+      // Add zone shape visually to the zone layer (not objDrawLayer)
+      objMarkerLayer.addLayer(e.layer);
+      apiFetch(`/api/admin/rooms/${code}/zones`,{method:'POST',body:JSON.stringify(body)}).then(async r=>{
+        if(r.ok){
+          toast('✓ Zone saved — '+lbl,'ok');
+          loadZones();    // refresh the zone list panel
+          objMapLoad();   // reload zones on map
+        } else {
+          toast('Error saving zone','err');
+        }
+      });
+      setObjMapStatus('✓ Zone saved to map');
+    } else {
+      // ── Objective tool: store as pending, user clicks Add Objective ──
+      objDrawLayer.clearLayers();
+      objDrawLayer.addLayer(e.layer);
+      const t=e.layerType;
+      if(t==='circle'){
+        const c=e.layer.getLatLng();
+        objPendingZone={type:'circle',center:[c.lat,c.lng],radius:Math.round(e.layer.getRadius()),latlngs:[]};
+        if(!objPendingLat){objPendingLat=c.lat;objPendingLng=c.lng;}
+      } else if(t==='polygon'){
+        const ll=e.layer.getLatLngs()[0].map(p=>[p.lat,p.lng]);
+        const centre=e.layer.getBounds().getCenter();
+        objPendingZone={type:'polygon',center:[centre.lat,centre.lng],latlngs:ll,radius:null};
+        if(!objPendingLat){objPendingLat=centre.lat;objPendingLng=centre.lng;}
+      }
+      updateObjPinStatus();
+      setObjMapStatus('✓ Zone drawn — fill in the form and click Add Objective');
     }
-    updateObjPinStatus();
-    setObjMapStatus('✓ Zone drawn — fill in the form and click Add Objective');
   });
 
   requestAnimationFrame(()=>objMap.invalidateSize());
@@ -2803,6 +2832,7 @@ function objToolPin(){
 
 function objToolPoly(){
   objPinMode=false;
+  _zoneToolActive=false;  // objective tool, not zone tool
   document.getElementById('omt-pin').classList.remove('active');
   document.getElementById('omt-poly').classList.add('active');
   document.getElementById('omt-circle').classList.remove('active');
@@ -2816,6 +2846,7 @@ function objToolPoly(){
 
 function objToolCircle(){
   objPinMode=false;
+  _zoneToolActive=false;  // objective tool, not zone tool
   document.getElementById('omt-pin').classList.remove('active');
   document.getElementById('omt-poly').classList.remove('active');
   document.getElementById('omt-circle').classList.add('active');
