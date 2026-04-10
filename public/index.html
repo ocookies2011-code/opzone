@@ -1929,20 +1929,87 @@ function showPerkAnim(perk,lat,lng){
 // GPS
 // ════════════════════════════════════════════════════════════════
 let _gpsWatchId=null;
-function startGPS(){
+// ════════════════════════════════════════════════════════════════
+// CAPACITOR NATIVE BACKGROUND GPS
+// Only runs inside the installed Android app — ignored in browser
+// This is what keeps GPS alive on a locked screen
+// ════════════════════════════════════════════════════════════════
+let _capacitorWatcherId=null;
+
+async function startCapacitorGPS(){
+  try{
+    // Only runs inside the real native app
+    if(!window.Capacitor||!window.Capacitor.isNativePlatform())return false;
+    const BackgroundGeolocation=window.Capacitor.registerPlugin('BackgroundGeolocation');
+    _capacitorWatcherId=await BackgroundGeolocation.addWatcher(
+      {
+        backgroundMessage:'Battlefield GPS is tracking your position.',
+        backgroundTitle:"Zulu's Tracker Active",
+        requestPermissions:true,
+        stale:false,
+        distanceFilter:3,
+      },
+      function(location,error){
+        if(error){
+          if(error.code==='NOT_AUTHORIZED'){
+            if(confirm('Location permission needed for GPS tracking.\n\nOpen Settings?')){
+              BackgroundGeolocation.openSettings();
+            }
+          }
+          console.warn('Background GPS error:',error);
+          return;
+        }
+        // Feed directly into the existing GPS system
+        myLat=location.latitude;
+        myLng=location.longitude;
+        myAcc=Math.round(location.accuracy||0);
+        _gpsLastFixAt=Date.now();
+        // Update UI
+        const ls=myLat.toFixed(6),lo=myLng.toFixed(6),ac=myAcc+'m';
+        ['i-lat','gs-lat'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=ls;});
+        ['i-lng','gs-lng'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=lo;});
+        ['i-acc','gs-acc'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=ac;});
+        const ts=document.getElementById('gs-ts');if(ts)ts.textContent=new Date().toLocaleTimeString();
+        if(map&&myId&&players[myId]){players[myId].lat=myLat;players[myId].lng=myLng;updMarker(players[myId],true);}
+        // Send to server
+        if(!mySmokeActive&&ws&&ws.readyState===1){
+          sendWS({type:'location',lat:myLat,lng:myLng,heading:location.bearing||0});
+        }
+        notifySW({type:'GPS_UPDATE',lat:myLat,lng:myLng,heading:location.bearing||0});
+        if(_fieldActive)updateFieldMode();
+      }
+    );
+    console.log('Native background GPS started — ID:',_capacitorWatcherId);
+    toast('📡 Native GPS active','ok');
+    return true;
+  }catch(e){
+    console.warn('Capacitor GPS not available, using web GPS:',e.message);
+    return false;
+  }
+}
+
+async function startGPS(){
   if(!navigator.geolocation){toast('GPS not available','warn');return;}
-  // Clear any previous watch
+
+  // Try native Capacitor background GPS first
+  // This is the ONLY thing that works on a locked screen
+  const nativeOk=await startCapacitorGPS();
+  if(nativeOk){
+    // Native GPS handles everything — still start WS ping to keep connection alive
+    setInterval(()=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify({type:'ping'}));},25000);
+    return;
+  }
+
+  // Fallback: web watchPosition (loses GPS when screen locks — web/browser only)
   if(_gpsWatchId!=null)navigator.geolocation.clearWatch(_gpsWatchId);
-  // maximumAge:0 = always fresh; timeout:Infinity = never time out
-  // This is the most aggressive setting to keep GPS alive
   _gpsWatchId=navigator.geolocation.watchPosition(onGPS,onGPSErr,{
     enableHighAccuracy:true, maximumAge:0, timeout:Infinity
   });
-  // Register periodic sync (Android Chrome — fires even with screen locked)
+  // Register periodic sync (Android Chrome)
   if(swReg){
     swReg.periodicSync&&swReg.periodicSync.register('gps-keepalive',{minInterval:15000}).catch(()=>{});
   }
-  // WS ping every 25s to keep connection alive through NAT/proxies
+  // WS ping every 25s
   setInterval(()=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify({type:'ping'}));},25000);
   // GPS resend and audio keepalive handled by startGPSKeepalive()
 }
