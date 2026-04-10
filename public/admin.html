@@ -617,6 +617,84 @@ body::after{
 .import-zone{border:1px dashed rgba(0,196,255,.2);border-radius:2px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:2px}
 .import-zone:hover{border-color:rgba(0,196,255,.4);color:var(--accent);background:rgba(0,196,255,.03)}
 
+
+/* ═══ LIVE MAP COMMAND STRIP ════════════════════════════════════ */
+.lm-cmd-strip{
+  margin-top:12px;
+  display:grid;
+  grid-template-columns:auto auto auto auto 1fr auto;
+  gap:8px;
+  align-items:start;
+}
+@media(max-width:1100px){.lm-cmd-strip{grid-template-columns:1fr 1fr;}}
+
+.lm-cmd-block{
+  background:rgba(0,0,0,.4);
+  border:1px solid rgba(0,196,255,.08);
+  border-top:1px solid rgba(0,196,255,.18);
+  border-radius:2px;
+  padding:8px 10px;
+  min-width:0;
+}
+.lm-cmd-block.danger-block{border-top-color:rgba(255,42,42,.35);border-color:rgba(255,42,42,.12)}
+.lm-cmd-block.lm-cmd-bcast{grid-column:span 2;}
+.lm-cmd-block.lm-cmd-respawn{grid-column:span 1;}
+
+.lm-cmd-title{
+  font-family:'Share Tech Mono',monospace;
+  font-size:7px;letter-spacing:3px;color:var(--accent);
+  margin-bottom:6px;text-transform:uppercase;
+}
+
+.lm-cmd-btns{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+
+.lm-btn{
+  padding:4px 8px;border-radius:2px;font-size:8px;
+  font-family:'Share Tech Mono',monospace;font-weight:700;
+  letter-spacing:1px;cursor:pointer;border:1px solid;
+  text-transform:uppercase;transition:all .18s;background:transparent;
+  white-space:nowrap;
+}
+.lm-btn.start{border-color:rgba(0,255,136,.5);color:var(--green)}.lm-btn.start:hover{background:rgba(0,255,136,.1)}
+.lm-btn.pause{border-color:rgba(255,170,0,.5);color:var(--warn)}.lm-btn.pause:hover{background:rgba(255,170,0,.1)}
+.lm-btn.resume{border-color:rgba(0,255,136,.4);color:var(--green)}.lm-btn.resume:hover{background:rgba(0,255,136,.08)}
+.lm-btn.end{border-color:rgba(255,42,42,.5);color:var(--red)}.lm-btn.end:hover{background:rgba(255,42,42,.1)}
+.lm-btn.lobby{border-color:rgba(74,96,112,.6);color:var(--dim)}.lm-btn.lobby:hover{color:var(--text);border-color:var(--text)}
+.lm-btn.respawn{border-color:rgba(42,127,255,.5);color:var(--blue)}.lm-btn.respawn:hover{background:rgba(42,127,255,.1)}
+.lm-btn.ceasefire{border-color:rgba(255,255,255,.4);color:#fff;background:rgba(255,255,255,.06)}.lm-btn.ceasefire:hover{background:rgba(255,255,255,.14)}
+.lm-btn.intel-red{border-color:rgba(255,42,42,.4);color:rgba(255,42,42,.9)}.lm-btn.intel-red:hover{background:rgba(255,42,42,.08)}
+.lm-btn.intel-blue{border-color:rgba(42,127,255,.4);color:rgba(42,127,255,.9)}.lm-btn.intel-blue:hover{background:rgba(42,127,255,.08)}
+.lm-btn.blackout{border-color:rgba(120,120,120,.4);color:#aaa}.lm-btn.blackout:hover{background:rgba(100,100,100,.1)}
+.lm-btn.elim-red{border-color:rgba(255,42,42,.6);color:var(--red);background:rgba(255,42,42,.08)}.lm-btn.elim-red:hover{background:rgba(255,42,42,.18)}
+.lm-btn.elim-blue{border-color:rgba(42,127,255,.6);color:var(--blue);background:rgba(42,127,255,.08)}.lm-btn.elim-blue:hover{background:rgba(42,127,255,.18)}
+.lm-btn.bcast{border-color:rgba(232,200,74,.5);color:var(--gold);flex-shrink:0}.lm-btn.bcast:hover{background:rgba(232,200,74,.1)}
+
+.lm-bcast-input{
+  flex:1;background:rgba(0,0,0,.5);border:1px solid var(--border2);
+  border-radius:2px;color:var(--text2);font-family:'Share Tech Mono',monospace;
+  font-size:11px;padding:5px 9px;outline:none;min-width:0;
+  transition:border-color .2s;
+}
+.lm-bcast-input:focus{border-color:var(--gold)}
+
+.lm-respawn-list{
+  display:flex;flex-direction:column;gap:3px;
+  max-height:100px;overflow-y:auto;
+}
+.lm-respawn-row{
+  display:flex;align-items:center;gap:6px;
+  padding:3px 0;font-size:11px;
+}
+.lm-respawn-call{flex:1;font-weight:700;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.5px}
+.lm-respawn-team{font-size:8px;font-family:'Share Tech Mono',monospace;letter-spacing:1px}
+.lm-respawn-btn{
+  background:transparent;border:1px solid rgba(0,255,136,.35);
+  color:var(--green);border-radius:2px;padding:1px 6px;
+  font-size:8px;cursor:pointer;font-family:'Share Tech Mono',monospace;
+  letter-spacing:1px;transition:all .15s;
+}
+.lm-respawn-btn:hover{background:rgba(0,255,136,.1)}
+
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:rgba(0,0,0,.3)}
 ::-webkit-scrollbar-thumb{background:rgba(0,196,255,.15);border-radius:2px}
@@ -751,9 +829,7 @@ body::after{
 .mleg-dot{width:9px;height:9px;border-radius:50%;border:2px solid}
 
 /* Admin perks */
-.aperk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:8px}
-.aperk-card{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:13px;display:flex;flex-direction:column;gap:7px;transition:border-color .2s}
-.aperk-card:hover{border-color:var(--gold2)}
+
 .aperk-head{display:flex;align-items:center;gap:8px}
 .aperk-icon{font-size:22px}
 .aperk-name{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1px}
@@ -924,7 +1000,6 @@ body::after{
       <div class="sbs">Operations</div>
       <div class="sbi active" data-v="overview" onclick="sv(this)"><span class="sico">⬡</span>Overview</div>
       <div class="sbi" data-v="livemap" onclick="sv(this)"><span class="sico">◉</span>Live Map</div>
-      <div class="sbi" data-v="adminperks" onclick="sv(this)"><span class="sico">⚡</span>Tactical Ops</div>
       <div class="sb-divider"></div>
       <div class="sbs">Map Control</div>
       <div class="sbi" data-v="maps" onclick="sv(this)"><span class="sico">▦</span>Maps</div>
@@ -932,8 +1007,7 @@ body::after{
       <div class="sbi" data-v="objectives" onclick="sv(this)"><span class="sico">◎</span>Objectives</div>
       <div class="sbi" data-v="savedmaps" onclick="sv(this)"><span class="sico">◫</span>Saved Maps</div>
       <div class="sb-divider"></div>
-      <div class="sbs">Command</div>
-      <div class="sbi" data-v="broadcast" onclick="sv(this)"><span class="sico">▶</span>Broadcast</div>
+      <div class="sbs">Comms</div>
       <div class="sbi" data-v="log" onclick="sv(this)"><span class="sico">≡</span>Event Log</div>
       <div class="sb-divider"></div>
       <div class="sbs">Admin</div>
@@ -998,45 +1072,64 @@ body::after{
               <div id="lm-variants-list" style="display:flex;flex-wrap:wrap;gap:6px"></div>
             </div>
 
-            <!-- ── INLINE ADMIN CONTROLS ── -->
-            <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <!-- ── COMMAND STRIP ── -->
+            <div class="lm-cmd-strip">
 
-              <!-- Game Controls -->
-              <div style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:10px">
-                <div style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:8px">◈ GAME CONTROLS</div>
-                <div style="display:flex;flex-wrap:wrap;gap:5px">
-                  <button class="abtn sm" onclick="lmPause()" style="background:var(--warn);color:#000">⏸ PAUSE</button>
-                  <button class="abtn sm" onclick="lmResume()" style="background:var(--green);color:#000">▶ RESUME</button>
-                  <button class="abtn sm" onclick="lmReset()" style="background:var(--blue);color:#fff">🔄 RESPAWN ALL</button>
-                  <button class="abtn sm" id="lm-ceasefire-btn" onclick="lmCeasefire()" style="background:#fff;color:#000">🕊 CEASEFIRE</button>
-                  <button class="abtn sm" id="lm-ceasefire-end-btn" onclick="lmCeasefireEnd()" style="background:var(--green);color:#000;display:none">⚔ END CEASEFIRE</button>
+              <!-- Game State -->
+              <div class="lm-cmd-block">
+                <div class="lm-cmd-title">GAME</div>
+                <div class="lm-cmd-btns">
+                  <button class="lm-btn start" onclick="lmStart()">▶ START</button>
+                  <button class="lm-btn pause" onclick="lmPause()">⏸ PAUSE</button>
+                  <button class="lm-btn resume" onclick="lmResume()">▶ GO</button>
+                  <button class="lm-btn end" onclick="lmEnd()">🏁 END</button>
+                  <button class="lm-btn lobby" onclick="lmLobby()">⟳ LOBBY</button>
+                  <button class="lm-btn respawn" onclick="lmReset()">+ REVIVE ALL</button>
                 </div>
               </div>
 
-              <!-- Respawn Individual Players -->
-              <div style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:10px">
-                <div style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:8px">◈ RESPAWN PLAYER</div>
-                <div id="lm-player-respawn-list" style="display:flex;flex-direction:column;gap:4px;max-height:120px;overflow-y:auto">
-                  <div style="font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace">Select a map to see players</div>
+              <!-- Ceasefire -->
+              <div class="lm-cmd-block">
+                <div class="lm-cmd-title">CEASEFIRE</div>
+                <div class="lm-cmd-btns">
+                  <button class="lm-btn ceasefire" id="lm-ceasefire-btn" onclick="lmCeasefire()">🕊 SIGNAL</button>
+                  <button class="lm-btn resume" id="lm-ceasefire-end-btn" onclick="lmCeasefireEnd()" style="display:none">⚔ RESUME</button>
                 </div>
               </div>
 
-              <!-- Intel & Reveals -->
-              <div style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:10px">
-                <div style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:8px">◈ INTEL</div>
-                <div style="display:flex;flex-wrap:wrap;gap:5px">
-                  <button class="abtn sm" onclick="lmPerk('intel_drop','red')" style="border-color:var(--red);color:var(--red)">👁 RED Intel</button>
-                  <button class="abtn sm" onclick="lmPerk('intel_drop','blue')" style="border-color:var(--blue);color:var(--blue)">👁 BLUE Intel</button>
-                  <button class="abtn sm" onclick="lmPerk('blackout')" style="border-color:#666;color:#ccc">⚫ Blackout</button>
+              <!-- Intel -->
+              <div class="lm-cmd-block">
+                <div class="lm-cmd-title">INTEL</div>
+                <div class="lm-cmd-btns">
+                  <button class="lm-btn intel-red" onclick="lmPerk('intel_drop','red')">👁 RED</button>
+                  <button class="lm-btn intel-blue" onclick="lmPerk('intel_drop','blue')">👁 BLUE</button>
+                  <button class="lm-btn blackout" onclick="lmPerk('blackout')">⚫ BLACKOUT</button>
                 </div>
               </div>
 
               <!-- Eliminate -->
-              <div style="background:var(--panel2);border:1px solid var(--red);border-radius:6px;padding:10px">
-                <div style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--red);letter-spacing:2px;margin-bottom:8px">◈ ELIMINATE TEAM</div>
-                <div style="display:flex;flex-wrap:wrap;gap:5px">
-                  <button class="abtn sm" onclick="lmPerk('eliminate_team','red')" style="background:var(--red-d);border-color:var(--red);color:var(--red)">💀 RED</button>
-                  <button class="abtn sm" onclick="lmPerk('eliminate_team','blue')" style="background:var(--blue-d);border-color:var(--blue);color:var(--blue)">💀 BLUE</button>
+              <div class="lm-cmd-block danger-block">
+                <div class="lm-cmd-title" style="color:var(--red)">ELIMINATE</div>
+                <div class="lm-cmd-btns">
+                  <button class="lm-btn elim-red" onclick="lmPerk('eliminate_team','red')">💀 RED</button>
+                  <button class="lm-btn elim-blue" onclick="lmPerk('eliminate_team','blue')">💀 BLUE</button>
+                </div>
+              </div>
+
+              <!-- Broadcast -->
+              <div class="lm-cmd-block lm-cmd-bcast">
+                <div class="lm-cmd-title">BROADCAST</div>
+                <div class="lm-cmd-btns" style="flex-wrap:nowrap">
+                  <input class="lm-bcast-input" id="lm-bcast-txt" placeholder="Message to all players on this map…" maxlength="200" onkeydown="if(event.key==='Enter')lmBcast()">
+                  <button class="lm-btn bcast" onclick="lmBcast()">📡 SEND</button>
+                </div>
+              </div>
+
+              <!-- Respawn Player -->
+              <div class="lm-cmd-block lm-cmd-respawn">
+                <div class="lm-cmd-title">RESPAWN PLAYER</div>
+                <div id="lm-player-respawn-list" class="lm-respawn-list">
+                  <div style="font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace;padding:4px">Select a map above</div>
                 </div>
               </div>
 
@@ -1045,31 +1138,7 @@ body::after{
         </div>
       </div>
 
-      <!-- ADMIN PERKS -->
-      <div id="view-adminperks" class="sh">
-        <div class="ap">
-          <div class="aph"><div class="apt">◈ Select Target Map</div></div>
-          <div class="apb">
-            <div class="rsr"><label>MAP:</label><select class="asel" id="ap-room" style="flex:1"></select></div>
-            <div style="font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace">All admin perk actions are logged. Use responsibly.</div>
-          </div>
-        </div>
-        <div class="ap">
-          <div class="aph"><div class="apt">◈ Admin Tactical Perks</div></div>
-          <div class="apb">
-            <div class="aperk-grid">
-              <div class="aperk-card"><div class="aperk-head"><div class="aperk-icon">👁</div><div class="aperk-name">GOD'S EYE</div></div><div class="aperk-desc">See all players from both teams on the live admin map — players unaware.</div><div class="aperk-btns"><button class="aperk-btn all" onclick="adminPerk('god_eye')">VIEW LIVE MAP</button></div></div>
-              <div class="aperk-card"><div class="aperk-head"><div class="aperk-icon">📦</div><div class="aperk-name">INTEL DROP</div></div><div class="aperk-desc">Reveals all enemy positions to one team for 30 seconds.</div><div class="aperk-btns"><button class="aperk-btn red-t" onclick="adminPerk('intel_drop','red')">→ RED TEAM</button><button class="aperk-btn blue-t" onclick="adminPerk('intel_drop','blue')">→ BLUE TEAM</button></div><div class="aperk-result" id="apr-intel_drop"></div></div>
-              <div class="aperk-card"><div class="aperk-head"><div class="aperk-icon">⚫</div><div class="aperk-name">BLACKOUT</div></div><div class="aperk-desc">Disables GPS map for ALL players for 20 seconds. Total chaos.</div><div class="aperk-btns"><button class="aperk-btn danger" onclick="adminPerk('blackout')">DEPLOY BLACKOUT</button></div><div class="aperk-result" id="apr-blackout"></div></div>
-              <div class="aperk-card"><div class="aperk-head"><div class="aperk-icon">🔴</div><div class="aperk-name">FLARE DROP</div></div><div class="aperk-desc">Place a visible flare on the live map. Visible to all players for 2 minutes.</div><div class="aperk-btns"><button class="aperk-btn all" onclick="goToMapFlare()">OPEN MAP → PLACE FLARE</button></div></div>
-              <div class="aperk-card"><div class="aperk-head"><div class="aperk-icon">🕊</div><div class="aperk-name">CEASEFIRE</div></div><div class="aperk-desc">Fires a ceasefire signal across all maps and broadcasts to all comms.</div><div class="aperk-btns"><button class="aperk-btn all" id="ceasefire-start-btn" onclick="adminPerk('ceasefire')">SIGNAL CEASEFIRE</button><button class="aperk-btn green-b" id="ceasefire-end-btn" onclick="endCeasefire()" style="display:none">▶ CONTINUE GAME</button></div><div class="aperk-result" id="apr-ceasefire"></div></div>
-              <div class="aperk-card" style="border-color:var(--red)"><div class="aperk-head"><div class="aperk-icon">💀</div><div class="aperk-name">MASS ELIMINATE</div></div><div class="aperk-desc">Sets an entire team's status to DEAD. Use for boundary violations.</div><div class="aperk-btns"><button class="aperk-btn red-t" onclick="adminPerk('eliminate_team','red')">ELIMINATE RED</button><button class="aperk-btn blue-t" onclick="adminPerk('eliminate_team','blue')">ELIMINATE BLUE</button></div><div class="aperk-result" id="apr-eliminate_team"></div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- MAPS (Rooms) -->
+            <!-- MAPS (Rooms) -->
       <div id="view-maps" class="sh">
         <div class="ap">
           <div class="aph"><div class="apt">◈ Create New Map</div></div>
@@ -1219,14 +1288,7 @@ body::after{
         </div>
       </div>
 
-      <div id="view-broadcast" class="sh">
-        <div class="ap"><div class="aph"><div class="apt">◈ Broadcast to All Maps</div></div><div class="apb"><div class="brow"><input class="ai" id="ba-txt" placeholder="Message to ALL maps…" maxlength="200"><select class="asel" id="ba-prio"><option value="high">HIGH</option><option value="normal">NORMAL</option><option value="low">LOW</option></select><button class="abtn danger" onclick="broadcastAll2()">📢 ALL</button></div></div></div>
-        <div class="ap"><div class="aph"><div class="apt">◈ Broadcast to Map</div></div><div class="apb"><div class="rsr"><label>MAP:</label><select class="asel" id="br-room" style="flex:1"></select></div><div class="brow"><input class="ai" id="br-txt" placeholder="Message for selected map…" maxlength="200"><select class="asel" id="br-prio"><option value="high">HIGH</option><option value="normal">NORMAL</option><option value="low">LOW</option></select><button class="abtn" onclick="broadcastRoom()">📡 SEND</button></div></div></div>
-        <div class="ap"><div class="aph"><div class="apt">◈ Quick Commands</div></div><div class="apb" style="display:flex;flex-wrap:wrap;gap:7px"><button class="ra pause" onclick="pauseAll2()">⏸ PAUSE ALL</button><button class="ra resume" onclick="resumeAll2()">▶ RESUME ALL</button><button class="ra reset" onclick="resetAll2()">🔄 RESPAWN ALL</button></div></div>
-      </div>
-
-      <!-- SITE ADMINS (super only) -->
-      <div id="view-siteadmins" class="sh">
+            <div id="view-siteadmins" class="sh">
         <div class="ap">
           <div class="aph"><div class="apt">◈ Create Site Admin</div></div>
           <div class="apb">
@@ -1593,7 +1655,7 @@ function sv(el){
   }
   if(currentView==='savedmaps'){populateSelects();loadSavedMaps();}
   if(currentView==='siteadmins')loadSiteAdmins();
-  if(['objectives','broadcast','adminperks','maps'].includes(currentView))populateSelects();
+  if(['objectives','maps','savedmaps','zoneeditor'].includes(currentView))populateSelects();
   if(currentView==='players')loadPlayerAccounts();
   if(currentView==='databackup')loadDataSummary();
   if(currentView==='database')loadDbStatus();
@@ -2048,6 +2110,17 @@ async function lmResume(){const c=lmCode();if(!c){toast('Select a map','err');re
 async function lmReset(){const c=lmCode();if(!c){toast('Select a map','err');return;}if(!confirm('Respawn ALL players?'))return;const r=await apiFetch(`/api/admin/rooms/${c}/reset`,{method:'POST'});if(r.ok){toast('🔄 All players respawned','ok');renderLmPlayerRespawnList();}else toast('Error','err');}
 async function lmCeasefire(){const c=lmCode();if(!c){toast('Select a map','err');return;}const r=await apiFetch(`/api/admin/rooms/${c}/perk`,{method:'POST',body:JSON.stringify({perk:'ceasefire'})});if(r.ok){toast('🕊 Ceasefire signalled','ok');document.getElementById('lm-ceasefire-btn').style.display='none';document.getElementById('lm-ceasefire-end-btn').style.display='';}else toast('Error','err');}
 async function lmCeasefireEnd(){const c=lmCode();if(!c){toast('Select a map','err');return;}const r=await apiFetch(`/api/admin/rooms/${c}/ceasefire-end`,{method:'POST'});if(r.ok){toast('⚔ Ceasefire ended','ok');document.getElementById('lm-ceasefire-btn').style.display='';document.getElementById('lm-ceasefire-end-btn').style.display='none';}else toast('Error','err');}
+async function lmStart(){const c=lmCode();if(!c){toast('Select a map first','err');return;}const r=await apiFetch(`/api/admin/rooms/${c}/start`,{method:'POST'});if(r.ok)toast('▶ Countdown started','ok');else toast('Error','err');}
+async function lmEnd(){const c=lmCode();if(!c){toast('Select a map first','err');return;}if(!confirm('End game on '+c+'?'))return;const r=await apiFetch(`/api/admin/rooms/${c}/end-game`,{method:'POST',body:JSON.stringify({reason:'Admin ended game'})});if(r.ok){toast('🏁 Game ended','ok');loadData();}else toast('Error','err');}
+async function lmLobby(){const c=lmCode();if(!c){toast('Select a map first','err');return;}const r=await apiFetch(`/api/admin/rooms/${c}/lobby`,{method:'POST'});if(r.ok){toast('🔄 Returned to lobby','ok');loadData();}else toast('Error','err');}
+async function lmBcast(){
+  const c=lmCode();if(!c){toast('Select a map first','err');return;}
+  const txt=(document.getElementById('lm-bcast-txt')||{}).value?.trim();
+  if(!txt){toast('Enter a message','err');return;}
+  const r=await apiFetch(`/api/admin/rooms/${c}/broadcast`,{method:'POST',body:JSON.stringify({text:txt,priority:'high'})});
+  if(r.ok){toast('📡 Broadcast sent','ok');document.getElementById('lm-bcast-txt').value='';}
+  else toast('Error','err');
+}
 async function lmPerk(perk,team){const c=lmCode();if(!c){toast('Select a map','err');return;}if(perk==='blackout'&&!confirm('Blackout all players?'))return;if(perk==='eliminate_team'&&!confirm('Eliminate '+team.toUpperCase()+' team?'))return;const body={perk};if(team)body.team=team;const r=await apiFetch(`/api/admin/rooms/${c}/perk`,{method:'POST',body:JSON.stringify(body)});if(r.ok){const d=await r.json();toast(d.message||'Done','ok');}else toast('Error','err');}
 
 async function lmRespawnPlayer(pid,name){
@@ -2062,14 +2135,15 @@ async function lmRespawnPlayer(pid,name){
 function renderLmPlayerRespawnList(){
   const el=document.getElementById('lm-player-respawn-list');if(!el)return;
   const ps=Object.values(liveMapPlayers);
-  if(!ps.length){el.innerHTML='<div style="font-size:9px;color:var(--dim);font-family:\'Share Tech Mono\',monospace">No players online</div>';return;}
+  if(!ps.length){el.innerHTML='<div style="font-size:9px;color:var(--dim);font-family:Share Tech Mono,monospace;padding:4px">No players online</div>';return;}
   el.innerHTML=ps.map(p=>{
-    const col=p.team==='red'?'var(--red)':'var(--blue)';
-    const isDead=p.status==='dead';
-    return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid var(--border)">
-      <div style="width:6px;height:6px;border-radius:50%;background:${col};flex-shrink:0"></div>
-      <span style="font-family:'Share Tech Mono',monospace;font-size:9px;flex:1;color:${isDead?'var(--red)':'var(--text)'}">${esc(p.callsign)} ${isDead?'☠':''}</span>
-      <button onclick="lmRespawnPlayer('${p.id}','${esc(p.callsign)}')" style="background:transparent;border:1px solid var(--green);color:var(--green);border-radius:2px;padding:1px 5px;font-size:8px;cursor:pointer;font-family:'Share Tech Mono',monospace;${isDead?'':'opacity:.4'}">RESPAWN</button>
+    const isDead=p.status!=='alive';
+    const teamCol=p.team==='red'?'var(--red)':'var(--blue)';
+    return `<div class="lm-respawn-row">
+      <div style="width:6px;height:6px;border-radius:50%;background:${teamCol};flex-shrink:0"></div>
+      <span class="lm-respawn-call" style="color:${isDead?'var(--red)':'var(--text2)'}">${esc(p.callsign)}${isDead?' ☠':''}</span>
+      <span class="lm-respawn-team" style="color:${teamCol}">${p.team.toUpperCase()}</span>
+      <button class="lm-respawn-btn" onclick="lmRespawnPlayer('${p.id}','${esc(p.callsign)}')" style="${isDead?'':'opacity:.35'}">↺</button>
     </div>`;
   }).join('');
 }
