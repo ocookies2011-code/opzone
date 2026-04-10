@@ -1,0 +1,26 @@
+{
+  "name": "Swindon Airsoft Tracker",
+  "short_name": "Zulu Tracker",
+  "description": "Real-time tactical GPS tracker for Swindon Airsoft",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#04060a",
+  "theme_color": "#04060a",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "sports"],
+  "lang": "en-GB"
+}
