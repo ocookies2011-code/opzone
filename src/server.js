@@ -1493,6 +1493,89 @@ app.get('/api/admin/events', adminAuth, (_, res) => res.json(eventLog.slice(-100
 // ════════════════════════════════════════════════════════════════════
 // REST — Data Export / Import (super admin only — for backup/restore)
 // ════════════════════════════════════════════════════════════════════
+// ── DB Admin — status + migrations (super admin only) ─────────────
+app.get('/api/admin/db-status', superAdminAuth, async (req, res) => {
+  const status = {
+    connected: !!db,
+    storage: db ? 'postgresql' : 'file',
+    databaseUrl: process.env.DATABASE_URL ? '✓ Set (hidden)' : '✗ Not set — using file storage',
+    uptime: Math.floor(process.uptime()),
+    rooms: Object.keys(rooms).length,
+    players: Object.keys(playerAccounts).length,
+    savedMaps: Object.keys(savedMaps).length,
+    siteAdmins: Object.keys(siteAdmins).length,
+  };
+  if (db) {
+    try {
+      const r = await db.query("SELECT COUNT(*) as cnt FROM kv_store");
+      status.kvRows = parseInt(r.rows[0].cnt);
+      const r2 = await db.query("SELECT version()");
+      status.pgVersion = r2.rows[0].version.split(' ').slice(0,2).join(' ');
+    } catch(e) { status.dbError = e.message; }
+  }
+  res.json(status);
+});
+
+app.post('/api/admin/db-migrate', superAdminAuth, async (req, res) => {
+  if (!db) return res.status(400).json({ error: 'No DATABASE_URL set — cannot run migrations on file storage.' });
+  const results = [];
+  try {
+    // Create kv_store if not exists
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS kv_store (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+    results.push({ step: 'kv_store table', status: 'ok' });
+
+    // Create index on key for fast lookups
+    await db.query(`CREATE INDEX IF NOT EXISTS kv_store_key_idx ON kv_store(key)`);
+    results.push({ step: 'kv_store index', status: 'ok' });
+
+    // Verify table is writable
+    await db.query(`INSERT INTO kv_store(key,value,updated_at) VALUES('__migration_test__','1',NOW()) ON CONFLICT(key) DO UPDATE SET value='1',updated_at=NOW()`);
+    await db.query(`DELETE FROM kv_store WHERE key='__migration_test__'`);
+    results.push({ step: 'write test', status: 'ok' });
+
+    // Push all current in-memory data to DB
+    let pushed = 0;
+    const pushAll = async (collection, data) => {
+      for (const [k, v] of Object.entries(data)) {
+        await dbSet(collection + ':' + k, v);
+        pushed++;
+      }
+    };
+    await pushAll('site-admins', siteAdmins);
+    await pushAll('saved-maps', savedMaps);
+    await pushAll('room-templates', roomTemplates);
+    await pushAll('player-accounts', playerAccounts);
+    results.push({ step: `sync in-memory data to DB (${pushed} records)`, status: 'ok' });
+
+    res.json({ ok: true, results });
+  } catch(e) {
+    results.push({ step: 'error', status: e.message });
+    res.status(500).json({ ok: false, results, error: e.message });
+  }
+});
+
+// Force reconnect to DB (useful after setting DATABASE_URL)
+app.post('/api/admin/db-reconnect', superAdminAuth, async (req, res) => {
+  if (!process.env.DATABASE_URL) return res.status(400).json({ error: 'DATABASE_URL not set' });
+  try {
+    const { Pool } = require('pg');
+    if (db) try { await db.end(); } catch {}
+    db = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+    await db.query('SELECT 1');
+    await loadDBData();
+    res.json({ ok: true, message: 'Reconnected to PostgreSQL successfully' });
+  } catch(e) {
+    db = null;
+    res.status(500).json({ error: 'Reconnect failed: ' + e.message });
+  }
+});
+
 app.get('/api/admin/export', superAdminAuth, (_, res) => {
   // Export everything in one JSON blob for backup
   const exportData = {
