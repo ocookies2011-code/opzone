@@ -9,12 +9,618 @@
 <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"/>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
-:root{--bg:#04060a;--bg2:#07090f;--panel:#0a1018;--panel2:#101820;--border:#152030;--gold:#e8c84a;--gold2:#c8a820;--red:#ff2a2a;--red-d:rgba(255,42,42,.15);--blue:#2a7fff;--blue-d:rgba(42,127,255,.15);--green:#00cc66;--warn:#ffaa00;--text:#b8ccd8;--dim:#3a5060;--purple:#cc44ff;--accent:#00c4ff}
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;600;700;900&family=VT323&display=swap');
+
+/* ═══════════════════════════════════════════════════════════════
+   SWINDON AIRSOFT — COMMAND & CONTROL CENTRE
+   Design: Military NORAD / Deep Space Operations aesthetic
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  --bg:#010508;
+  --bg2:#030a10;
+  --panel:#050e18;
+  --panel2:#071420;
+  --border:#0d2535;
+  --border2:#1a3a50;
+  --gold:#e8c84a;
+  --gold2:#c8a820;
+  --red:#ff2a2a;
+  --red-d:rgba(255,42,42,.12);
+  --blue:#2a7fff;
+  --blue-d:rgba(42,127,255,.12);
+  --green:#00ff88;
+  --green2:#00cc66;
+  --warn:#ffaa00;
+  --text:#8fb8cc;
+  --text2:#c8dde8;
+  --dim:#2a4555;
+  --purple:#cc44ff;
+  --accent:#00d4ff;
+  --accent2:#0088bb;
+  --scan:#00ff88;
+  --danger:#ff3344;
+}
+
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif}
-body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,196,255,.016) 3px,rgba(0,196,255,.016) 4px);pointer-events:none;z-index:9000}
-body::after{content:'';position:fixed;top:0;left:0;right:0;height:280px;background:radial-gradient(ellipse 100% 100% at 50% 0%,rgba(0,196,255,.045) 0%,transparent 70%);pointer-events:none;z-index:8999}
+
+html,body{
+  height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Rajdhani',sans-serif;
+  overflow:hidden;
+}
+
+/* ── Layered atmosphere ───────────────────────────────────────── */
+/* Layer 1: hex dot grid */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:
+    radial-gradient(circle,rgba(0,196,255,.08) 1px,transparent 1px);
+  background-size:28px 28px;
+  pointer-events:none;
+  z-index:9001;
+}
+/* Layer 2: scanlines */
+body::after{
+  content:'';
+  position:fixed;inset:0;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent,transparent 2px,
+    rgba(0,0,0,.18) 2px,rgba(0,0,0,.18) 4px
+  );
+  pointer-events:none;
+  z-index:9002;
+  animation:scanMove 8s linear infinite;
+}
+@keyframes scanMove{
+  0%{background-position:0 0}
+  100%{background-position:0 100px}
+}
+
+/* ── Ambient radial glow at top ───────────────────────────────── */
+#cc-glow{
+  position:fixed;top:0;left:0;right:0;height:320px;
+  background:radial-gradient(ellipse 80% 100% at 50% -10%,rgba(0,180,255,.06) 0%,transparent 70%);
+  pointer-events:none;z-index:8998;
+}
+
+/* ═══ LOGIN SCREEN ════════════════════════════════════════════════ */
+#ls{
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 60% 60% at 50% 30%,rgba(0,140,220,.08) 0%,transparent 70%),
+    var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  z-index:5000;flex-direction:column;gap:24px;padding:24px;
+}
+#ls.h{display:none}
+
+/* Login: rotating radar ring behind the logo */
+.lg-radar{
+  position:relative;width:180px;height:180px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:8px;
+}
+.lg-radar-ring{
+  position:absolute;inset:0;border-radius:50%;
+  border:1px solid rgba(0,196,255,.15);
+}
+.lg-radar-ring:nth-child(2){inset:20px;border-color:rgba(0,196,255,.1);}
+.lg-radar-ring:nth-child(3){inset:40px;border-color:rgba(0,196,255,.08);}
+.lg-radar-sweep{
+  position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg,rgba(0,255,136,.12) 0deg 30deg,transparent 30deg);
+  animation:radarSpin 3s linear infinite;
+}
+@keyframes radarSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.lg-radar-cross{
+  position:absolute;inset:0;
+  background:
+    linear-gradient(90deg,transparent calc(50% - .5px),rgba(0,196,255,.2) calc(50% - .5px),rgba(0,196,255,.2) calc(50% + .5px),transparent calc(50% + .5px)),
+    linear-gradient(0deg,transparent calc(50% - .5px),rgba(0,196,255,.2) calc(50% - .5px),rgba(0,196,255,.2) calc(50% + .5px),transparent calc(50% + .5px));
+}
+.lg-radar-inner{
+  position:relative;z-index:1;
+  font-family:'Orbitron',monospace;font-size:11px;font-weight:900;
+  color:var(--accent);letter-spacing:2px;text-align:center;
+  text-shadow:0 0 20px var(--accent),0 0 40px rgba(0,196,255,.3);
+}
+
+.lg-logo{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:var(--gold);letter-spacing:5px;text-shadow:0 0 30px rgba(232,200,74,.6),0 0 60px rgba(232,200,74,.15);text-align:center}
+.lg-sub{font-size:9px;letter-spacing:4px;color:var(--dim);font-family:'Share Tech Mono',monospace;text-align:center;margin-top:-8px}
+.lg-card{
+  background:
+    linear-gradient(135deg,rgba(5,14,24,.98) 0%,rgba(7,20,32,.95) 100%);
+  border:1px solid rgba(0,196,255,.18);
+  border-top:1px solid rgba(0,196,255,.35);
+  border-radius:2px;
+  padding:28px 24px;width:100%;max-width:360px;
+  display:flex;flex-direction:column;gap:16px;
+  box-shadow:0 0 60px rgba(0,0,0,.9),0 0 30px rgba(0,196,255,.06),inset 0 1px 0 rgba(0,196,255,.08);
+  position:relative;
+}
+.lg-card::before{
+  content:'AUTHENTICATION REQUIRED';
+  position:absolute;top:-9px;left:16px;
+  font-family:'Share Tech Mono',monospace;font-size:8px;
+  color:var(--accent);letter-spacing:3px;
+  background:var(--panel);padding:0 8px;
+}
+.lgt{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:4px;color:var(--text);text-transform:uppercase;text-align:center;padding-bottom:14px;border-bottom:1px solid var(--border2)}
+.lgf label{font-size:8px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace;display:block;margin-bottom:5px}
+.lgf input{
+  background:rgba(0,0,0,.5);
+  border:1px solid var(--border2);
+  border-radius:2px;
+  color:var(--accent);
+  font-family:'Share Tech Mono',monospace;font-size:13px;
+  padding:10px 12px;outline:none;width:100%;
+  transition:border-color .2s,box-shadow .2s;
+  caret-color:var(--accent);
+}
+.lgf input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,196,255,.08),inset 0 0 8px rgba(0,196,255,.04)}
+.lg-btn{
+  background:linear-gradient(135deg,rgba(0,180,255,.15) 0%,rgba(0,140,200,.08) 100%);
+  color:var(--accent);
+  border:1px solid rgba(0,196,255,.4);
+  border-radius:2px;padding:13px;
+  font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:3px;
+  cursor:pointer;width:100%;transition:all .2s;text-transform:uppercase;
+  position:relative;overflow:hidden;
+}
+.lg-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.04) 0%,transparent 50%)}
+.lg-btn:hover{background:linear-gradient(135deg,rgba(0,196,255,.2) 0%,rgba(0,150,210,.12) 100%);box-shadow:0 0 20px rgba(0,196,255,.15);border-color:rgba(0,196,255,.7)}
+.lg-err{font-size:10px;color:var(--danger);text-align:center;font-family:'Share Tech Mono',monospace;display:none;letter-spacing:1px}
+.lg-err.show{display:block}
+.lg-err::before{content:'⚠ '}
+
+/* ═══ MAIN APP SHELL ══════════════════════════════════════════════ */
+#aa{display:none;height:100%;flex-direction:column}
+#aa.v{display:flex}
+
+/* ── Header / Top Bar ─────────────────────────────────────────── */
+.ah{
+  background:linear-gradient(90deg,#010508 0%,rgba(5,14,24,.99) 40%,rgba(5,14,24,.99) 60%,#010508 100%);
+  border-bottom:1px solid rgba(0,196,255,.18);
+  box-shadow:0 0 30px rgba(0,0,0,.9),0 1px 0 rgba(0,196,255,.08);
+  padding:0 20px;height:52px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;position:relative;overflow:hidden;
+}
+/* animated top-border scan line */
+.ah::before{
+  content:'';position:absolute;top:0;left:-100%;width:60%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  animation:headerScan 4s ease-in-out infinite;
+}
+@keyframes headerScan{0%{left:-60%}100%{left:160%}}
+
+.ah-left{display:flex;align-items:center;gap:16px}
+.ah-logo-wrap{display:flex;flex-direction:column}
+.al{font-family:'Orbitron',monospace;font-size:15px;font-weight:900;color:var(--gold);letter-spacing:4px;text-shadow:0 0 20px rgba(232,200,74,.4),0 0 40px rgba(232,200,74,.12);line-height:1}
+.as{font-size:7px;letter-spacing:3px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-top:3px}
+.ah-divider{width:1px;height:30px;background:linear-gradient(180deg,transparent,var(--border2),transparent)}
+.ah-status{display:flex;flex-direction:column;gap:2px}
+.ah-status-row{display:flex;align-items:center;gap:6px;font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);letter-spacing:1px}
+.ah-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:blink 2s infinite}
+.ah-dot.warn{background:var(--warn)}
+.ah-dot.off{background:var(--red);animation:none}
+
+.ahr{display:flex;align-items:center;gap:10px}
+.role-badge{font-family:'Share Tech Mono',monospace;font-size:8px;padding:3px 10px;border-radius:2px;border:1px solid rgba(204,68,255,.35);color:rgba(204,68,255,.8);letter-spacing:2px;text-transform:uppercase}
+.role-badge.super{border-color:rgba(232,200,74,.4);color:var(--gold)}
+.apill{font-family:'Share Tech Mono',monospace;font-size:8px;padding:3px 9px;border-radius:2px;border:1px solid rgba(0,255,136,.3);color:var(--green);letter-spacing:1px}
+.aclk{font-family:'VT323',monospace;font-size:18px;color:var(--accent);letter-spacing:2px;text-shadow:0 0 8px rgba(0,196,255,.4)}
+.lout{
+  background:transparent;border:1px solid rgba(255,42,42,.3);
+  color:rgba(255,42,42,.7);border-radius:2px;padding:5px 12px;
+  font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;
+  cursor:pointer;text-transform:uppercase;transition:all .2s;
+}
+.lout:hover{background:rgba(255,42,42,.1);border-color:var(--red);color:var(--red)}
+
+/* ── Ticker tape below header ─────────────────────────────────── */
+.cc-ticker{
+  height:22px;flex-shrink:0;
+  background:rgba(0,0,0,.6);
+  border-bottom:1px solid rgba(0,196,255,.08);
+  overflow:hidden;display:flex;align-items:center;position:relative;
+}
+.cc-ticker-label{
+  flex-shrink:0;padding:0 12px;height:100%;
+  display:flex;align-items:center;
+  background:linear-gradient(90deg,rgba(0,196,255,.12),rgba(0,196,255,.06));
+  border-right:1px solid rgba(0,196,255,.15);
+  font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--accent);letter-spacing:3px;
+}
+.cc-ticker-scroll{
+  display:flex;align-items:center;gap:0;
+  white-space:nowrap;
+  animation:tickerScroll 30s linear infinite;
+  font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:1px;
+  padding-left:20px;
+}
+@keyframes tickerScroll{
+  0%{transform:translateX(0)}
+  100%{transform:translateX(-50%)}
+}
+.tk-sep{color:rgba(0,196,255,.3);margin:0 20px}
+#ticker-content{display:contents}
+
+/* ── Body layout ──────────────────────────────────────────────── */
+.ab{flex:1;display:flex;overflow:hidden;min-height:0}
+
+/* ═══ SIDEBAR ══════════════════════════════════════════════════════ */
+.sb{
+  width:200px;flex-shrink:0;
+  background:linear-gradient(180deg,#020710 0%,#010508 100%);
+  border-right:1px solid rgba(0,196,255,.1);
+  display:flex;flex-direction:column;
+  overflow-y:auto;overflow-x:hidden;
+  position:relative;
+}
+/* vertical glow line on sidebar right edge */
+.sb::after{
+  content:'';position:absolute;top:0;right:0;width:1px;height:100%;
+  background:linear-gradient(180deg,transparent 0%,rgba(0,196,255,.2) 30%,rgba(0,196,255,.08) 70%,transparent 100%);
+}
+.sbs{
+  padding:14px 14px 6px;
+  font-size:7px;letter-spacing:4px;color:rgba(0,196,255,.3);
+  text-transform:uppercase;font-family:'Share Tech Mono',monospace;
+  border-bottom:1px solid rgba(0,196,255,.05);margin-bottom:4px;
+}
+.sbi{
+  padding:10px 16px;cursor:pointer;
+  font-size:12px;font-weight:600;letter-spacing:1px;
+  color:var(--dim);
+  display:flex;align-items:center;gap:10px;
+  transition:all .18s;
+  border-left:2px solid transparent;
+  border-bottom:1px solid rgba(0,0,0,.2);
+  position:relative;font-family:'Rajdhani',sans-serif;
+  text-transform:uppercase;
+}
+.sbi:hover{
+  color:var(--text);
+  background:linear-gradient(90deg,rgba(0,196,255,.05) 0%,transparent 100%);
+  border-left-color:rgba(0,196,255,.2);
+}
+.sbi.active{
+  color:var(--accent);
+  background:linear-gradient(90deg,rgba(0,196,255,.1) 0%,rgba(0,196,255,.02) 100%);
+  border-left-color:var(--accent);
+  text-shadow:0 0 10px rgba(0,196,255,.3);
+}
+.sbi.active::after{
+  content:'▶';position:absolute;right:12px;
+  font-size:7px;color:rgba(0,196,255,.4);
+}
+.sico{font-size:13px;line-height:1;flex-shrink:0;filter:grayscale(.4)}
+.sbi.active .sico{filter:none}
+.sbi.super-only{display:none}
+.is-super .sbi.super-only{display:flex}
+.ap.super-only{display:none}
+.is-super .ap.super-only{display:block}
+
+/* sidebar section divider */
+.sb-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(0,196,255,.12),transparent);margin:4px 0}
+
+/* ═══ CONTENT AREA ══════════════════════════════════════════════ */
+.ac{
+  flex:1;overflow-y:auto;padding:16px;
+  display:flex;flex-direction:column;gap:14px;
+  background:
+    radial-gradient(ellipse 60% 30% at 70% 0%,rgba(0,140,200,.025) 0%,transparent 60%);
+}
+
+/* ── Panels ───────────────────────────────────────────────────── */
+.ap{
+  background:linear-gradient(145deg,rgba(5,14,24,.95) 0%,rgba(3,10,18,.98) 100%);
+  border:1px solid rgba(0,196,255,.1);
+  border-top:1px solid rgba(0,196,255,.2);
+  border-radius:2px;
+  position:relative;
+  box-shadow:0 4px 20px rgba(0,0,0,.5),inset 0 1px 0 rgba(0,196,255,.05);
+}
+.ap::before{
+  content:'';position:absolute;top:0;right:0;width:40px;height:40px;
+  background:linear-gradient(225deg,rgba(0,196,255,.04) 0%,transparent 60%);
+  pointer-events:none;
+}
+.aph{
+  padding:10px 16px;
+  border-bottom:1px solid rgba(0,196,255,.08);
+  background:linear-gradient(90deg,rgba(0,196,255,.04) 0%,transparent 60%);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:6px;
+}
+.apt{
+  font-family:'Share Tech Mono',monospace;
+  font-size:9px;letter-spacing:3px;color:var(--accent);
+  text-transform:uppercase;text-shadow:0 0 8px rgba(0,196,255,.3);
+}
+.apt::before{content:'◈ ';color:rgba(0,196,255,.4)}
+.apb{padding:14px}
+.sh{display:none}
+.empty{text-align:center;padding:24px;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px}
+
+/* ── Stats grid ───────────────────────────────────────────────── */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.sc{
+  background:linear-gradient(145deg,rgba(5,18,30,.9) 0%,rgba(3,12,20,.95) 100%);
+  border:1px solid rgba(0,196,255,.1);
+  border-top:1px solid rgba(0,196,255,.2);
+  border-radius:2px;padding:14px 10px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.sc::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(0,196,255,.15),transparent);
+}
+.sn{font-family:'Orbitron',monospace;font-size:28px;font-weight:700;line-height:1;text-shadow:0 0 20px currentColor}
+.sl{font-size:8px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-top:6px;font-family:'Share Tech Mono',monospace}
+.gc{color:var(--green)}.rc{color:var(--red)}.bc{color:var(--blue)}.gdc{color:var(--gold)}.wc{color:var(--warn)}.pc2{color:var(--purple)}
+
+/* ── Room cards ───────────────────────────────────────────────── */
+.rg{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.rcard{
+  background:linear-gradient(145deg,rgba(5,14,24,.95) 0%,rgba(3,10,18,.98) 100%);
+  border:1px solid rgba(0,196,255,.1);
+  border-top:1px solid rgba(0,196,255,.22);
+  border-radius:2px;overflow:hidden;
+  transition:border-color .2s,box-shadow .2s;
+  position:relative;
+}
+.rcard:hover{border-color:rgba(0,196,255,.3);box-shadow:0 0 20px rgba(0,196,255,.06)}
+.rch{
+  padding:10px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid rgba(0,196,255,.08);
+  background:linear-gradient(90deg,rgba(0,196,255,.06) 0%,transparent 70%);
+}
+.rcc{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--gold);letter-spacing:3px;text-shadow:0 0 10px rgba(232,200,74,.3)}
+.rcn{font-size:11px;color:var(--text2);font-weight:600;margin-top:2px;letter-spacing:.5px}
+.rcm{font-size:8px;color:var(--dim);font-family:'Share Tech Mono',monospace}
+.rct{display:flex;gap:6px;padding:7px 14px;border-bottom:1px solid rgba(0,0,0,.3);align-items:center;flex-wrap:wrap;background:rgba(0,0,0,.2)}
+.tp{padding:2px 9px;border-radius:2px;font-size:8px;font-weight:700;letter-spacing:2px;font-family:'Share Tech Mono',monospace}
+.tp.red{background:rgba(255,42,42,.1);color:var(--red);border:1px solid rgba(255,42,42,.25)}
+.tp.blue{background:rgba(42,127,255,.1);color:var(--blue);border:1px solid rgba(42,127,255,.25)}
+.pbg{font-size:8px;padding:2px 7px;border-radius:2px;background:rgba(255,170,0,.1);color:var(--warn);border:1px solid rgba(255,170,0,.3);font-family:'Share Tech Mono',monospace}
+.lkbg{font-size:8px;padding:2px 7px;border-radius:2px;background:rgba(204,68,255,.1);color:var(--purple);border:1px solid rgba(204,68,255,.3);font-family:'Share Tech Mono',monospace}
+.rpl{padding:7px 14px;max-height:120px;overflow-y:auto}
+.pr{display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:12px}
+.pr:last-child{border-bottom:none}
+.prd{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.prc{font-weight:700;flex:1}
+.prt{font-size:8px;font-family:'Share Tech Mono',monospace;letter-spacing:1px}
+.prt.red{color:var(--red)}.prt.blue{color:var(--blue)}
+.prs{font-size:8px;padding:1px 5px;border-radius:2px;font-family:'Share Tech Mono',monospace}
+.prs.alive{background:rgba(0,255,136,.08);color:var(--green)}
+.prs.dead{background:rgba(255,42,42,.08);color:var(--red)}
+.prs.medic{background:rgba(255,170,0,.08);color:var(--warn)}
+.prs.support{background:rgba(42,127,255,.08);color:var(--blue)}
+.pkbtn{background:transparent;border:1px solid rgba(255,42,42,.3);color:rgba(255,42,42,.7);border-radius:2px;padding:1px 6px;font-size:8px;cursor:pointer;font-family:'Share Tech Mono',monospace;transition:all .2s;letter-spacing:1px}
+.pkbtn:hover{background:rgba(255,42,42,.1);border-color:var(--red);color:var(--red)}
+.rca{padding:8px 14px;display:flex;flex-wrap:wrap;gap:5px;background:rgba(0,0,0,.25);border-top:1px solid rgba(0,0,0,.4)}
+.ra{padding:4px 9px;border-radius:2px;font-size:9px;font-weight:700;letter-spacing:1px;cursor:pointer;border:1px solid;text-transform:uppercase;transition:all .2s;font-family:'Share Tech Mono',monospace;background:transparent}
+.ra:hover{opacity:.85}
+.ra.pause{border-color:rgba(255,170,0,.4);color:var(--warn)}.ra.pause:hover{background:rgba(255,170,0,.08)}
+.ra.resume{border-color:rgba(0,255,136,.4);color:var(--green)}.ra.resume:hover{background:rgba(0,255,136,.08)}
+.ra.reset{border-color:rgba(42,127,255,.4);color:var(--blue)}.ra.reset:hover{background:rgba(42,127,255,.08)}
+.ra.del{border-color:rgba(255,42,42,.4);color:rgba(255,42,42,.8)}.ra.del:hover{background:rgba(255,42,42,.08)}
+.ra.bcast{border-color:rgba(232,200,74,.4);color:var(--gold)}.ra.bcast:hover{background:rgba(232,200,74,.08)}
+.ra.map{border-color:rgba(204,68,255,.4);color:var(--purple)}.ra.map:hover{background:rgba(204,68,255,.08)}
+.ra.start-btn{border-color:rgba(0,255,136,.5);color:var(--green);font-weight:900}.ra.start-btn:hover{background:rgba(0,255,136,.1)}
+
+/* ── Inputs ───────────────────────────────────────────────────── */
+.ai{
+  flex:1;background:rgba(0,0,0,.5);
+  border:1px solid var(--border2);border-radius:2px;
+  color:var(--text2);font-family:'Rajdhani',sans-serif;font-size:13px;
+  padding:8px 11px;outline:none;transition:border-color .2s,box-shadow .2s;min-width:0;
+}
+.ai:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,196,255,.06)}
+.ai-sm{font-size:11px;padding:6px 9px}
+.asel{
+  background:rgba(0,0,0,.5);border:1px solid var(--border2);border-radius:2px;
+  color:var(--text);font-size:10px;padding:6px 8px;outline:none;cursor:pointer;
+  font-family:'Share Tech Mono',monospace;letter-spacing:.5px;
+}
+.abtn{
+  background:linear-gradient(135deg,rgba(0,196,255,.12) 0%,rgba(0,140,200,.06) 100%);
+  color:var(--accent);border:1px solid rgba(0,196,255,.3);border-radius:2px;
+  padding:8px 14px;font-family:'Share Tech Mono',monospace;
+  font-size:9px;font-weight:700;letter-spacing:2px;cursor:pointer;
+  text-transform:uppercase;white-space:nowrap;transition:all .2s;flex-shrink:0;
+}
+.abtn:hover{background:linear-gradient(135deg,rgba(0,196,255,.2) 0%,rgba(0,150,210,.12) 100%);border-color:rgba(0,196,255,.6);box-shadow:0 0 12px rgba(0,196,255,.1)}
+.abtn.danger{background:linear-gradient(135deg,rgba(255,42,42,.12) 0%,rgba(200,20,20,.06) 100%);color:var(--red);border-color:rgba(255,42,42,.3)}
+.abtn.danger:hover{background:rgba(255,42,42,.18);box-shadow:0 0 12px rgba(255,42,42,.1)}
+.abtn.blue-b{background:linear-gradient(135deg,rgba(42,127,255,.12) 0%,transparent 100%);color:var(--blue);border-color:rgba(42,127,255,.3)}
+.abtn.green-b{background:linear-gradient(135deg,rgba(0,255,136,.12) 0%,transparent 100%);color:var(--green);border-color:rgba(0,255,136,.3)}
+.abtn.purple-b{background:linear-gradient(135deg,rgba(204,68,255,.12) 0%,transparent 100%);color:var(--purple);border-color:rgba(204,68,255,.3)}
+.abtn.sm{padding:5px 9px;font-size:8px}
+.brow{display:flex;gap:7px;margin-bottom:10px;align-items:center;flex-wrap:wrap}
+.rsr{display:flex;gap:8px;margin-bottom:12px;align-items:center}
+.rsr label{font-size:9px;letter-spacing:2px;color:var(--dim);font-family:'Share Tech Mono',monospace;white-space:nowrap}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.form-field{display:flex;flex-direction:column;gap:4px}
+.form-label{font-size:8px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;font-family:'Share Tech Mono',monospace}
+
+/* ── Live map ─────────────────────────────────────────────────── */
+#live-map{height:460px;border-radius:2px;overflow:hidden;border:1px solid rgba(0,196,255,.12)}
+.leaflet-container{background:#020810!important}
+.leaflet-tile{filter:brightness(.55) saturate(.4) hue-rotate(160deg)}
+.leaflet-control-zoom a,.leaflet-draw-toolbar a{background:var(--panel)!important;color:var(--text)!important;border-color:var(--border2)!important}
+.apm{border-radius:50%;border:2.5px solid;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:bold;font-family:'Share Tech Mono',monospace;position:relative}
+.apm.red{border-color:var(--red);background:rgba(255,42,42,.15);color:var(--red);box-shadow:0 0 8px rgba(255,42,42,.3)}
+.apm.blue{border-color:var(--blue);background:rgba(42,127,255,.15);color:var(--blue);box-shadow:0 0 8px rgba(42,127,255,.3)}
+.apm.dead{border-color:#444;background:rgba(10,10,10,.7);color:#444}
+.mc-ctrl{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.mc-btn{padding:5px 10px;border:1px solid var(--border2);border-radius:2px;cursor:pointer;font-size:8px;font-family:'Share Tech Mono',monospace;transition:all .2s;background:rgba(0,0,0,.4);color:var(--dim);letter-spacing:1px}
+.mc-btn:hover,.mc-btn.on{border-color:var(--accent);color:var(--accent);background:rgba(0,196,255,.06)}
+.mc-btn.danger-btn{border-color:rgba(255,42,42,.4)!important;color:rgba(255,42,42,.8)!important}
+.mc-btn.danger-btn:hover{background:rgba(255,42,42,.08)!important}
+.map-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:9px;font-family:'Share Tech Mono',monospace;padding:6px 0;color:var(--dim)}
+.mleg{display:flex;align-items:center;gap:4px}
+.mleg-dot{width:9px;height:9px;border-radius:50%;border:2px solid}
+
+/* Live map status bar */
+.lm-status-bar{
+  display:flex;align-items:center;gap:10px;padding:6px 10px;
+  background:rgba(0,0,0,.4);border-bottom:1px solid rgba(0,196,255,.06);
+  font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);
+}
+.lm-live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:ping 1.5s ease-out infinite;flex-shrink:0}
+.rl{display:flex;align-items:center;gap:5px;font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim)}
+.rld{width:5px;height:5px;border-radius:50%;background:var(--green);animation:blink 2s infinite}
+
+/* ── Admin perks ──────────────────────────────────────────────── */
+.aperk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:8px}
+.aperk-card{
+  background:linear-gradient(145deg,rgba(5,14,24,.9),rgba(3,10,18,.95));
+  border:1px solid rgba(0,196,255,.1);border-top:1px solid rgba(0,196,255,.18);
+  border-radius:2px;padding:14px;display:flex;flex-direction:column;gap:8px;
+  transition:border-color .2s;
+}
+.aperk-card:hover{border-color:rgba(0,196,255,.25)}
+.aperk-head{display:flex;align-items:center;gap:8px}
+.aperk-icon{font-size:22px}
+.aperk-name{font-family:'Share Tech Mono',monospace;font-size:9px;font-weight:700;color:var(--accent);letter-spacing:2px}
+.aperk-desc{font-size:10px;color:var(--dim);line-height:1.5}
+.aperk-btns{display:flex;gap:5px;flex-wrap:wrap}
+.aperk-btn{padding:5px 10px;border-radius:2px;font-size:8px;font-weight:700;letter-spacing:1px;cursor:pointer;border:1px solid;text-transform:uppercase;font-family:'Share Tech Mono',monospace;transition:all .2s;background:transparent}
+.aperk-btn.red-t{border-color:rgba(255,42,42,.4);color:rgba(255,42,42,.8)}.aperk-btn.red-t:hover{background:rgba(255,42,42,.08)}
+.aperk-btn.blue-t{border-color:rgba(42,127,255,.4);color:rgba(42,127,255,.8)}.aperk-btn.blue-t:hover{background:rgba(42,127,255,.08)}
+.aperk-btn.all{border-color:rgba(232,200,74,.4);color:var(--gold)}.aperk-btn.all:hover{background:rgba(232,200,74,.08)}
+.aperk-btn.danger{border-color:rgba(255,42,42,.5);color:var(--red)}.aperk-btn.danger:hover{background:rgba(255,42,42,.12)}
+.aperk-result{font-size:9px;color:var(--green);font-family:'Share Tech Mono',monospace;display:none;padding:3px 0;letter-spacing:1px}
+.aperk-result.show{display:block}
+
+/* ── Objectives editor ────────────────────────────────────────── */
+.obj-list-admin{display:flex;flex-direction:column;gap:6px}
+.obj-item{background:rgba(0,0,0,.3);border:1px solid rgba(0,196,255,.08);border-radius:2px;padding:9px 12px;display:flex;align-items:center;gap:8px}
+.obj-item.red-obj{border-left:2px solid var(--red)}
+.obj-item.blue-obj{border-left:2px solid var(--blue)}
+.obj-item.all-obj{border-left:2px solid var(--gold)}
+.obj-txt-display{flex:1;font-size:13px;font-weight:600}
+.obj-team-badge{font-size:8px;padding:2px 6px;border-radius:2px;font-family:'Share Tech Mono',monospace;letter-spacing:1px}
+.obj-team-badge.red{background:var(--red-d);color:var(--red);border:1px solid rgba(255,42,42,.25)}
+.obj-team-badge.blue{background:var(--blue-d);color:var(--blue);border:1px solid rgba(42,127,255,.25)}
+.obj-team-badge.all{background:rgba(232,200,74,.08);color:var(--gold);border:1px solid rgba(232,200,74,.25)}
+.obj-done-badge{font-size:8px;padding:2px 6px;border-radius:2px;font-family:'Share Tech Mono',monospace}
+.yes{background:rgba(0,255,136,.08);color:var(--green)}.no{background:rgba(255,170,0,.08);color:var(--warn)}
+.obj-del{background:transparent;border:1px solid rgba(255,42,42,.3);color:rgba(255,42,42,.7);border-radius:2px;padding:2px 7px;font-size:8px;cursor:pointer;font-family:'Share Tech Mono',monospace}
+.obj-del:hover{background:rgba(255,42,42,.08);border-color:var(--red);color:var(--red)}
+.obj-edit{background:transparent;border:1px solid var(--border2);color:var(--dim);border-radius:2px;padding:2px 7px;font-size:8px;cursor:pointer;font-family:'Share Tech Mono',monospace}
+.obj-edit:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── Zone editor ──────────────────────────────────────────────── */
+.zt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:10px}
+.zt-opt{padding:8px;border:1px solid var(--border2);border-radius:2px;cursor:pointer;font-size:9px;font-family:'Share Tech Mono',monospace;text-align:center;transition:all .2s;background:rgba(0,0,0,.3);letter-spacing:1px}
+.zt-opt:hover,.zt-opt.sel{border-color:var(--accent);background:rgba(0,196,255,.06);color:var(--accent)}
+.zt-d{width:12px;height:12px;border-radius:50%;margin:0 auto 3px}
+.ze-map-wrap{height:520px;border-radius:2px;overflow:hidden;margin-bottom:12px;position:relative;border:1px solid rgba(0,196,255,.12)}
+.zl{display:flex;flex-direction:column;gap:5px}
+.zi{background:rgba(0,0,0,.3);border:1px solid rgba(0,196,255,.08);border-radius:2px;padding:7px 11px;display:flex;align-items:center;gap:8px}
+.zdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.zlbl{flex:1;font-size:12px;font-weight:600}
+.ztype{font-size:8px;padding:2px 5px;border-radius:2px;font-family:'Share Tech Mono',monospace;letter-spacing:1px;color:var(--dim);background:rgba(0,0,0,.4);border:1px solid var(--border)}
+.zdel{background:transparent;border:1px solid rgba(255,42,42,.3);color:rgba(255,42,42,.7);border-radius:2px;padding:2px 7px;font-size:8px;cursor:pointer;font-family:'Share Tech Mono',monospace}
+.zdel:hover{background:rgba(255,42,42,.08);color:var(--red)}
+
+/* ── Saved maps ───────────────────────────────────────────────── */
+.saved-maps-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.sm-card{background:linear-gradient(145deg,rgba(5,14,24,.9),rgba(3,10,18,.95));border:1px solid rgba(0,196,255,.1);border-top:1px solid rgba(0,196,255,.18);border-radius:2px;padding:14px;transition:border-color .2s}
+.sm-card:hover{border-color:rgba(0,196,255,.25)}
+.sm-name{font-family:'Share Tech Mono',monospace;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:4px}
+.sm-meta{font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-bottom:8px;line-height:1.8}
+.sm-btns{display:flex;gap:5px;flex-wrap:wrap}
+.sm-btn{padding:4px 9px;border-radius:2px;font-size:8px;font-weight:700;letter-spacing:1px;cursor:pointer;border:1px solid;font-family:'Share Tech Mono',monospace;transition:all .2s;background:transparent}
+.sm-btn.load{border-color:rgba(0,255,136,.35);color:var(--green)}.sm-btn.load:hover{background:rgba(0,255,136,.08)}
+.sm-btn.edit{border-color:rgba(232,200,74,.35);color:var(--gold)}.sm-btn.edit:hover{background:rgba(232,200,74,.08)}
+.sm-btn.del{border-color:rgba(255,42,42,.35);color:rgba(255,42,42,.7)}.sm-btn.del:hover{background:rgba(255,42,42,.08)}
+
+/* ── Log ──────────────────────────────────────────────────────── */
+.ll{display:flex;flex-direction:column;gap:3px;max-height:500px;overflow-y:auto}
+.li{display:flex;align-items:flex-start;gap:8px;padding:5px 8px;border-radius:2px;font-size:11px;border-left:2px solid transparent;background:rgba(0,0,0,.2)}
+.li:hover{background:rgba(0,196,255,.02)}
+.li-ts{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);white-space:nowrap;margin-top:1px}
+.li-type{font-family:'Share Tech Mono',monospace;font-size:8px;padding:1px 5px;border-radius:2px;border:1px solid;white-space:nowrap;letter-spacing:1px}
+.li-det{color:var(--text);flex:1;font-size:10px;line-height:1.4}
+
+/* ── Player accounts ──────────────────────────────────────────── */
+.pa-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.pa-card{background:rgba(0,0,0,.3);border:1px solid rgba(0,196,255,.08);border-radius:2px;padding:11px}
+.pa-call{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;color:var(--text2);letter-spacing:1px}
+.pa-user{font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-top:2px}
+.pa-meta{font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-top:5px;line-height:1.8}
+
+/* ── Site admins ──────────────────────────────────────────────── */
+.sa-list{display:flex;flex-direction:column;gap:6px}
+.sa-item{background:rgba(0,0,0,.3);border:1px solid rgba(0,196,255,.08);border-left:2px solid rgba(204,68,255,.4);border-radius:2px;padding:10px 12px;display:flex;align-items:center;gap:10px}
+.sa-name{font-weight:700;font-size:13px;flex:1}
+.sa-sites{font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace}
+.sa-del{background:transparent;border:1px solid rgba(255,42,42,.3);color:rgba(255,42,42,.7);border-radius:2px;padding:2px 8px;font-size:8px;cursor:pointer;font-family:'Share Tech Mono',monospace;letter-spacing:1px}
+
+/* ── Toast ────────────────────────────────────────────────────── */
+.atst{position:fixed;bottom:16px;right:16px;background:rgba(5,14,24,.97);border:1px solid rgba(0,196,255,.3);border-left:3px solid var(--accent);border-radius:2px;padding:10px 16px;font-size:10px;font-family:'Share Tech Mono',monospace;color:var(--accent);z-index:9999;opacity:0;transition:all .3s;transform:translateY(8px);letter-spacing:1px;box-shadow:0 0 20px rgba(0,196,255,.1)}
+.atst.show{opacity:1;transform:translateY(0)}
+.atst.err{border-left-color:var(--red);border-color:rgba(255,42,42,.3);color:var(--red);box-shadow:0 0 20px rgba(255,42,42,.08)}
+.atst.ok{border-left-color:var(--green);border-color:rgba(0,255,136,.3);color:var(--green);box-shadow:0 0 20px rgba(0,255,136,.08)}
+
+/* ── Animations ───────────────────────────────────────────────── */
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes empBlast{0%{transform:scale(.1);opacity:1}100%{transform:scale(4);opacity:0}}
+@keyframes ping{0%{transform:scale(1);opacity:.6}70%{transform:scale(2);opacity:0}100%{opacity:0}}
+
+/* ── Game state bar ───────────────────────────────────────────── */
+.game-state-bar{padding:6px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(0,0,0,.4);background:rgba(0,0,0,.25)}
+.gs-badge{font-family:'Share Tech Mono',monospace;font-size:8px;font-weight:700;letter-spacing:2px;padding:2px 7px;border-radius:2px}
+.gs-badge.gs-lobby{background:rgba(42,69,85,.2);color:var(--dim);border:1px solid var(--dim)}
+.gs-badge.gs-countdown{background:rgba(255,170,0,.1);color:var(--warn);border:1px solid var(--warn);animation:blink .6s infinite}
+.gs-badge.gs-active{background:rgba(0,255,136,.08);color:var(--green);border:1px solid rgba(0,255,136,.4)}
+.gs-badge.gs-ended{background:rgba(204,68,255,.08);color:var(--purple);border:1px solid var(--purple)}
+.gs-type{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:1px;flex:1}
+.gs-score{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:2px}
+
+/* ── Admin modal / game setup ─────────────────────────────────── */
+.admin-modal{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:8000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.admin-modal.show{display:flex}
+.admin-modal-box{background:linear-gradient(145deg,rgba(5,14,24,.99) 0%,rgba(3,10,18,1) 100%);border:1px solid rgba(0,196,255,.25);border-top:1px solid rgba(0,196,255,.45);border-radius:2px;padding:24px;width:100%;max-width:400px;display:flex;flex-direction:column;gap:14px;box-shadow:0 0 80px rgba(0,0,0,.9),0 0 30px rgba(0,196,255,.05)}
+.admin-modal-title{font-family:'Share Tech Mono',monospace;font-size:10px;font-weight:700;color:var(--accent);letter-spacing:4px;text-shadow:0 0 10px rgba(0,196,255,.4)}
+.admin-modal-field{display:flex;flex-direction:column;gap:5px}
+.admin-modal-label{font-size:8px;letter-spacing:3px;color:var(--dim);font-family:'Share Tech Mono',monospace;text-transform:uppercase}
+.admin-modal-btns{display:flex;gap:8px;margin-top:4px}
+
+/* ── Role editor modal ────────────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:7000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal-box{background:linear-gradient(145deg,rgba(5,14,24,.99),rgba(3,10,18,1));border:1px solid rgba(0,196,255,.25);border-top:1px solid rgba(0,196,255,.45);border-radius:2px;padding:24px;width:100%;max-width:460px;display:flex;flex-direction:column;gap:14px;box-shadow:0 0 60px rgba(0,0,0,.9)}
+.modal-title{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:4px}
+.role-toggle{display:flex;flex-wrap:wrap;gap:6px}
+.rt{padding:5px 12px;border:1px solid var(--border2);border-radius:2px;cursor:pointer;font-size:11px;font-family:'Share Tech Mono',monospace;transition:all .2s;background:transparent;color:var(--dim);letter-spacing:1px}
+.rt.on{border-color:rgba(0,196,255,.5);background:rgba(0,196,255,.08);color:var(--accent)}
+.rl-limits{margin-top:12px}
+.rl-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px;font-family:'Share Tech Mono',monospace}
+.rl-row label{color:var(--dim);flex:1;letter-spacing:.5px}
+.rl-row input{width:60px;padding:4px 8px;background:rgba(0,0,0,.5);border:1px solid var(--border2);border-radius:2px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:11px;outline:none}
+
+/* ── DB panel ─────────────────────────────────────────────────── */
+.dbs-datadir{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim)}
+
+/* ── Backup ───────────────────────────────────────────────────── */
+.import-zone{border:1px dashed rgba(0,196,255,.2);border-radius:2px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:2px}
+.import-zone:hover{border-color:rgba(0,196,255,.4);color:var(--accent);background:rgba(0,196,255,.03)}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:rgba(0,0,0,.3)}
+::-webkit-scrollbar-thumb{background:rgba(0,196,255,.15);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:rgba(0,196,255,.3)}
 
 /* ─── LOGIN ─── */
 #ls{position:fixed;inset:0;background:radial-gradient(ellipse 120% 80% at 50% 30%,rgba(0,196,255,.06) 0%,var(--bg) 60%);display:flex;align-items:center;justify-content:center;z-index:5000;flex-direction:column;gap:18px;padding:24px}
@@ -258,10 +864,21 @@ body::after{content:'';position:fixed;top:0;left:0;right:0;height:280px;backgrou
 </head>
 <body>
 
+<div id="cc-glow"></div>
+
+
 <!-- LOGIN -->
 <div id="ls">
+  <div class="lg-radar">
+    <div class="lg-radar-ring"></div>
+    <div class="lg-radar-ring"></div>
+    <div class="lg-radar-ring"></div>
+    <div class="lg-radar-sweep"></div>
+    <div class="lg-radar-cross"></div>
+    <div class="lg-radar-inner">C&amp;C</div>
+  </div>
   <div class="lg-logo">SWINDON AIRSOFT</div>
-  <div class="lg-sub">Admin Command Centre</div>
+  <div class="lg-sub">COMMAND &amp; CONTROL · RESTRICTED ACCESS</div>
   <div class="lg-card">
     <div class="lgt">🔐 Restricted Access</div>
     <div class="lgf"><label>Username</label><input type="text" id="lu" placeholder="Enter username" autocomplete="username"></div>
@@ -274,32 +891,57 @@ body::after{content:'';position:fixed;top:0;left:0;right:0;height:280px;backgrou
 <!-- ADMIN APP -->
 <div id="aa">
   <div class="ah">
-    <div><div class="al">SWINDON AIRSOFT — ADMIN</div><div class="as">Command Centre · by Chris Zulu</div></div>
+    <div class="ah-left">
+      <div class="ah-logo-wrap">
+        <div class="al">SWINDON AIRSOFT</div>
+        <div class="as">C&amp;C · COMMAND &amp; CONTROL · by Chris Zulu</div>
+      </div>
+      <div class="ah-divider"></div>
+      <div class="ah-status">
+        <div class="ah-status-row"><div class="ah-dot" id="ah-ws-dot"></div><span id="ah-ws-txt">CONNECTING…</span></div>
+        <div class="ah-status-row"><div class="ah-dot" id="ah-db-dot" style="background:var(--dim)"></div><span id="ah-db-txt">DB: CHECKING</span></div>
+      </div>
+    </div>
     <div class="ahr">
-      <div class="rl"><div class="rld"></div>Live · 4s</div>
       <div class="role-badge" id="role-badge">SITE ADMIN</div>
       <div class="apill" id="db-pill" style="border-color:var(--dim);color:var(--dim)">● DB: CHECKING</div>
-      <div class="apill">● AUTHENTICATED</div>
+      <div class="apill">● AUTH</div>
       <div class="aclk" id="ac">00:00:00</div>
-      <button class="lout" onclick="doLogout()">LOGOUT</button>
+      <button class="lout" onclick="doLogout()">◀ EXIT</button>
+    </div>
+  </div>
+  <!-- Ticker tape -->
+  <div class="cc-ticker">
+    <div class="cc-ticker-label">SITREP</div>
+    <div class="cc-ticker-scroll" id="ticker-scroll">
+      <span id="ticker-content">SYSTEM ONLINE · AWAITING DATA · STAND BY…</span>
+      <span class="tk-sep">◈</span>
+      <span id="ticker-content2">SYSTEM ONLINE · AWAITING DATA · STAND BY…</span>
     </div>
   </div>
   <div class="ab">
     <div class="sb" id="sidebar">
-      <div class="sbs">Navigation</div>
-      <div class="sbi active" data-v="overview" onclick="sv(this)"><span class="sico">📊</span>Overview</div>
-      <div class="sbi" data-v="livemap" onclick="sv(this)"><span class="sico">🗺️</span>Live Map</div>
-      <div class="sbi" data-v="maps" onclick="sv(this)"><span class="sico">🏟️</span>Maps</div>
-      <div class="sbi" data-v="zoneeditor" onclick="sv(this)"><span class="sico">✏️</span>Zone Editor</div>
-      <div class="sbi" data-v="objectives" onclick="sv(this)"><span class="sico">🎯</span>Objectives</div>
-      <div class="sbi" data-v="savedmaps" onclick="sv(this)"><span class="sico">💾</span>Saved Maps</div>
-      <div class="sbi" data-v="broadcast" onclick="sv(this)"><span class="sico">📢</span>Broadcast</div>
-      <div class="sbi super-only" data-v="siteadmins" onclick="sv(this)"><span class="sico">👤</span>Site Admins</div>
-      <div class="sbi" data-v="log" onclick="sv(this)"><span class="sico">📋</span>Event Log</div>
-      <div class="sbi super-only" data-v="players" onclick="sv(this)"><span class="sico">👥</span>Player Accounts</div>
-      <div class="sbi" data-v="password" onclick="sv(this)"><span class="sico">🔑</span>Change Password</div>
-      <div class="sbi super-only" data-v="databackup" onclick="sv(this)"><span class="sico">💿</span>Data Backup</div>
-      <div class="sbi super-only" data-v="database" onclick="sv(this)"><span class="sico">🗄</span>Database</div>
+      <div class="sbs">Operations</div>
+      <div class="sbi active" data-v="overview" onclick="sv(this)"><span class="sico">⬡</span>Overview</div>
+      <div class="sbi" data-v="livemap" onclick="sv(this)"><span class="sico">◉</span>Live Map</div>
+      <div class="sbi" data-v="adminperks" onclick="sv(this)"><span class="sico">⚡</span>Tactical Ops</div>
+      <div class="sb-divider"></div>
+      <div class="sbs">Map Control</div>
+      <div class="sbi" data-v="maps" onclick="sv(this)"><span class="sico">▦</span>Maps</div>
+      <div class="sbi" data-v="zoneeditor" onclick="sv(this)"><span class="sico">◈</span>Zone Editor</div>
+      <div class="sbi" data-v="objectives" onclick="sv(this)"><span class="sico">◎</span>Objectives</div>
+      <div class="sbi" data-v="savedmaps" onclick="sv(this)"><span class="sico">◫</span>Saved Maps</div>
+      <div class="sb-divider"></div>
+      <div class="sbs">Command</div>
+      <div class="sbi" data-v="broadcast" onclick="sv(this)"><span class="sico">▶</span>Broadcast</div>
+      <div class="sbi" data-v="log" onclick="sv(this)"><span class="sico">≡</span>Event Log</div>
+      <div class="sb-divider"></div>
+      <div class="sbs">Admin</div>
+      <div class="sbi super-only" data-v="siteadmins" onclick="sv(this)"><span class="sico">◈</span>Site Admins</div>
+      <div class="sbi super-only" data-v="players" onclick="sv(this)"><span class="sico">◉</span>Players</div>
+      <div class="sbi" data-v="password" onclick="sv(this)"><span class="sico">⬡</span>Password</div>
+      <div class="sbi super-only" data-v="databackup" onclick="sv(this)"><span class="sico">◫</span>Data Backup</div>
+      <div class="sbi super-only" data-v="database" onclick="sv(this)"><span class="sico">◫</span>Database</div>
     </div>
 
     <div class="ac" id="adc">
@@ -910,14 +1552,20 @@ async function checkDbStatus(){
     const d=await r.json();
     const pill=document.getElementById('db-pill');
     if(!pill)return;
+    const dbDot=document.getElementById('ah-db-dot');
+    const dbTxt=document.getElementById('ah-db-txt');
     if(d.dbConnected){
       pill.textContent='🐘 PostgreSQL';
       pill.style.borderColor='var(--green)';
       pill.style.color='var(--green)';
+      if(dbDot){dbDot.style.background='var(--green)';dbDot.className='ah-dot';}
+      if(dbTxt)dbTxt.textContent='POSTGRESQL';
     } else {
       pill.textContent='📁 File Storage';
       pill.style.borderColor='var(--warn)';
       pill.style.color='var(--warn)';
+      if(dbDot){dbDot.style.background='var(--warn)';dbDot.className='ah-dot warn';}
+      if(dbTxt)dbTxt.textContent='FILE STORAGE';
     }
   }catch{
     const pill=document.getElementById('db-pill');
@@ -959,6 +1607,36 @@ async function loadData(){
   roomsData=await r.json();
   renderOverview();renderRooms();
   document.getElementById('ov-up').textContent='Updated '+new Date().toLocaleTimeString();
+  updateTicker();
+  // Update header WS status
+  const dot=document.getElementById('ah-ws-dot');
+  const txt=document.getElementById('ah-ws-txt');
+  if(dot){dot.style.background='var(--green)';dot.className='ah-dot';}
+  if(txt)txt.textContent='LIVE · 4s SYNC';
+}
+
+function updateTicker(){
+  const totalPlayers=roomsData.reduce((a,r)=>a+r.playerCount,0);
+  const totalRed=roomsData.reduce((a,r)=>a+r.redCount,0);
+  const totalBlue=roomsData.reduce((a,r)=>a+r.blueCount,0);
+  const activeRooms=roomsData.filter(r=>r.playerCount>0).length;
+  const parts=[
+    'ACTIVE MAPS: '+roomsData.length,
+    'PLAYERS ONLINE: '+totalPlayers,
+    'RED TEAM: '+totalRed,
+    'BLUE TEAM: '+totalBlue,
+    'OCCUPIED MAPS: '+activeRooms,
+    'TIME: '+new Date().toLocaleTimeString(),
+  ];
+  roomsData.forEach(r=>{
+    const st=(r.gameState||'lobby').toUpperCase();
+    parts.push(r.name.toUpperCase()+' ['+r.code+'] — '+st+' — '+r.playerCount+' OPERATORS');
+  });
+  const text=parts.join('  ◈  ');
+  const t1=document.getElementById('ticker-content');
+  const t2=document.getElementById('ticker-content2');
+  if(t1)t1.textContent=text;
+  if(t2)t2.textContent=text;
 }
 
 function renderOverview(){
