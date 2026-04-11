@@ -2649,15 +2649,17 @@ async function saveCurMapTemplate(){
 }
 function startZDraw(shape){
   if(!objMap){toast('Select a map first, then use zone tools','err');return;}
-  _zoneToolActive=true;  // flag so CREATED handler saves immediately
-  cancelObjDraw();       // cancel any pending objective draw
-  cancelZDraw();
+  // Cancel existing draws first (before setting flag — cancelZDraw resets it)
+  cancelObjDraw();
+  if(objMap&&objMap._dcRef){try{objMap.removeControl(objMap._dcRef);}catch{}objMap._dcRef=null;}
+  // NOW set the flag — stays true until CREATED fires
+  _zoneToolActive=true;
   const col=ZC[selectedZT]||'#cc44ff';const opts={color:col,fillColor:col,fillOpacity:.15,weight:2};
   const dc=new L.Control.Draw({draw:{polygon:shape==='polygon'?{shapeOptions:opts,showArea:false}:false,circle:shape==='circle'?{shapeOptions:opts}:false,marker:false,circlemarker:false,rectangle:false,polyline:false},edit:{featureGroup:objDrawLayer,edit:false,remove:false}});
   objMap.addControl(dc);objMap._dcRef=dc;
   if(shape==='polygon')new L.Draw.Polygon(objMap,dc.options.draw.polygon).enable();
   if(shape==='circle')new L.Draw.Circle(objMap,dc.options.draw.circle).enable();
-  toast('Click on map to draw · double-click to finish');
+  toast('Click on map to draw · double-click to finish polygon · drag for circle');
 }
 function cancelZDraw(){_zoneToolActive=false;if(objMap&&objMap._dcRef){try{objMap.removeControl(objMap._dcRef);}catch{}objMap._dcRef=null;}}
 
@@ -2751,12 +2753,13 @@ function initObjMap(){
   // _zoneToolActive=true  → came from startZDraw (Red Spawn, Boundary, etc.) → save immediately
   // _zoneToolActive=false → came from objToolPoly/Circle (objective zone)    → store as pending
   objMap.on(L.Draw.Event.CREATED,e=>{
+    // Read flag BEFORE cancelling (cancelZDraw resets it to false)
+    const wasZoneTool=_zoneToolActive;
     cancelObjDraw();
     cancelZDraw();
 
-    if(_zoneToolActive){
+    if(wasZoneTool){
       // ── Zone Editor tool: save straight to server ──────────────
-      _zoneToolActive=false;
       const code=document.getElementById('obj-room').value;
       if(!code){toast('Select a map first','err');return;}
       const lbl=(document.getElementById('zlbl').value.trim()||selectedZT);
