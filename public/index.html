@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -131,24 +131,51 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 /* ─── GAME APP ─── *//* ─── GAME APP ─── */
 #gapp{display:none;flex-direction:column;position:fixed;inset:0}
 #gapp.visible{display:flex}
-.hdr{height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:linear-gradient(90deg,rgba(4,6,10,.99) 0%,rgba(10,16,24,.98) 50%,rgba(4,6,10,.99) 100%);border-bottom:1px solid rgba(0,196,255,.2);box-shadow:0 2px 20px rgba(0,0,0,.7);flex-shrink:0;z-index:100}
-.hlogo{font-family:'Orbitron',monospace;font-size:13px;font-weight:900;color:var(--gold);letter-spacing:2px;text-shadow:0 0 10px rgba(232,200,74,.4);line-height:1;cursor:pointer}
+.hdr{height:38px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;padding-top:env(safe-area-inset-top);background:linear-gradient(90deg,rgba(4,6,10,.99) 0%,rgba(10,16,24,.98) 50%,rgba(4,6,10,.99) 100%);border-bottom:1px solid rgba(0,196,255,.2);box-shadow:0 2px 20px rgba(0,0,0,.7);flex-shrink:0;z-index:100}
+.hlogo{font-family:'Orbitron',monospace;font-size:11px;font-weight:900;color:var(--gold);letter-spacing:1px;text-shadow:0 0 10px rgba(232,200,74,.4);line-height:1;cursor:pointer}
 .hsub{font-size:7px;color:var(--dim);letter-spacing:1px;font-family:'Share Tech Mono',monospace;margin-top:1px}
 .hright{display:flex;align-items:center;gap:8px}
-.cpill{font-family:'Share Tech Mono',monospace;font-size:8px;padding:2px 7px;border-radius:2px;border:1px solid var(--green);color:var(--green);animation:blink 2s infinite}
+.cpill{font-family:'Share Tech Mono',monospace;font-size:7px;padding:2px 5px;border-radius:2px;border:1px solid var(--green);color:var(--green);animation:blink 2s infinite}
 .cpill.off{border-color:var(--red);color:var(--red)}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
 @keyframes bleedPulse{0%,100%{background:rgba(255,42,42,.08)}50%{background:rgba(255,42,42,.22)}}
 .bleeding-body{animation:bleedPulse 1s infinite}
-.gclk{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--gold)}
-.tbnr{height:22px;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:3px;flex-shrink:0}
+.gclk{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--gold)}
+@media(max-width:380px){.gclk{display:none}.hsub{display:none}.hlogo{font-size:10px}}
+
+/* ── Mobile safe area for bottom nav (iPhone home bar) ── */
+.gnav{padding-bottom:env(safe-area-inset-bottom)}
+
+/* ── Make score and pills smaller on mobile ── */
+.score-hud{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:1px}
+.cpill{font-size:7px;padding:2px 5px}
+.wake-pill{font-size:8px;padding:2px 6px}
+
+/* ── Map scrollable content ── */
+.scrollable{-webkit-overflow-scrolling:touch;overflow-y:auto}
+
+/* ── Obj bar compact on mobile ── */
+.obj-bar{padding:4px 8px}
+.obj-bar-lbl{font-size:7px;letter-spacing:1px;margin-bottom:3px}
+.obj-chip{font-size:10px;padding:3px 7px}
+
+/* ── GPS box compact ── */
+.gps-box{font-size:9px;padding:4px 8px;gap:6px}
+
+/* ── Round timer strip ── */
+.round-timer-strip{height:4px}
+
+/* ── Tile switcher compact ── */
+.tile-sw{bottom:8px;left:8px;gap:3px;top:auto;right:auto}
+.tsb{font-size:7px;padding:3px 7px}
+.tbnr{height:18px;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:8px;font-weight:700;letter-spacing:2px;flex-shrink:0}
 .tbnr.red{background:linear-gradient(90deg,rgba(255,42,42,.25),rgba(255,42,42,.08),rgba(255,42,42,.25));color:var(--red);border-bottom:1px solid rgba(255,42,42,.3)}
 .tbnr.blue{background:linear-gradient(90deg,rgba(42,127,255,.25),rgba(42,127,255,.08),rgba(42,127,255,.25));color:var(--blue);border-bottom:1px solid rgba(42,127,255,.3)}
 
 /* NAV */
-.gnav{height:54px;display:flex;background:rgba(6,9,14,.98);border-bottom:1px solid rgba(0,196,255,.1);flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.5)}
-.gt{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;color:var(--dim);border-bottom:2px solid transparent;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;position:relative;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
-.gt .ico{font-size:17px;line-height:1;pointer-events:none}
+.gnav{height:50px;display:flex;background:rgba(6,9,14,.98);border-bottom:1px solid rgba(0,196,255,.1);flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.5)}
+.gt{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;color:var(--dim);border-bottom:2px solid transparent;font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;position:relative;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation;min-width:0}
+.gt .ico{font-size:16px;line-height:1;pointer-events:none}
 .gt.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(0,196,255,.06)}
 .nbadge{position:absolute;top:4px;right:calc(50% - 18px);background:var(--red);color:#fff;border-radius:8px;font-size:7px;padding:1px 4px;font-family:'Share Tech Mono',monospace;display:none}
 .nbadge.on{display:block}
@@ -180,8 +207,8 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .cf-txt{font-family:'Orbitron',monospace;font-size:30px;color:#fff;letter-spacing:4px}
 #perk-fb{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);z-index:650;background:var(--panel2);border:1px solid var(--gold);border-radius:4px;padding:5px 14px;font-size:10px;font-family:'Share Tech Mono',monospace;color:var(--gold);display:none;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
 #perk-fb.show{display:block}
-.compass-box{position:absolute;top:10px;right:8px;z-index:500;width:44px;height:44px;background:rgba(8,11,15,.9);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;pointer-events:none}
-.gps-box{position:absolute;bottom:66px;right:8px;z-index:500;background:rgba(8,11,15,.88);border:1px solid var(--border);border-radius:4px;padding:5px 8px;font-family:'Share Tech Mono',monospace;font-size:8px;line-height:1.8;text-align:right;pointer-events:none}
+.compass-box{display:none}
+.gps-box{display:none}
 .gv{color:var(--gold)}
 .tile-sw{position:absolute;bottom:66px;left:8px;z-index:500;background:rgba(8,11,15,.9);border:1px solid var(--border);border-radius:4px;padding:5px 7px;font-family:'Share Tech Mono',monospace;display:flex;gap:5px;flex-wrap:wrap;max-width:150px}
 .tsb{padding:2px 6px;border-radius:2px;border:1px solid var(--border);cursor:pointer;font-size:8px;font-family:'Share Tech Mono',monospace;transition:all .2s;background:transparent;color:var(--dim)}
@@ -388,9 +415,9 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .round-timer-lbl{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--accent);letter-spacing:1px;white-space:nowrap;text-shadow:0 0 6px var(--accent)}
 
 /* ── Score HUD ──────────────────────────────────────────────── */
-.score-hud{display:flex;align-items:center;gap:3px;font-family:'Orbitron',monospace;font-size:13px;font-weight:900}
+.score-hud{display:flex;align-items:center;gap:3px;font-family:'Orbitron',monospace;font-size:12px;font-weight:900}
 .sh-r{color:var(--red);text-shadow:0 0 8px rgba(255,42,42,.5)}
-.sh-sep{color:var(--dim);font-size:10px}
+.sh-sep{color:var(--dim);font-size:9px}
 .sh-b{color:var(--blue);text-shadow:0 0 8px rgba(42,127,255,.5)}
 
 /* ── Wake Lock Pill ─────────────────────────────────────────── */
@@ -416,8 +443,8 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 /* ── Lobby Banner (sits above map, non-blocking) ─────────────── */
 .lobby-banner{
   position:fixed;top:0;left:0;right:0;z-index:5400;
-  height:28px;display:none;align-items:center;gap:10px;
-  padding:0 12px;
+  height:24px;display:none;align-items:center;gap:8px;
+  padding:0 10px;
   background:linear-gradient(90deg,rgba(2,4,8,.98),rgba(10,20,32,.96),rgba(2,4,8,.98));
   border-bottom:1px solid rgba(232,200,74,.2);
   font-family:'Share Tech Mono',monospace;font-size:9px;
@@ -537,6 +564,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .mh-bottom{
   display:flex;flex-direction:column;gap:4px;
   pointer-events:auto;
+  padding-bottom:4px;
 }
 .mh-score{
   display:flex;align-items:center;gap:8px;
@@ -560,10 +588,12 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   display:flex;gap:5px;
 }
 .mh-btn{
-  flex:1;padding:9px 4px;border-radius:4px;font-size:10px;font-weight:700;
+  flex:1;padding:11px 4px;border-radius:4px;font-size:11px;font-weight:700;
   letter-spacing:.5px;cursor:pointer;border:1px solid;
   font-family:'Rajdhani',sans-serif;transition:all .15s;
   backdrop-filter:blur(6px);
+  min-height:44px;touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
 }
 .mh-btn.medic{background:rgba(255,170,0,.15);border-color:rgba(255,170,0,.4);color:var(--warn)}
 .mh-btn.medic:active{background:rgba(255,170,0,.3)}
@@ -771,7 +801,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 <!-- ══════════════ GAME APP ══════════════ -->
 <div id="gapp">
   <div class="hdr">
-    <div onclick="leaveGame()" style="cursor:pointer"><div class="hlogo">SWINDON AIRSOFT</div><div class="hsub">Tactical Tracker · by Chris Zulu</div></div>
+    <div onclick="leaveGame()" style="cursor:pointer"><div class="hlogo">SWINDON AIRSOFT</div><div class="hsub" style="font-size:6px;letter-spacing:1px">Tactical Tracker · by Chris Zulu</div></div>
     <div class="hright">
       <div class="score-hud"><span class="sh-r" id="score-red">0</span><span class="sh-sep">:</span><span class="sh-b" id="score-blue">0</span></div>
       <div class="cpill off" id="cpill">● OFF</div>
