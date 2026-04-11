@@ -1012,7 +1012,7 @@ app.get('/api/player/me', (req, res) => {
   if (!sess) return res.status(401).json({ error: 'Not logged in' });
   const account = playerAccounts[sess.username];
   if (!account) return res.status(404).json({ error: 'Account not found' });
-  res.json({ username: account.username, callsign: account.callsign, email: account.email, phone: account.phone, address: account.address, createdAt: account.createdAt, preferredRole: account.preferredRole || 'Assault' });
+  res.json({ username: account.username, callsign: account.callsign, email: account.email, phone: account.phone, address: account.address, createdAt: account.createdAt, preferredRole: account.preferredRole || 'Assault', bio: account.bio || '' });
 });
 
 app.put('/api/player/me', (req, res) => {
@@ -1031,6 +1031,7 @@ app.put('/api/player/me', (req, res) => {
   if (phone !== undefined) account.phone = phone;
   if (address !== undefined) account.address = address;
   if (req.body.preferredRole !== undefined) account.preferredRole = req.body.preferredRole;
+  if (req.body.bio !== undefined) account.bio = req.body.bio.slice(0, 80);
   persist('player-accounts', account.username, account);
   res.json({ ok: true, callsign: account.callsign });
 });
@@ -1389,6 +1390,20 @@ app.post('/api/admin/rooms/:code/zones', adminAuth, (req, res) => {
   };
   room.zones.push(zone); broadcastAll(room, { type: 'zone_added', zone });
   persistRoomTemplate(room).catch(()=>{});
+  res.json(zone);
+});
+
+// Rename/edit a single zone
+app.put('/api/admin/rooms/:code/zones/:zid', adminAuth, (req, res) => {
+  const room = rooms[req.params.code.toUpperCase()]; if (!room) return res.status(404).json({ error: 'Not found' });
+  if (!canAccessRoom(req.adminSession, room.code)) return res.status(403).json({ error: 'No access' });
+  const zone = room.zones.find(z => z.id === req.params.zid);
+  if (!zone) return res.status(404).json({ error: 'Zone not found' });
+  if (req.body.label !== undefined) zone.label = req.body.label.slice(0, 60);
+  if (req.body.color !== undefined) zone.color = req.body.color;
+  if (req.body.zoneType !== undefined) zone.zoneType = req.body.zoneType;
+  broadcastAll(room, { type: 'zone_updated', zone });
+  persistRoomTemplate(room).catch(() => {});
   res.json(zone);
 });
 
