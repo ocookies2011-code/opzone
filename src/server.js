@@ -188,13 +188,13 @@ function logEvent(type, data) {
 }
 
 const ZONE_TYPES = {
-  respawn_red:  { label: 'Red Respawn',    color: '#ff4444', fillOpacity: 0.18 },
-  respawn_blue: { label: 'Blue Respawn',   color: '#4488ff', fillOpacity: 0.18 },
-  objective:    { label: 'Objective',      color: '#ffaa00', fillOpacity: 0.20 },
-  hazard:       { label: 'Hazard Zone',    color: '#ff2a2a', fillOpacity: 0.15 },
-  safe:         { label: 'Safe Zone',      color: '#00cc66', fillOpacity: 0.12 },
-  boundary:     { label: 'Game Boundary',  color: '#e8c84a', fillOpacity: 0.00 },
-  custom:       { label: 'Custom Zone',    color: '#cc44ff', fillOpacity: 0.15 },
+  respawn_red:  { label: 'Red Respawn',    color: '#ff4444', weight: 2, dashArray: null },
+  respawn_blue: { label: 'Blue Respawn',   color: '#4488ff', weight: 2, dashArray: null },
+  objective:    { label: 'Objective',      color: '#ffaa00', weight: 2, dashArray: null },
+  hazard:       { label: 'Hazard Zone',    color: '#ff2a2a', weight: 2, dashArray: '6,4' },
+  safe:         { label: 'Safe Zone',      color: '#00cc66', weight: 2, dashArray: null },
+  boundary:     { label: 'Game Boundary',  color: '#e8c84a', weight: 3, dashArray: '12,6' },
+  custom:       { label: 'Custom Zone',    color: '#cc44ff', weight: 2, dashArray: '6,4' },
 };
 
 // ─── ROLE HIERARCHY (Ares Alpha chain of command) ──────────────────
