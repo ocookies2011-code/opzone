@@ -971,7 +971,7 @@ const playerSessions = new Map(); // token → { username, ...profile }
 function hashPass(p) { return Buffer.from(p.split('').map((c,i)=>c.charCodeAt(0)^(i%7+13)).join(',')).toString('base64'); }
 
 app.post('/api/player/register', (req, res) => {
-  const { username, password, email, phone, address, callsign } = req.body;
+  const { username, password, email, phone, address, callsign, role } = req.body;
   if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
   if (playerAccounts[username.toLowerCase()]) return res.status(409).json({ error: 'Username already taken' });
   const account = {
@@ -979,6 +979,7 @@ app.post('/api/player/register', (req, res) => {
     passwordHash: hashPass(password),
     email: email || '', phone: phone || '', address: address || '',
     callsign: (callsign || username).toUpperCase().slice(0,12),
+    preferredRole: role || 'Assault',
     createdAt: Date.now(), lastLogin: null,
   };
   playerAccounts[account.username] = account;
@@ -1011,7 +1012,7 @@ app.get('/api/player/me', (req, res) => {
   if (!sess) return res.status(401).json({ error: 'Not logged in' });
   const account = playerAccounts[sess.username];
   if (!account) return res.status(404).json({ error: 'Account not found' });
-  res.json({ username: account.username, callsign: account.callsign, email: account.email, phone: account.phone, address: account.address, createdAt: account.createdAt });
+  res.json({ username: account.username, callsign: account.callsign, email: account.email, phone: account.phone, address: account.address, createdAt: account.createdAt, preferredRole: account.preferredRole || 'Assault' });
 });
 
 app.put('/api/player/me', (req, res) => {
@@ -1029,6 +1030,7 @@ app.put('/api/player/me', (req, res) => {
   if (email !== undefined) account.email = email;
   if (phone !== undefined) account.phone = phone;
   if (address !== undefined) account.address = address;
+  if (req.body.preferredRole !== undefined) account.preferredRole = req.body.preferredRole;
   persist('player-accounts', account.username, account);
   res.json({ ok: true, callsign: account.callsign });
 });
