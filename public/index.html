@@ -285,6 +285,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   background:linear-gradient(145deg,rgba(10,16,24,.95),rgba(5,10,16,.98));
   border:1px solid rgba(0,196,255,.15);border-top:1px solid rgba(0,196,255,.3);
   border-radius:2px;padding:20px;margin-top:16px;
+  display:flex;flex-direction:column;gap:0;
   animation:slideIn .2s ease;
 }
 @keyframes slideIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
@@ -293,7 +294,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 
 /* Form fields */
 .fl{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--dim);margin-bottom:5px;text-transform:uppercase}
-.fi{width:100%;background:rgba(0,0,0,.5);border:1px solid var(--border2);border-radius:2px;color:var(--text2);font-family:'Rajdhani',sans-serif;font-size:14px;padding:10px 12px;outline:none;transition:border-color .2s;-webkit-appearance:none}
+.fi{width:100%;background:rgba(0,0,0,.5)!important;border:1px solid var(--border2);border-radius:2px;color:var(--text2)!important;font-family:'Rajdhani',sans-serif;font-size:14px;padding:10px 12px;outline:none;transition:border-color .2s;-webkit-appearance:none;box-sizing:border-box}
 .fi:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,196,255,.06)}
 .fi-lower{text-transform:lowercase}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -445,11 +446,12 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 /* ── Search box ─────────────────────────────── */
 .hp-search{
   width:100%;max-width:400px;margin:0 auto 20px;
-  background:rgba(0,0,0,.5);border:1px solid var(--border2);border-radius:2px;
-  color:var(--text2);font-family:'Rajdhani',sans-serif;font-size:14px;
+  background:rgba(0,0,0,.6)!important;border:1px solid var(--border2);border-radius:2px;
+  color:var(--text2)!important;font-family:'Rajdhani',sans-serif;font-size:14px;
   padding:10px 14px;outline:none;transition:border-color .2s;display:block;
-  -webkit-appearance:none;
+  -webkit-appearance:none;box-sizing:border-box;
 }
+.hp-search::placeholder{color:var(--dim)}
 .hp-search:focus{border-color:var(--accent)}
 
 /* ── Profile page ───────────────────────────── */
@@ -1061,7 +1063,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
           <div style="font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:3px;color:var(--dim);margin-bottom:14px;margin-top:16px">SELECT BATTLEFIELD</div>
           <div class="map-cards" id="map-cards-li" style="grid-template-columns:1fr"><div class="map-empty">Loading…</div></div>
           <div id="li-join-form" style="display:none">
-            <div class="join-form-panel">
+            <div class="join-form-panel" style="display:flex;flex-direction:column">
               <div class="jfp-selected" id="li-sel-map">No map selected</div>
               <div class="frow" style="margin-bottom:12px">
                 <div class="fgroup">
@@ -2492,10 +2494,20 @@ function selectMap(code,name,hasPassword,cardEl,allowedRoles,roleLimits){
   }).join('');
   // Show the join form and scroll it into view
   const form=document.getElementById('join-form');
-  if(form){form.style.display='flex';form.scrollIntoView({behavior:'smooth',block:'start'});}
+  if(form){form.style.display='block';form.scrollIntoView({behavior:'smooth',block:'nearest'});}
   document.getElementById('join-err').classList.remove('show');
   document.querySelectorAll('.map-card').forEach(c=>c.classList.remove('selected'));
   if(cardEl)cardEl.classList.add('selected');
+  // Update login state in join form
+  const loggedIn=!!playerToken;
+  const jfli=document.getElementById('jf-logged-in');
+  const jfnl=document.getElementById('jf-not-logged-in');
+  const jbtn=document.getElementById('join-btn');
+  const jcd=document.getElementById('jf-callsign-display');
+  if(jfli)jfli.style.display=loggedIn?'block':'none';
+  if(jfnl)jfnl.style.display=loggedIn?'none':'block';
+  if(jbtn)jbtn.style.display=loggedIn?'block':'none';
+  if(jcd&&loggedIn)jcd.textContent=playerCallsign||'SOLDIER';
 }
 
 function pickTeam(t){myTeam=t;document.getElementById('tbr').classList.toggle('sel',t==='red');document.getElementById('tbb').classList.toggle('sel',t==='blue');}
