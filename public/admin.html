@@ -2228,7 +2228,10 @@ function rebuildLiveMarkers(){
 function rebuildLiveZones(zones){Object.values(liveMapZoneLayers).forEach(l=>liveMap.removeLayer(l));liveMapZoneLayers={};zones.forEach(addLiveZoneLayer);}
 function addLiveZoneLayer(zone){
   if(!liveMap)return;
-  const col=zone.color||'#cc44ff';const opts={color:col,fillColor:col,fillOpacity:.15,weight:2,dashArray:'5,4'};
+  const col=zone.color||'#cc44ff';
+  const zt=zone.zoneType||'custom';
+  const isBoundary=zt==='boundary';
+  const opts={color:col,fillColor:col,fillOpacity:0,weight:isBoundary?3:2,dashArray:isBoundary?'12,6':zt==='hazard'||zt==='custom'?'6,4':null};
   let layer;
   if(zone.shape==='circle'&&zone.center)layer=L.circle(zone.center,{...opts,radius:zone.radius});
   else if(zone.latlngs&&zone.latlngs.length)layer=L.polygon(zone.latlngs,opts);
@@ -2618,7 +2621,17 @@ function initZeMap(){
   // Zone CREATED is handled by the unified handler on objMap below
   // (getZeMap() === objMap, so registering here would create a duplicate listener)
 }
-function selZT(el){document.querySelectorAll('.zt-opt').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');selectedZT=el.dataset.zt;}
+function selZT(el){
+  document.querySelectorAll('.zt-opt').forEach(x=>x.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedZT=el.dataset.zt;
+  // Auto-fill the label input with a sensible default
+  const lbl=document.getElementById('zlbl');
+  if(lbl&&(!lbl.value||Object.values({respawn_red:'Red Spawn',respawn_blue:'Blue Spawn',objective:'Objective',hazard:'Hazard',safe:'Safe Zone',boundary:'Boundary',custom:'Zone'}).includes(lbl.value))){
+    const defaults={respawn_red:'Red Spawn',respawn_blue:'Blue Spawn',objective:'Objective Zone',hazard:'Hazard Zone',safe:'Safe Zone',boundary:'Boundary',custom:'Zone'};
+    lbl.value=defaults[selectedZT]||'Zone';
+  }
+}
 
 function zeTile(key,el){
   document.querySelectorAll('[data-ze-tile]').forEach(b=>b.classList.remove('on'));
@@ -2654,7 +2667,15 @@ function startZDraw(shape){
   if(objMap&&objMap._dcRef){try{objMap.removeControl(objMap._dcRef);}catch{}objMap._dcRef=null;}
   // NOW set the flag — stays true until CREATED fires
   _zoneToolActive=true;
-  const col=ZC[selectedZT]||'#cc44ff';const opts={color:col,fillColor:col,fillOpacity:.15,weight:2};
+  const col=ZC[selectedZT]||'#cc44ff';
+  // No fill on any zone — boundary gets dashed line, others get solid outline
+  const isBoundary=selectedZT==='boundary';
+  const isHazard=selectedZT==='hazard'||selectedZT==='custom';
+  const opts={
+    color:col,fillColor:col,fillOpacity:0,
+    weight:isBoundary?3:2,
+    dashArray:isBoundary?'12,6':isHazard?'6,4':null
+  };
   const dc=new L.Control.Draw({draw:{polygon:shape==='polygon'?{shapeOptions:opts,showArea:false}:false,circle:shape==='circle'?{shapeOptions:opts}:false,marker:false,circlemarker:false,rectangle:false,polyline:false},edit:{featureGroup:objDrawLayer,edit:false,remove:false}});
   objMap.addControl(dc);objMap._dcRef=dc;
   if(shape==='polygon')new L.Draw.Polygon(objMap,dc.options.draw.polygon).enable();
@@ -2669,7 +2690,10 @@ async function loadZones(){
   const d=await r.json();
   getZeDrawLayer().clearLayers();
   (d.zones||[]).forEach(zone=>{
-    const col=zone.color||'#cc44ff';const opts={color:col,fillColor:col,fillOpacity:.15,weight:2,dashArray:'5,4'};
+    const col=zone.color||'#cc44ff';
+  const zt=zone.zoneType||'custom';
+  const isBoundary=zt==='boundary';
+  const opts={color:col,fillColor:col,fillOpacity:0,weight:isBoundary?3:2,dashArray:isBoundary?'12,6':zt==='hazard'||zt==='custom'?'6,4':null};
     let layer;
     if(zone.shape==='circle'&&zone.center)layer=L.circle(zone.center,{...opts,radius:zone.radius});
     else if(zone.latlngs&&zone.latlngs.length)layer=L.polygon(zone.latlngs,opts);
@@ -2841,7 +2865,7 @@ function objToolPoly(){
   document.getElementById('omt-circle').classList.remove('active');
   if(!objMap)return;
   cancelObjDraw();
-  const dc=new L.Control.Draw({draw:{polygon:{shapeOptions:{color:'#e8c84a',fillOpacity:.15}},polyline:false,rectangle:false,circle:false,marker:false,circlemarker:false},edit:false});
+  const dc=new L.Control.Draw({draw:{polygon:{shapeOptions:{color:'#e8c84a',fillOpacity:0,weight:2}},polyline:false,rectangle:false,circle:false,marker:false,circlemarker:false},edit:false});
   objMap.addControl(dc);_objNewDcRef=dc;
   new L.Draw.Polygon(objMap,dc.options.draw.polygon).enable();
   setObjMapStatus('Click to draw polygon zone vertices — double-click to finish');
@@ -2855,7 +2879,7 @@ function objToolCircle(){
   document.getElementById('omt-circle').classList.add('active');
   if(!objMap)return;
   cancelObjDraw();
-  const dc=new L.Control.Draw({draw:{circle:{shapeOptions:{color:'#e8c84a',fillOpacity:.15}},polygon:false,polyline:false,rectangle:false,marker:false,circlemarker:false},edit:false});
+  const dc=new L.Control.Draw({draw:{circle:{shapeOptions:{color:'#e8c84a',fillOpacity:0,weight:2}},polygon:false,polyline:false,rectangle:false,marker:false,circlemarker:false},edit:false});
   objMap.addControl(dc);_objNewDcRef=dc;
   new L.Draw.Circle(objMap,dc.options.draw.circle).enable();
   setObjMapStatus('Click map centre, then drag to set zone radius');
@@ -2899,9 +2923,11 @@ async function objMapLoad(){
   // Render zones as faint context layers
   d.zones&&d.zones.forEach(z=>{
     if(z.shape==='circle'&&z.center){
-      L.circle(z.center,{radius:z.radius,color:z.color||'#666',fillOpacity:.08,weight:1,dashArray:'4 4'}).addTo(objMarkerLayer);
+      const _zt=z.zoneType||'custom';const _ib=_zt==='boundary';
+      L.circle(z.center,{radius:z.radius,color:z.color||'#666',fillOpacity:0,weight:_ib?2:1,dashArray:_ib?'10,5':'4,4'}).addTo(objMarkerLayer);
     } else if(z.latlngs&&z.latlngs.length>2){
-      L.polygon(z.latlngs,{color:z.color||'#666',fillOpacity:.06,weight:1,dashArray:'4 4'}).addTo(objMarkerLayer);
+      const _zt2=z.zoneType||'custom';const _ib2=_zt2==='boundary';
+      L.polygon(z.latlngs,{color:z.color||'#666',fillOpacity:0,weight:_ib2?2:1,dashArray:_ib2?'10,5':'4,4'}).addTo(objMarkerLayer);
     }
   });
   setObjMapStatus('Map loaded — click PIN or draw a ZONE to position objectives');
@@ -2924,9 +2950,9 @@ function renderObjMarkers(objs){
     if(o.zone){
       const z=o.zone;
       if(z.type==='circle'&&z.center){
-        L.circle(z.center,{radius:z.radius,color:teamCol,fillOpacity:.12,weight:2}).addTo(objMarkerLayer);
+        L.circle(z.center,{radius:z.radius,color:teamCol,fillOpacity:0,weight:2}).addTo(objMarkerLayer);
       } else if(z.latlngs&&z.latlngs.length>2){
-        L.polygon(z.latlngs,{color:teamCol,fillOpacity:.1,weight:2}).addTo(objMarkerLayer);
+        L.polygon(z.latlngs,{color:teamCol,fillOpacity:0,weight:2}).addTo(objMarkerLayer);
       }
     }
   });
